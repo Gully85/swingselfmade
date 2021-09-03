@@ -94,11 +94,11 @@ def main():
 					if the_crane.x > 7:
 						the_crane.x = 7
 				if event.key == K_DOWN or event.key == K_SPACE:
-					column = the_crane.x
-					ongoing_Events.append(ong.FallingBall(the_crane.current_Ball, column+1))
-					the_crane.current_Ball = the_depot.content[column][1]
-					the_depot.content[column][1] = the_depot.content[column][0]
-					the_depot.content[column][0] = bal.generate_starting_Ball()
+					col = the_crane.x
+					ongoing_Events.append(ong.FallingBall(the_crane.current_Ball, col+1))
+					the_crane.current_Ball = the_depot.content[col][1]
+					the_depot.content[col][1] = the_depot.content[col][0]
+					the_depot.content[col][0] = bal.generate_starting_Ball()
 					the_crane.changed = True
 					the_depot.changed = True
 
