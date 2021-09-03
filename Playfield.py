@@ -80,7 +80,7 @@ class Playfield:
 			elif self.content[x+1][y].color == color:
 				return True
 		elif self.content[x+1][y].color == color:
-			return self.content[x+2][y].color == color
+			return self.content[x+2][y].color
 		else:
 			return False
 		
