@@ -105,7 +105,7 @@ def main():
 		
 		## Step 2, proceed ongoing Events
 		for event in ongoing_Events:
-			event.tick(ongoing_Events, playfield.content)
+			event.tick(ongoing_Events, the_playfield)
 		#	if isinstance(event, ong.FallingBall):
 		#		#print(event.col, event.height, falling_per_tick)
 		#		# check if hitting ground in this tick
@@ -144,21 +144,21 @@ def main():
 		if the_depot.changed:
 			drawn_depot = the_depot.draw()
 			screen.blit(drawn_depot, depot_position)
-			#the_depot.changed = False
+			the_depot.changed = False
 		
 		
 		if the_crane.changed:
 			#print("Crane position: ",the_crane.x)
 			drawn_crane = the_crane.draw()
 			screen.blit(drawn_crane, cranearea_position)
-			#the_crane.changed = False
+			the_crane.changed = False
 		
 		if the_playfield.changed:
 			drawn_playfield = the_playfield.draw()
 			for event in ongoing_Events:
 				event.draw(drawn_playfield)
 			screen.blit(drawn_playfield, playfield_position)
-			#the_playfield.changed = False
+			the_playfield.changed = False
 		
 		pygame.display.flip()
 		

@@ -4,6 +4,7 @@
 import Balls as bal
 
 from Constants import ballsize, playfield_ballcoord, playfield_ballspacing, scoring_delay
+from Constants import falling_per_tick
 
 class Ongoing:
 	"""abstract Parent class, should not be instanciated"""
@@ -31,19 +32,24 @@ class FallingBall(Ongoing):
 		y = playfield_ballcoord[1] + (7.-self.height)*playfield_ballspacing[1]
 		self.ball.draw(surf, (x,y))
 		
-	def tick(self, eventQueue, content):
-		new_height = int(event.height - falling_per_tick)
+	def tick(self, eventQueue, playfield):
+		content = playfield.content
+		new_height = int(self.height - falling_per_tick)
 		if new_height > 7: #still higher in the air than where any playfield-Ball could be
-			event.height -= falling_per_tick
-			#the_playfield.changed=True
+			self.height -= falling_per_tick
+			playfield.changed=True
 		elif isinstance(content[self.col][new_height], bal.NotABall):
-			event.height -= falling_per_tick
-			#the_playfield.changed=True
+			self.height -= falling_per_tick
+			playfield.changed=True
 		else:
 			print("reached Ground")
-			x = event.col
+			x = self.col
 			y = new_height+1 # index in content[][.]
-			content[x][y]
+			content[x][y] = self.ball
+			# check Scoring
+			eventQueue.remove(self)
+			playfield.changed=True
+
 		#	if isinstance(event, ong.FallingBall):
 		#		#print(event.col, event.height, falling_per_tick)
 		#		# check if hitting ground in this tick
@@ -84,6 +90,10 @@ class SeesawTilting(Ongoing):
 		# Draw both stacks in current (moving) position over the already drawn stacks on surf. 
 		pass
 
+	def tick(self, eventQueue, playfield):
+		# TODO
+		pass
+
 class Scoring(Ongoing):
 	"""Balls currently scoring points. Vars:
 		coords (list of [int,int] coords in theplayfield.content)
@@ -104,6 +114,9 @@ class Scoring(Ongoing):
 		
 	def draw(self, surf):
 		# TODO
+		pass
+
+	def tick(self, eventQueue, playfield):
 		pass
 
 	def expand(self, content):
