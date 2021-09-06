@@ -103,38 +103,39 @@ def main():
 					the_depot.changed = True
 
 		
-		### Step 2, proceed ongoing Events
+		## Step 2, proceed ongoing Events
 		for event in ongoing_Events:
-			if isinstance(event, ong.FallingBall):
-				#print(event.col, event.height, falling_per_tick)
-				# check if hitting ground in this tick
-				new_height = int(event.height - falling_per_tick)
-				if new_height > 7: #still higher in the air than where any playfield-Ball could be
-					event.height -= falling_per_tick
-					the_playfield.changed=True
-				elif isinstance(the_playfield.content[event.col][new_height], bal.NotABall):
-					event.height -= falling_per_tick
-					the_playfield.changed=True
-				else:
-					print("reached Ground")
-					x = event.col
-					y = new_height+1 # index in the_playfield.content[][.]
-					the_playfield.content[x][y] = event.ball
-					if the_playfield.check_Scoring([x, y]):
-						ongoing_Events.append(ong.Scoring((x,y), event.ball))
-					the_playfield.changed=True
-					ongoing_Events.remove(event)
-			
-			elif isinstance(event, ong.Scoring):
-				# check delay, count down if not yet delayed enough
-				if event.delay > 0:
-					event.delay -= 1
-				else:
-					# TODO remove ball from the_playfield.content, expand Scoring event. 
-					# If on top of a removed Ball is another Ball (and not NotABall), create FallingBall
-					pass
-			else:
-				print("event {} caused a problem. Type not expected. ", event)
+			event.tick(ongoing_Events, playfield.content)
+		#	if isinstance(event, ong.FallingBall):
+		#		#print(event.col, event.height, falling_per_tick)
+		#		# check if hitting ground in this tick
+		#		new_height = int(event.height - falling_per_tick)
+		#		if new_height > 7: #still higher in the air than where any playfield-Ball could be
+		#			event.height -= falling_per_tick
+		#			the_playfield.changed=True
+		#		elif isinstance(the_playfield.content[event.col][new_height], bal.NotABall):
+		#			event.height -= falling_per_tick
+		#			the_playfield.changed=True
+		#		else:
+		#			print("reached Ground")
+		#			x = event.col
+		#			y = new_height+1 # index in the_playfield.content[][.]
+		#			the_playfield.content[x][y] = event.ball
+		#			if the_playfield.check_Scoring([x, y]):
+		#				ongoing_Events.append(ong.Scoring((x,y), event.ball))
+		#			the_playfield.changed=True
+		#			ongoing_Events.remove(event)
+		#	
+		#	elif isinstance(event, ong.Scoring):
+		#		# check delay, count down if not yet delayed enough
+		#		if event.delay > 0:
+		#			event.delay -= 1
+		#		else:
+		#			# TODO remove ball from the_playfield.content, expand Scoring event. 
+		#			# If on top of a removed Ball is another Ball (and not NotABall), create FallingBall
+		#			pass
+		#	else:
+		#		print("event {} caused a problem. Type not expected. ", event)
 		
 		the_playfield.update_weights()
 		
@@ -143,21 +144,21 @@ def main():
 		if the_depot.changed:
 			drawn_depot = the_depot.draw()
 			screen.blit(drawn_depot, depot_position)
-			the_depot.changed = False
+			#the_depot.changed = False
 		
 		
 		if the_crane.changed:
 			#print("Crane position: ",the_crane.x)
 			drawn_crane = the_crane.draw()
 			screen.blit(drawn_crane, cranearea_position)
-			the_crane.changed = False
+			#the_crane.changed = False
 		
 		if the_playfield.changed:
 			drawn_playfield = the_playfield.draw()
 			for event in ongoing_Events:
 				event.draw(drawn_playfield)
 			screen.blit(drawn_playfield, playfield_position)
-			the_playfield.changed = False
+			#the_playfield.changed = False
 		
 		pygame.display.flip()
 		
