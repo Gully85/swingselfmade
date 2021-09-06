@@ -47,31 +47,11 @@ class FallingBall(Ongoing):
 			x = self.col
 			y = new_height+1 # index in content[][.]
 			content[x][y] = self.ball
-			# check Scoring
+			if playfield.check_Scoring([x,y]):
+				print("Scored!")
 			eventQueue.remove(self)
 			playfield.changed=True
 
-		#	if isinstance(event, ong.FallingBall):
-		#		#print(event.col, event.height, falling_per_tick)
-		#		# check if hitting ground in this tick
-		#		new_height = int(event.height - falling_per_tick)
-		#		if new_height > 7: #still higher in the air than where any playfield-Ball could be
-		#			event.height -= falling_per_tick
-		#			the_playfield.changed=True
-		#		elif isinstance(the_playfield.content[event.col][new_height], bal.NotABall):
-		#			event.height -= falling_per_tick
-		#			the_playfield.changed=True
-		#		else:
-		#			print("reached Ground")
-		#			x = event.col
-		#			y = new_height+1 # index in the_playfield.content[][.]
-		#			the_playfield.content[x][y] = event.ball
-		#			if the_playfield.check_Scoring([x, y]):
-		#				ongoing_Events.append(ong.Scoring((x,y), event.ball))
-		#			the_playfield.changed=True
-		#			ongoing_Events.remove(event)		
-		
-		
 
 class SeesawTilting(Ongoing):
 	"""A seesaw that is shifting position over time. Vars:

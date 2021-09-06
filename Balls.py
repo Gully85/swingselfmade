@@ -16,6 +16,8 @@ from pygame import Rect, font, Surface
 import pygame
 ballfont = font.SysFont("monospace", 24)
 
+import random
+
 
 # size of Balls in pixels. Is fix for now
 from Constants import ballsize
@@ -81,7 +83,6 @@ class Special_Ball(Ball):
 		pass #TODO
 		
 def generate_starting_Ball():
-	import random
 	color = random.randint(1,4)
 	weight= random.randint(1,4)
 	the_ball = Colored_Ball(color, weight)
