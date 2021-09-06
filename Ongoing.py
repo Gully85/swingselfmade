@@ -4,6 +4,7 @@
 import Balls as bal
 
 from Constants import ballsize, playfield_ballcoord, playfield_ballspacing, scoring_delay
+
 from Constants import falling_per_tick
 
 class Ongoing:
@@ -31,7 +32,7 @@ class FallingBall(Ongoing):
 		x = playfield_ballcoord[0] + (self.col-1)*playfield_ballspacing[0]
 		y = playfield_ballcoord[1] + (7.-self.height)*playfield_ballspacing[1]
 		self.ball.draw(surf, (x,y))
-		
+
 	def tick(self, eventQueue, playfield):
 		content = playfield.content
 		new_height = int(self.height - falling_per_tick)
@@ -71,6 +72,7 @@ class FallingBall(Ongoing):
 		#			ongoing_Events.remove(event)		
 		
 		
+
 class SeesawTilting(Ongoing):
 	"""A seesaw that is shifting position over time. Vars:
 		sesa (int, allowed values 0-3, from left to right. Tilting are columns 1+2*sesa and 2+2*sesa in theplayfield.content[.][])
@@ -90,9 +92,11 @@ class SeesawTilting(Ongoing):
 		# Draw both stacks in current (moving) position over the already drawn stacks on surf. 
 		pass
 
+
 	def tick(self, eventQueue, playfield):
 		# TODO
 		pass
+
 
 class Scoring(Ongoing):
 	"""Balls currently scoring points. Vars:
@@ -115,6 +119,7 @@ class Scoring(Ongoing):
 	def draw(self, surf):
 		# TODO
 		pass
+
 
 	def tick(self, eventQueue, playfield):
 		pass
