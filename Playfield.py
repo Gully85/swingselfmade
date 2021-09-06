@@ -66,7 +66,6 @@ class Playfield:
 		
 	def check_Scoring(self, coords):
 		"""True if the Ball at the given coords should start a Scoring. It must be part of a horizontal 3-line for that."""
-		# TODO testen
 		x,y = coords
 		content = self.content
 		ball = content[x][y]
@@ -79,16 +78,19 @@ class Playfield:
 		
 		# catch the edge cases (coords are at the far-left or far-right) separately. If no edge case, [x-2] and [x+2]
 		# can be accessed safely (might be Ball.Blocked objects with color=-1)
-		print("Entering scoring check at ",coords)
 		
+		#print("Entering scoring check at ",coords)
 		if x == 1:
+			#print("left edge, scored")
 			return content[2][y].color == color and content[3][y].color == color
 		elif x == 8:
+			#print("right edge, scored")
 			return content[7][y].color == color and content[6][y].color == color
 		else:
-			return (( content[x-2][y].color == color and content[x-1][y] == color ) or
-				   (  content[x-1][y].color == color and content[x+1][y] == color ) or
-				   (  content[x+1][y].color == color and content[x+2][y] == color ))
+			#print("colors of the 5 balls to check: ", content[x-2][y].color, content[x-1][y].color, content[x][y].color, content[x+1][y].color, content[x+2][y].color)
+			return (( content[x-2][y].color == color and content[x-1][y].color == color ) or
+				   (  content[x-1][y].color == color and content[x+1][y].color == color ) or
+				   (  content[x+1][y].color == color and content[x+2][y].color == color ))
 
 
 	def draw(self):

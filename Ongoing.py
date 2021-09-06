@@ -49,6 +49,9 @@ class FallingBall(Ongoing):
 			content[x][y] = self.ball
 			if playfield.check_Scoring([x,y]):
 				print("Scored!")
+				eventQueue.append(Scoring([x,y], self.ball))
+			else:
+				content[x][y] = self.ball
 			eventQueue.remove(self)
 			playfield.changed=True
 
@@ -80,7 +83,8 @@ class SeesawTilting(Ongoing):
 
 class Scoring(Ongoing):
 	"""Balls currently scoring points. Vars:
-		coords (list of [int,int] coords in theplayfield.content)
+		coords_past (list of [int,int], refers to coords in Playfield.content). Coords of all Balls that were already scored
+		coords_next (list of [int,int], refers to coords in Playfield.content). Coords of all Balls that should check their neighbors at next expand().
 		color (int, corresponds to Ball.color)
 		balls_so_far (int)
 		totalweight_so_far (int)
@@ -90,20 +94,27 @@ class Scoring(Ongoing):
 	"""
 	
 	def __init__(self, coords, ball):
-		self.coords = [coords]
+		self.coords_past = [[]]
+		self.coords_next = [coords]
 		self.color = ball.color
 		self.balls_so_far = 1
 		self.totalweight_so_far = ball.weight
 		self.delay = scoring_delay
 		
 	def draw(self, surf):
-		# TODO
+		# TODO put a placeholder. Different for past and present
 		pass
-
 
 	def tick(self, eventQueue, playfield):
-		pass
+		"""should be called once per tick. counts down delay, expands if zero was reached. If no expansion, removes this from the eventQueue"""
+		self.delay -= 1
+		if self.delay == 0:
+			if self.expand(playfield):
+				self.delay = scoring_delay
+			else:
+				eventQueue.remove(self)
+				# TODO score and display
 
-	def expand(self, content):
-		# TODO
-		pass
+	def expand(self, playfield):
+		"""checks if neighboring balls are same color, Scores them if yes. Returns True if the Scoring grew."""
+		
