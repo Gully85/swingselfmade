@@ -1,5 +1,9 @@
 # provides all possible ongoing events. Atm these are:
-# - FallingBall. Ball, int col (1 through 8, matching index in Playfield.content[.]), float height
+# - FallingBall. Ball that is lowering over time and soon landing
+# - SeesawTilting. One of the four seesaws shifts position because weights have changed recently
+# - Scoring. 3 horizontal are expanding, then remove the Balls and score points.
+
+# all must have a .draw(surf) and a .tick(eventQueue, playfield) method.
 
 import Balls as bal
 
@@ -83,23 +87,22 @@ class SeesawTilting(Ongoing):
 
 class Scoring(Ongoing):
 	"""Balls currently scoring points. Vars:
-		coords_past (list of [int,int], refers to coords in Playfield.content). Coords of all Balls that were already scored
-		coords_next (list of [int,int], refers to coords in Playfield.content). Coords of all Balls that should check their neighbors at next expand().
+		past (list of [int,int], refers to coords in Playfield.content). Coords of all Balls that were already scored
+		next (list of [int,int], refers to coords in Playfield.content). Coords of all Balls that should check their neighbors at next expand().
 		color (int, corresponds to Ball.color)
-		balls_so_far (int)
-		totalweight_so_far (int)
 		delay (int, counting down from scoring_delay. Number of ticks until Scoring will expand next)
+		weight_so_far (int)
 		
 		Constructor: Scoring((x,y), ball)
 	"""
 	
 	def __init__(self, coords, ball):
-		self.coords_past = [[]]
-		self.coords_next = [coords]
+		self.past = []
+		self.next = [coords]
 		self.color = ball.color
-		self.balls_so_far = 1
-		self.totalweight_so_far = ball.weight
+		print("New Scoring, color=",self.color)
 		self.delay = scoring_delay
+		self.weight_so_far = ball.weight
 		
 	def draw(self, surf):
 		# TODO put a placeholder. Different for past and present
@@ -107,8 +110,9 @@ class Scoring(Ongoing):
 
 	def tick(self, eventQueue, playfield):
 		"""should be called once per tick. counts down delay, expands if zero was reached. If no expansion, removes this from the eventQueue"""
+		#print(self, self.delay)
 		self.delay -= 1
-		if self.delay == 0:
+		if self.delay < 0:
 			if self.expand(playfield):
 				self.delay = scoring_delay
 			else:
@@ -116,5 +120,39 @@ class Scoring(Ongoing):
 				# TODO score and display
 
 	def expand(self, playfield):
-		"""checks if neighboring balls are same color, Scores them if yes. Returns True if the Scoring grew."""
+		"""checks if neighboring balls are same color, adds them to self.coords_next if yes. Returns True if the Scoring grew."""
+		# TODO if on top of a scored Ball is a (not color matching) Ball, convert it into a FallingBall. And all Balls on top of that.
+
+		now = self.next
+		self.next = []
+		color = self.color
+		#print("Expanding Scoring. Color=",color," past=",self.past, "now=",now)
+		for coords in now:
+			self.past.append(coords)
+			x,y = coords
+			playfield.content[x][y] = bal.NotABall()
+			if playfield.content[x-1][y].color == color:
+				self.next.append([x-1,y])
+				self.weight_so_far += playfield.content[x-1][y].weight
+				playfield.content[x-1][y] = bal.NotABall()
+			if playfield.content[x+1][y].color == color:
+				self.next.append([x+1,y])
+				self.weight_so_far += playfield.content[x+1][y].weight
+				playfield.content[x+1][y] = bal.NotABall()
+			if playfield.content[x][y-1].color == color:
+				self.next.append([x,y-1])
+				self.weight_so_far += playfield.content[x][y-1].weight
+				playfield.content[x][y-1] = bal.NotABall()
+			if playfield.content[x][y+1].color == color:
+				self.next.append([x,y+1])
+				self.weight_so_far += playfield.content[x][y+1].weight
+				playfield.content[x][y+1] = bal.NotABall()
+		#print("more matching Ball found: next=",self.next)
+		if len(self.next) > 0:
+			playfield.changed = True
+			return True
+		else:
+			score = len(self.past) * self.weight_so_far
+			print("Score from this: ",score)
+			return False
 		

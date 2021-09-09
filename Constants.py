@@ -19,7 +19,7 @@ tilting_per_tick = tilting_speed / max_FPS
 # speed of Scoring. How fast does ball-removing travel (in Balls/sec)
 scoring_speed = 5.0
 # delay in ticks until next stage of scoring
-scoring_delay = int(scoring_speed / max_FPS)
+scoring_delay = int(max_FPS / scoring_speed)
 
 
 # width, height of the canvas
