@@ -4,6 +4,7 @@
 import Balls as bal
 
 from Constants import ballsize, playfield_ballcoord, playfield_ballspacing, scoring_delay
+from Constants import falling_per_tick
 
 class Ongoing:
 	"""abstract Parent class, should not be instanciated"""
@@ -21,16 +22,55 @@ class FallingBall(Ongoing):
 	
 	# Note to myself: Make sure that FallingBalls in the same col are at least 1.0 height apart
 	
-	def __init__(self, ball, col, starting_height=8.0):
+	def __init__(self, ball, column, starting_height=8.0):
 		self.ball = ball
-		self.col = col
+		self.column = column
 		self.height = starting_height
 		
 	def draw(self, surf):
-		x = playfield_ballcoord[0] + (self.col-1)*playfield_ballspacing[0]
+		x = playfield_ballcoord[0] + (self.column-1)*playfield_ballspacing[0]
 		y = playfield_ballcoord[1] + (7.-self.height)*playfield_ballspacing[1]
 		self.ball.draw(surf, (x,y))
 		
+	def tick(self, eventQueue, playfield):
+		content = playfield.content
+		new_height = int(self.height - falling_per_tick)
+		if new_height > 7: #still higher in the air than where any playfield-Ball could be
+			self.height -= falling_per_tick
+			playfield.changed=True
+		elif isinstance(content[self.column][new_height], bal.NotABall):
+			self.height -= falling_per_tick
+			playfield.changed=True
+		else:
+			print("reached Ground")
+			x = self.column
+			y = new_height+1 # index in content[][.]
+			content[x][y] = self.ball
+			# check Scoring
+			eventQueue.remove(self)
+			playfield.changed=True
+
+		#	if isinstance(event, ong.FallingBall):
+		#		#print(event.col, event.height, falling_per_tick)
+		#		# check if hitting ground in this tick
+		#		new_height = int(event.height - falling_per_tick)
+		#		if new_height > 7: #still higher in the air than where any playfield-Ball could be
+		#			event.height -= falling_per_tick
+		#			the_playfield.changed=True
+		#		elif isinstance(the_playfield.content[event.col][new_height], bal.NotABall):
+		#			event.height -= falling_per_tick
+		#			the_playfield.changed=True
+		#		else:
+		#			print("reached Ground")
+		#			x = event.col
+		#			y = new_height+1 # index in the_playfield.content[][.]
+		#			the_playfield.content[x][y] = event.ball
+		#			if the_playfield.check_Scoring([x, y]):
+		#				ongoing_Events.append(ong.Scoring((x,y), event.ball))
+		#			the_playfield.changed=True
+		#			ongoing_Events.remove(event)
+
+
 class SeesawTilting(Ongoing):
 	"""A seesaw that is shifting position over time. Vars:
 		sesa (int, allowed values 0-3, from left to right. Tilting are columns 1+2*sesa and 2+2*sesa in theplayfield.content[.][])
@@ -48,6 +88,10 @@ class SeesawTilting(Ongoing):
 	def draw(self, surf):
 		# TODO. Draw blocked areas partially, according to self.progress. 
 		# Draw both stacks in current (moving) position over the already drawn stacks on surf. 
+		pass
+
+	def tick(self, eventQueue, playfield):
+		# TODO
 		pass
 
 class Scoring(Ongoing):
@@ -70,6 +114,9 @@ class Scoring(Ongoing):
 		
 	def draw(self, surf):
 		# TODO
+		pass
+
+	def tick(self, eventQueue, playfield):
 		pass
 
 	def expand(self, content):
