@@ -99,43 +99,20 @@ def main():
 					the_crane.current_Ball = the_depot.content[column][1]
 					the_depot.content[column][1] = the_depot.content[column][0]
 					the_depot.content[column][0] = bal.generate_starting_Ball()
+
+					column = the_crane.x
+					ongoing_Events.append(ong.FallingBall(the_crane.current_Ball, column+1))
+					the_crane.current_Ball = the_depot.content[column][1]
+					the_depot.content[column][1] = the_depot.content[column][0]
+					the_depot.content[column][0] = bal.generate_starting_Ball()
 					the_crane.changed = True
 					the_depot.changed = True
 
-		
+
 		## Step 2, proceed ongoing Events
+		#print (ongoing_Events)
 		for event in ongoing_Events:
-			event.tick(ongoing_Events, the_playfield)
-		#	if isinstance(event, ong.FallingBall):
-		#		#print(event.col, event.height, falling_per_tick)
-		#		# check if hitting ground in this tick
-		#		new_height = int(event.height - falling_per_tick)
-		#		if new_height > 7: #still higher in the air than where any playfield-Ball could be
-		#			event.height -= falling_per_tick
-		#			the_playfield.changed=True
-		#		elif isinstance(the_playfield.content[event.col][new_height], bal.NotABall):
-		#			event.height -= falling_per_tick
-		#			the_playfield.changed=True
-		#		else:
-		#			print("reached Ground")
-		#			x = event.col
-		#			y = new_height+1 # index in the_playfield.content[][.]
-		#			the_playfield.content[x][y] = event.ball
-		#			if the_playfield.check_Scoring([x, y]):
-		#				ongoing_Events.append(ong.Scoring((x,y), event.ball))
-		#			the_playfield.changed=True
-		#			ongoing_Events.remove(event)
-		#
-		#	elif isinstance(event, ong.Scoring):
-		#		# check delay, count down if not yet delayed enough
-		#		if event.delay > 0:
-		#			event.delay -= 1
-		#		else:
-		#			# TODO remove ball from the_playfield.content, expand Scoring event.
-		#			# If on top of a removed Ball is another Ball (and not NotABall), create FallingBall
-		#			pass
-		#	else:
-		#		print("event {} caused a problem. Type not expected. ", event)
+			event.tick(the_playfield, ongoing_Events)
 		
 		the_playfield.update_weights()
 		

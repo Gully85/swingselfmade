@@ -5,6 +5,7 @@
 
 # Balls have a draw() method. 
 # Balls have a color attribute, for Scoring. color=-1 means colorless, never Scoring.
+# The attribute isBall is True for ColoredBall and SpecialBall, and False for the placeholder-Dummys NotABall and Blocked. 
 
 
 
@@ -16,6 +17,8 @@ from pygame import Rect, font, Surface
 import pygame
 ballfont = font.SysFont("monospace", 24)
 
+import random
+
 
 # size of Balls in pixels. Is fix for now
 from Constants import ballsize
@@ -26,9 +29,10 @@ class Ball:
 
 class NotABall(Ball):
 	"""Dummy class for places where there is no Ball. Empty Constructor."""
-	# never change these globals, static var for all NotABalls
+	# never change these globals, static vars for all NotABalls
 	weight=0
 	color =-1
+	isBall = False
 	def __init__(self):
 		pass
 	
@@ -40,6 +44,7 @@ class Blocked(Ball):
 	# never change these globals, static var for all Blockeds
 	weight=0
 	color=-1
+	isBall = False
 	def __init__(self):
 		pass
 	
@@ -50,7 +55,8 @@ class Blocked(Ball):
 
 class Colored_Ball(Ball):
 	"""Child-class of Ball. Has a color (int, 1 <= color <= maxcolors) and a weight (int, 0 <= weight <= INT_MAX). Constructor is Colored_Ball(color, weight)."""
-	
+	# never change these globals, static for all ColoredBalls
+	isBall = True
 	def __init__(self, color, weight):
 		self.color = color
 		self.weight= weight
@@ -73,7 +79,8 @@ class Special_Ball(Ball):
 	1: Bomb. Upon landing, destroy all neighboring Balls (3x3 area centered on the Bomb spot). 
 	Constructor is Special_Ball(type)"""
 	
-	weight = 0 # shared var by all Special_Balls. Never change this.
+	weight = 0 # shared static var by all Special_Balls. Never change this.
+	isBall = True
 	def __init__(self, type):
 		self.type = type
 	
@@ -81,7 +88,6 @@ class Special_Ball(Ball):
 		pass #TODO
 		
 def generate_starting_Ball():
-	import random
 	color = random.randint(1,4)
 	weight= random.randint(1,4)
 	the_ball = Colored_Ball(color, weight)

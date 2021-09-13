@@ -66,25 +66,33 @@ class Playfield:
 		
 	def check_Scoring(self, coords):
 		"""True if the Ball at the given coords should start a Scoring. It must be part of a horizontal 3-line for that."""
-		# TODO testen
 		x,y = coords
-		ball = self.content[x][y]
+		content = self.content
+		ball = content[x][y]
 		color = ball.color
 		# The ball itself has the correct color. Three possible cases: 
 		# 1-Left and 2-Left have the correct color
 		# 1-Left and 1-Right 
 		# 1-Right and 2-Right
-		if self.content[x-1][y].color == color:
-			if self.content[x-2][y].color == color:
-				return True
-			elif self.content[x+1][y].color == color:
-				return True
-		elif self.content[x+1][y].color == color:
-			return self.content[x+2][y].color == color
+		# Difficulty: Can't access self.content[x-2] or [x+2] blindly, that would sometimes be out of array bounds.
+		
+		# catch the edge cases (coords are at the far-left or far-right) separately. If no edge case, [x-2] and [x+2]
+		# can be accessed safely (might be Ball.Blocked objects with color=-1)
+		
+		#print("Entering scoring check at ",coords)
+		if x == 1:
+			#print("left edge, scored")
+			return content[2][y].color == color and content[3][y].color == color
+		elif x == 8:
+			#print("right edge, scored")
+			return content[7][y].color == color and content[6][y].color == color
 		else:
-			return False
-		
-		
+			#print("colors of the 5 balls to check: ", content[x-2][y].color, content[x-1][y].color, content[x][y].color, content[x+1][y].color, content[x+2][y].color)
+			return (( content[x-2][y].color == color and content[x-1][y].color == color ) or
+				   (  content[x-1][y].color == color and content[x+1][y].color == color ) or
+				   (  content[x+1][y].color == color and content[x+2][y].color == color ))
+
+
 	def draw(self):
 		"""draws the Playfield including all Balls. Returns surface."""
 		self.surf.fill((127,127,127))
