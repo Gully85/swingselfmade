@@ -107,7 +107,7 @@ def main():
 		## Step 2, proceed ongoing Events
 		#print (ongoing_Events)
 		for event in ongoing_Events:
-			event.tick(ongoing_Events, the_playfield)
+			event.tick(the_playfield, ongoing_Events)
 		
 		the_playfield.update_weights()
 		
