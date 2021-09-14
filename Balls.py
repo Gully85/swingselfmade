@@ -6,6 +6,8 @@
 # Balls have a draw() method. 
 # Balls have a color attribute, for Scoring. color=-1 means colorless, never Scoring.
 # The attribute isBall is True for ColoredBall and SpecialBall, and False for the placeholder-Dummys NotABall and Blocked. 
+# Balls have a land() method. On placeholders it throws an error, ColoredBalls execute weight-check and scoring-check, 
+# 	SpecialBalls trigger the effect of their specialty
 
 
 
@@ -23,6 +25,8 @@ import random
 # size of Balls in pixels. Is fix for now
 from Constants import ballsize
 
+from Ongoing import Scoring
+
 class Ball:
 	"""Parent class for Colored and Special Balls. Abstract class, should not be instanciated."""
 	pass
@@ -38,6 +42,9 @@ class NotABall(Ball):
 	
 	def draw(self, surf, drawpos):
 		pass
+	
+	def land(self, coords, playfield, eventQueue):
+		raise DummyBallError("Dummy NotABall landed at ",coords,", this should never happen.")
 
 class Blocked(Ball):
 	"""Dummy class for positions blocked by the seesaw state"""
@@ -52,6 +59,8 @@ class Blocked(Ball):
 		"""just a black rectangle for now"""
 		pygame.draw.rect(surf, (0,0,0), pygame.Rect(drawpos, ballsize))
 		
+	def land(self, coords, playfield, eventQueue):
+		raise DummyBallError("Dummy Blocked landed at ",coord,", this should never happen.")
 
 class Colored_Ball(Ball):
 	"""Child-class of Ball. Has a color (int, 1 <= color <= maxcolors) and a weight (int, 0 <= weight <= INT_MAX). Constructor is Colored_Ball(color, weight)."""
@@ -70,10 +79,41 @@ class Colored_Ball(Ball):
 		posx = drawpos[0]+0.2*ballsize[0]
 		posy = drawpos[1]+0.2*ballsize[1]
 		surf.blit(weighttext, (posx, posy))
+	
+	def land(self, coords, playfield, eventQueue):
+		x,y = coords
+		### check if the seesaw will stay in position
+		# index of neighboring stack. x+1 if x is even (check x%2==0), x-1 if x is odd
+		neighbor = x+1 - 2*(x%2==0)
+		# indices in playfield.weights are 0..7, indices in playfield.content[.][] are 1..8. Shift by one.
+		weightx = playfield.weights[x-1]
+		weightneighbor = playfield.weights[neighbor-1]
+		if weightneighbor < weightx:
+			sesa_will_move = False #dropping on the already heavier side
+		elif weightneighbor == weightx:
+			sesa_will_move = (self.weight > 0)
+		else:
+			sesa_will_move = (self.weight >= (weightneighbor - weightx))
+		
+		sesa_will_move = False # test
+		### if yes, start moving
+		if sesa_will_move:
+			#TODO
+			pass
+		else:
+			playfield.content[x][y] = self
+			if playfield.check_Scoring(coords):
+				print("Scored!")
+				eventQueue.append(Scoring(coords, self))
+			else:
+				playfield.content[x][y] = self
+		
+		#eventQueue.remove(self)
 		
 
+
 class Special_Ball(Ball):
-	"""Child-class of Ball. Has weight=0 and type (int, 0 < type <= 1).
+	"""Child-class of Ball. Has weight=0 and type (int, 0 < type <= 1, this will grow as more types are added).
 	Types are (for now):
 	0: Joker. Counts as any color for the purpose of Scoring a horizontal.
 	1: Bomb. Upon landing, destroy all neighboring Balls (3x3 area centered on the Bomb spot). 

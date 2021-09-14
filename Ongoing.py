@@ -40,24 +40,32 @@ class FallingBall(Ongoing):
 	def tick(self, playfield, eventQueue):
 		content = playfield.content
 		new_height = int(self.height - falling_per_tick)
+		playfield.changed=True
 		if new_height > 7: #still higher in the air than where any playfield-Ball could be
 			self.height -= falling_per_tick
-			playfield.changed=True
 		elif isinstance(content[self.col][new_height], bal.NotABall):
 			self.height -= falling_per_tick
-			playfield.changed=True
 		else:
 			print("reached Ground")
 			x = self.col
 			y = new_height+1 # index in content[][.]
-			content[x][y] = self.ball
-			if playfield.check_Scoring([x,y]):
-				print("Scored!")
-				eventQueue.append(Scoring([x,y], self.ball))
-			else:
-				content[x][y] = self.ball
+			self.ball.land((x,y), playfield, eventQueue)
 			eventQueue.remove(self)
-			playfield.changed=True
+			
+		#content[x][y] = self.ball
+		## check if the seesaw will stay in position. Only then can a Scoring start
+		## columns are 1...8 (included). If x is even (check if x%2==0), the neighbor is x+1, else x-1
+		## keep in mind that playfield.weights is off-by-one, index can be 0..7.
+		#neighbor = x+1 - 2*(x%2 == 0)
+		#neighborweight=playfield.weights[neighbor-1]
+		#xstackweigh
+		#if playfield.check_Scoring([x,y]):
+		#	print("Scored!")
+		#	eventQueue.append(Scoring([x,y], self.ball))
+		#else:
+		#	content[x][y] = self.ball
+		#eventQueue.remove(self)
+		#playfield.changed=True
 
 
 class SeesawTilting(Ongoing):
