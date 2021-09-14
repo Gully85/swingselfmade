@@ -91,5 +91,5 @@ def generate_starting_Ball():
 	color = random.randint(1,4)
 	weight= random.randint(1,4)
 	the_ball = Colored_Ball(color, weight)
-	print("Generating random Ball. Color={}, Weight={}.".format(color,weight))
+	#print("Generating random Ball. Color={}, Weight={}.".format(color,weight))
 	return the_ball

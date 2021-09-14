@@ -26,10 +26,10 @@ class Playfield:
 	Constructor takes size in pixels."""
 	
 	def __init__(self, size):
-		self.content = [[ Blocked(),Blocked(),Blocked(),Blocked(), Blocked(),Blocked(),Blocked(),Blocked() ]]
+		self.content = [[ Blocked(),Blocked(),Blocked(),Blocked(), Blocked(),Blocked(),Blocked(),Blocked(),Blocked ]]
 		for i in range(8):
-			self.content.append([ Blocked(),NotABall(),NotABall(),NotABall(), NotABall(),NotABall(),NotABall(),NotABall() ])
-		self.content.append([ Blocked(),Blocked(),Blocked(),Blocked(), Blocked(),Blocked(),Blocked(),Blocked() ])
+			self.content.append([ Blocked(),NotABall(),NotABall(),NotABall(), NotABall(),NotABall(),NotABall(),NotABall(),Blocked() ])
+		self.content.append([ Blocked(),Blocked(),Blocked(),Blocked(), Blocked(),Blocked(),Blocked(),Blocked(),Blocked() ])
 		
 		self.weights = [0,0,0,0, 0,0,0,0]
 		self.seesaws = [0,  0,   0,  0]
