@@ -25,7 +25,7 @@ import random
 # size of Balls in pixels. Is fix for now
 from Constants import ballsize
 
-from Ongoing import Scoring
+from Ongoing import Scoring, SeesawTilting
 
 class Ball:
 	"""Parent class for Colored and Special Balls. Abstract class, should not be instanciated."""
@@ -82,24 +82,51 @@ class Colored_Ball(Ball):
 	
 	def land(self, coords, playfield, eventQueue):
 		x,y = coords
+		landingleft = (x%2==1) # landed on the left or the right side of a seesaw?
 		### check if the seesaw will stay in position
-		# index of neighboring stack. x+1 if x is even (check x%2==0), x-1 if x is odd
-		neighbor = x+1 - 2*(x%2==0)
+		# index of neighboring stack. x+1 if landed left, x-1 if landed right
+		neighbor = x-1 + 2*landingleft
 		# indices in playfield.weights are 0..7, indices in playfield.content[.][] are 1..8. Shift by one.
 		weightx = playfield.weights[x-1]
 		weightneighbor = playfield.weights[neighbor-1]
 		if weightneighbor < weightx:
 			sesa_will_move = False #dropping on the already heavier side
 		elif weightneighbor == weightx:
-			sesa_will_move = (self.weight > 0)
+			if self.weight > 0:
+				sesa_will_move = True
+				new_state = 1 - 2*landingleft
 		else:
 			sesa_will_move = (self.weight >= (weightneighbor - weightx))
+			# new_state is -1 if the ball landed left. That is the case if x is odd. If not, +1
+			new_state = -1 + 2*(x%2==0)
 		
-		sesa_will_move = False # test
 		### if yes, start moving
 		if sesa_will_move:
-			#TODO
-			pass
+			sesa_index = (x-1)//2
+			old_state = playfield.seesaws[sesa_index]
+			
+			eventQueue.append(SeesawTilting(sesa_index, old_state, new_state))
+			# Three cases are possible: a) new sesa position is balanced, b) sesa moves from balanced to tilted, 
+			# c) from one-side-heavier to other-side-heavier. b and c throw the top Ball if it exists
+			if new_state==0 or old_state==0:
+				# move landing stack down by one
+				for height in range(0, y):
+					playfield.content[x][height] = playfield.content[x][height+1]
+				playfield.content[x][y] = self
+				# move neighboring stack up by one, insert a Blocked at the bottom
+				for height in range(8, 1, -1):
+					playfield.content[neighbor][height] = playfield.content[neighbor][height-1]
+				playfield.content[neighbor][0] = Blocked()
+				# TODO if old_state==0: obersten Ball werfen, falls er existiert
+			else:
+				# move landing stack down by two. Can safely assume two Blocked at the bottom
+				for height in range(0, y-1):
+					playfield.content[x][height] = playfield.content[x][height+2]
+				playfield.content[x][y] = self
+				# move neighboring stack up by two, insert two Blocked at the bottom
+				for height in range(8, 2, -1):
+					pass
+		### if not, check for Scoring or just place the Ball
 		else:
 			playfield.content[x][y] = self
 			if playfield.check_Scoring(coords):
@@ -107,6 +134,7 @@ class Colored_Ball(Ball):
 				eventQueue.append(Scoring(coords, self))
 			else:
 				playfield.content[x][y] = self
+				playfield.update_weights()
 		
 		#eventQueue.remove(self)
 		

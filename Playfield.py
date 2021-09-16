@@ -14,28 +14,35 @@ weightdisplayfont = font.SysFont("Arial", 12)
 
 class Playfield:
 	"""Information about the current Playfield. Variables:
-		content (10x8 array of either NotABall or Blocked or Balls). Leftmost and Rightmost 
+		content (10x9 array of either NotABall or Blocked or Balls). Leftmost and Rightmost 
 			cols are all Blocked, as a dummy, to simplify boundaries. Second index counts y from 
-			bottom (index=0) to highest position (index=7).
+			bottom (index=0) to highest position (index=7). At y=8 there should always be NotABall
 		weights (8 ints, left to right). Keep in mind that content has a dummy row: weights[0] is 
 			the total weight of all Balls in content[1][.]
-		seesaw (4 ints, left to right). 0 indicates equal 
+		seesaws (4 ints, left to right). 0 indicates equal 
 			weights, -1 for heavier left, +1 for heavier right).
 		size (2 ints). Size of drawing are in px
 		surf (pygame.Surface)
 	Constructor takes size in pixels."""
 	
 	def __init__(self, size):
-		self.content = [[ Blocked(),Blocked(),Blocked(),Blocked(), Blocked(),Blocked(),Blocked(),Blocked(),Blocked ]]
+		self.content = [[ Blocked(),Blocked(),Blocked(),Blocked(), Blocked(),Blocked(),Blocked(),Blocked(),NotABall() ]]
 		for i in range(8):
-			self.content.append([ Blocked(),NotABall(),NotABall(),NotABall(), NotABall(),NotABall(),NotABall(),NotABall(),Blocked() ])
-		self.content.append([ Blocked(),Blocked(),Blocked(),Blocked(), Blocked(),Blocked(),Blocked(),Blocked(),Blocked() ])
+			self.content.append([ Blocked(),NotABall(),NotABall(),NotABall(), NotABall(),NotABall(),NotABall(),NotABall(),NotABall() ])
+		self.content.append([ Blocked(),Blocked(),Blocked(),Blocked(), Blocked(),Blocked(),Blocked(),Blocked(),NotABall() ])
 		
 		self.weights = [0,0,0,0, 0,0,0,0]
 		self.seesaws = [0,  0,   0,  0]
 		self.size = size
 		self.surf = Surface(size)
 		self.changed = True # if anything changed since the last tick
+
+	def check_alive(self):
+		"""True if all topmost positions in self.content are NotABall. Player loses if any stack gets too high"""
+		for x in range(1,9):
+			if not isinstance(self.content[x][8], NotABall):
+				return False
+		return True
 		
 	def update_weights(self):
 		"""calculate all weights"""

@@ -9,7 +9,7 @@ import Balls as bal
 
 from Constants import ballsize, playfield_ballcoord, playfield_ballspacing, scoring_delay
 
-from Constants import falling_per_tick
+from Constants import falling_per_tick, tilting_per_tick
 
 class Ongoing:
 	"""abstract Parent class, should not be instanciated"""
@@ -51,21 +51,7 @@ class FallingBall(Ongoing):
 			y = new_height+1 # index in content[][.]
 			self.ball.land((x,y), playfield, eventQueue)
 			eventQueue.remove(self)
-			
-		#content[x][y] = self.ball
-		## check if the seesaw will stay in position. Only then can a Scoring start
-		## columns are 1...8 (included). If x is even (check if x%2==0), the neighbor is x+1, else x-1
-		## keep in mind that playfield.weights is off-by-one, index can be 0..7.
-		#neighbor = x+1 - 2*(x%2 == 0)
-		#neighborweight=playfield.weights[neighbor-1]
-		#xstackweigh
-		#if playfield.check_Scoring([x,y]):
-		#	print("Scored!")
-		#	eventQueue.append(Scoring([x,y], self.ball))
-		#else:
-		#	content[x][y] = self.ball
-		#eventQueue.remove(self)
-		#playfield.changed=True
+
 
 
 class SeesawTilting(Ongoing):
@@ -74,13 +60,18 @@ class SeesawTilting(Ongoing):
 		before (int, -1 or 0 or +1, seesaw state before tilting)
 		after (int, -1 or 0 or +1, seesaw state after tilting). Must be different to before.
 		progress (float, 0.0 to 1.0, counts up until tilt is finished)
+
+		Constructor: SeesawTilting(sesa, before, after, playfield, eventQueue).
+		When the Constructor is called, it will put the playfield.content columns in the positions of the final state. If needed, it will throw the top Ball and create&add a ThrownBall to the eventQueue
 	"""
-	
+
 	def __init__(self, sesa, before, after):
 		self.sesa = sesa
 		self.before = before
 		self.after = after
 		self.progress = 0.0
+		if before == after:
+			raise ValueError("can not tilt seesaw ",sesa," from position",before,"to the same one.")
 		
 	def draw(self, surf):
 		# TODO. Draw blocked areas partially, according to self.progress. 
@@ -88,9 +79,11 @@ class SeesawTilting(Ongoing):
 		pass
 
 
-	def tick(self, eventQueue, playfield):
-		# TODO
-		pass
+	def tick(self, playfield, eventQueue):
+		self.progress += tilting_per_tick
+		if self.progress >= 1.0:
+			eventQueue.remove(self)
+		playfield.changed = True
 
 
 class Scoring(Ongoing):
