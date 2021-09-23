@@ -7,7 +7,7 @@
 max_FPS = 20
 
 # speed of falling Balls, in tiles/sec
-falling_speed = 2.0
+falling_speed = 3.0
 # same in tiles/tick
 falling_per_tick = falling_speed / max_FPS
 

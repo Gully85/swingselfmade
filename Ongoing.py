@@ -49,7 +49,8 @@ class FallingBall(Ongoing):
 			print("reached Ground")
 			x = self.col
 			y = new_height+1 # index in content[][.]
-			self.ball.land((x,y), playfield, eventQueue)
+			#self.ball.land((x,y), playfield, eventQueue)
+			playfield.landBall((x,y), self.ball, eventQueue)
 			eventQueue.remove(self)
 
 

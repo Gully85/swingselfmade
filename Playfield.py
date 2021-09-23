@@ -35,7 +35,7 @@ class Playfield:
 		self.seesaws = [0,  0,   0,  0]
 		self.size = size
 		self.surf = Surface(size)
-		self.changed = True # if anything changed since the last tick
+		self.changed = True # if anything changed since the last tick. Starts True so the initial gamestate is drawn.
 
 	def check_alive(self):
 		"""True if all topmost positions in self.content are NotABall. Player loses if any stack gets too high"""
@@ -44,61 +44,157 @@ class Playfield:
 				return False
 		return True
 		
+	def landBall(self, coords, ball, eventQueue):
+		"""Land a ball at coords. Check for weight-moves, then for Scores, then for loss."""
+		x,y = coords
+		if isinstance(ball, Colored_Ball):
+			self.content[x][y] = ball
+			# check if a seesaw moves
+			# keep in mind that indices in self.content[.][] are 1..8, so are x and neighbor,
+			# all other content-array x indices are 0..7
+			landingleft = (x%2 == 1)
+			neighbor = x-1 + 2*landingleft
+			weightx = self.weights[x-1] # excluding the just-landed ball
+			weightneighbor = self.weights[neighbor-1]
+			sesa = (x-1)//2 # can be 0..3, index in self.seesaws
+			moving = False # if still False after the weight-moves checks, check for Scores
+
+			# Three possible cases: Landing on the heavier side, landing on a (previously) 
+			# balanced seesaw, landing on the (previously) lighter side.
+			# y indices are 0..7. Exactly two of the bottom two of x+neighbor are Blocked, 
+			# re-use the Blocked to reduce memory throughput
+			if weightx > weightneighbor:
+				pass
+			elif weightx == weightneighbor:
+				if ball.weight > 0:
+					# move by one, throw highest neighbor Ball (if exists)
+					moving = True
+					# neighbor up by one
+					for height in range(8, 0, -1):
+						self.content[neighbor][height] = self.content[neighbor][height-1]
+					self.content[neighbor][0] = self.content[x][0] 
+					# landing stack down by one
+					for height in range(0, y):
+						self.content[x][height] = self.content[x][height+1]
+					self.content[x][y] = NotABall()
+					#TODO throw top ball of neighbor, if exists
+					# seesaw was balanced, is now tilted towards landing side. -1 if landingleft, +1 else
+					self.seesaws[sesa] = 1 - 2*landingleft 
+					print("Seesaw state: ",self.seesaws)
+				else:
+					pass
+			else:
+				weightdiff = weightneighbor-weightx # is always positive
+				if ball.weight < weightdiff:
+					pass
+				elif ball.weight == weightdiff:
+					# move by one, set seesaw state to balanced
+					moving = True
+					# neighbor up by one
+					for height in range(8,0,-1):
+						self.content[neighbor][height] = self.content[neighbor][height-1]
+					self.content[neighbor][0] = self.content[x][0]
+					# landing stack down by one
+					for height in range(0,y):
+						self.content[x][height] = self.content[x][height+1]
+					self.content[x][y] = NotABall()
+					self.seesaws[sesa] = 0
+					print("Seesaw state: ",self.seesaws)
+				else:
+					# move by two, flip seesaw state, throw highest neighbor Ball (it always exists)
+					moving = True
+					# neighbor up by two. TODO lose if neighbor stack is already 7 high
+					for height in range(8, 1, -1):
+						self.content[neighbor][height] = self.content[neighbor][height-2]
+					# TODO throw highest ball on neighbor stack. It always exists.
+					self.content[neighbor][1] = self.content[x][0]
+					self.content[neighbor][0] = self.content[x][1]
+					# landing stack down by two.
+					for height in range(0, y-1):
+						self.content[x][height] = self.content[x][height+2]
+					self.content[x][y-1] = NotABall()
+					self.content[x][y] = NotABall()
+					self.seesaws[sesa] = - self.seesaws[sesa]
+					print("Seesaw state: ",self.seesaws)
+			if not moving:
+				# check Scores
+				pass
+
 	def update_weights(self):
-		"""calculate all weights"""
+		"""calculate all weights, saves results in self.weights"""
 		for x in range(1,9):
 			sum=0
 			for y in range(8):
 				sum += self.content[x][y].weight
 			self.weights[x-1]=sum
 		
-	def update_seesaws(self):
-		"""compares seesaw state with weights, update seesaws if necessary. Returns list of 4 Bools, True where state changed."""
-		ret = [False, False, False, False]
-		for sesa in range(4):
-			left = 1 + sesa*2
-			right= 2 + sesa*2
-			
-			if self.weights[left] > self.weights[right]:
-				newstate = -1
-			elif self.weights[left] == self.weights[right]:
-				newstate = 0
-			else:
-				newstate = 1
-			
-			if newstate != self.seesaw[sesa]:
-				ret[sesa] = True
-				self.seesaw[sesa] = newstate
-		return ret
+	#def update_seesaws(self):
+	#	"""compares seesaw state with weights, update seesaws if necessary. Returns list of 4 Bools, True where state changed."""
+	#	ret = [False, False, False, False]
+	#	for sesa in range(4):
+	#		left = 1 + sesa*2
+	#		right= 2 + sesa*2
+	#		
+	#		if self.weights[left] > self.weights[right]:
+	#			newstate = -1
+	#		elif self.weights[left] == self.weights[right]:
+	#			newstate = 0
+	#		else:
+	#			newstate = 1
+	#		
+	#		if newstate != self.seesaw[sesa]:
+	#			ret[sesa] = True
+	#			self.seesaw[sesa] = newstate
+	#	return ret
 		
-	def check_Scoring(self, coords):
-		"""True if the Ball at the given coords should start a Scoring. It must be part of a horizontal 3-line for that."""
-		x,y = coords
-		content = self.content
-		ball = content[x][y]
-		color = ball.color
-		# The ball itself has the correct color. Three possible cases: 
-		# 1-Left and 2-Left have the correct color
-		# 1-Left and 1-Right 
-		# 1-Right and 2-Right
-		# Difficulty: Can't access self.content[x-2] or [x+2] blindly, that would sometimes be out of array bounds.
-		
-		# catch the edge cases (coords are at the far-left or far-right) separately. If no edge case, [x-2] and [x+2]
-		# can be accessed safely (might be Ball.Blocked objects with color=-1)
-		
-		#print("Entering scoring check at ",coords)
-		if x == 1:
-			#print("left edge, scored")
-			return content[2][y].color == color and content[3][y].color == color
-		elif x == 8:
-			#print("right edge, scored")
-			return content[7][y].color == color and content[6][y].color == color
-		else:
-			#print("colors of the 5 balls to check: ", content[x-2][y].color, content[x-1][y].color, content[x][y].color, content[x+1][y].color, content[x+2][y].color)
-			return (( content[x-2][y].color == color and content[x-1][y].color == color ) or
-				   (  content[x-1][y].color == color and content[x+1][y].color == color ) or
-				   (  content[x+1][y].color == color and content[x+2][y].color == color ))
+	#def check_Scoring(self, coords):
+	#	"""True if the Ball at the given coords should start a Scoring. It must be part of a horizontal 3-line for that."""
+	#	x,y = coords
+	#	content = self.content
+	#	ball = content[x][y]
+	#	color = ball.color
+	#	# The ball itself has the correct color. Three possible cases: 
+	#	# 1-Left and 2-Left have the correct color
+	#	# 1-Left and 1-Right 
+	#	# 1-Right and 2-Right
+	#	# Difficulty: Can't access self.content[x-2] or [x+2] blindly, that would sometimes be out of array bounds.
+	#	
+	#	# catch the edge cases (coords are at the far-left or far-right) separately. If no edge case, [x-2] and [x+2]
+	#	# can be accessed safely (might be Ball.Blocked objects with color=-1)
+	#	
+	#	#print("Entering scoring check at ",coords)
+	#	if x == 1:
+	#		#print("left edge, scored")
+	#		return content[2][y].color == color and content[3][y].color == color
+	#	elif x == 8:
+	#		#print("right edge, scored")
+	#		return content[7][y].color == color and content[6][y].color == color
+	#	else:
+	#		#print("colors of the 5 balls to check: ", content[x-2][y].color, content[x-1][y].color, content[x][y].color, #content[x+1][y].color, content[x+2][y].color)
+	#		return (( content[x-2][y].color == color and content[x-1][y].color == color ) or
+	#			   (  content[x-1][y].color == color and content[x+1][y].color == color ) or
+	#			   (  content[x+1][y].color == color and content[x+2][y].color == color ))
 
+	def check_Scoring_full(self):
+		"""checks the full content for any horizontal-threes of the same color. 
+		Returns (int,int) coords, leftmost ball, or [] if no horizontal-three is there.
+		Checks bottom-up, only the lowest row with a horizontal-three is checked, only the leftmost Three is found.
+		"""
+		
+		content = self.content
+		# x range 1..8, y range 1..7 can have valid horizontal-threes
+		for y in range(1,8):
+			for x in range(1,7):
+				color = content[x][y].color
+				if color == -1:
+					continue
+				if content[x][y+1].color != color:
+					continue
+				if content[x][y+2].color == color:
+					return (x,y)
+		return []
+		
+		
 
 	def draw(self):
 		"""draws the Playfield including all Balls. Returns surface."""
@@ -117,7 +213,7 @@ class Playfield:
 					elif isinstance(self.content[x][y], Colored_Ball):
 						print("Ball at pos {},{}".format(x,y))
 					else:
-						print("Problem at pos {},{}".format(x,y))
+						raise TypeError("In playfield at pos {},{} should be a Colored_Ball or NotABall or Blocked, instead there was {}.".format(x,y,self.content[x][y]))
 				self.content[x][y].draw(self.surf, (xcoord, ycoord))
 			if debugprints:
 				print("")

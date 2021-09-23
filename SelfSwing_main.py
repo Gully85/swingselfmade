@@ -109,7 +109,6 @@ def main():
 		for event in ongoing_Events:
 			event.tick(the_playfield, ongoing_Events)
 		
-		the_playfield.update_weights()
 		
 		### Step 3, update screen where necessary
 		
@@ -126,6 +125,7 @@ def main():
 			the_crane.changed = False
 		
 		if the_playfield.changed:
+			the_playfield.update_weights()
 			drawn_playfield = the_playfield.draw()
 			for event in ongoing_Events:
 				event.draw(drawn_playfield)
