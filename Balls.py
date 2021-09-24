@@ -12,7 +12,7 @@
 
 
 import Colorschemes as colsce
-ballcols = colsce.simple_standard_ballcolors
+ballcolors = colsce.simple_standard_ballcolors
 textcols = colsce.simple_standard_textcolors
 
 from pygame import Rect, font, Surface
@@ -26,6 +26,9 @@ import random
 from Constants import ballsize
 
 from Ongoing import Scoring, SeesawTilting
+
+class DummyBallError(Exception):
+	pass
 
 class Ball:
 	"""Parent class for Colored and Special Balls. Abstract class, should not be instanciated."""
@@ -46,6 +49,10 @@ class NotABall(Ball):
 	def land(self, coords, playfield, eventQueue):
 		raise DummyBallError("Dummy NotABall landed at ",coords,", this should never happen.")
 
+
+
+
+
 class Blocked(Ball):
 	"""Dummy class for positions blocked by the seesaw state"""
 	# never change these globals, static var for all Blockeds
@@ -60,7 +67,7 @@ class Blocked(Ball):
 		pygame.draw.rect(surf, (0,0,0), pygame.Rect(drawpos, ballsize))
 		
 	def land(self, coords, playfield, eventQueue):
-		raise DummyBallError("Dummy Blocked landed at ",coord,", this should never happen.")
+		raise DummyBallError("Dummy Blocked landed at ",coords,", this should never happen.")
 
 class Colored_Ball(Ball):
 	"""Child-class of Ball. Has a color (int, 1 <= color <= maxcolors) and a weight (int, 0 <= weight <= INT_MAX). Constructor is Colored_Ball(color, weight)."""
@@ -72,9 +79,9 @@ class Colored_Ball(Ball):
 		
 	def draw(self, surf, drawpos):
 		"""draws this Ball onto pygame.Surface surf to offset-position drawpos. Returns None"""
-		col = ballcols[self.color]
+		color = ballcolors[self.color]
 		pixelpos_rect = Rect(drawpos, ballsize)
-		ellipse = pygame.draw.ellipse(surf, col, pixelpos_rect, 0)
+		ellipse = pygame.draw.ellipse(surf, color, pixelpos_rect, 0)
 		weighttext = ballfont.render(str(self.weight), True, textcols[self.color])
 		posx = drawpos[0]+0.2*ballsize[0]
 		posy = drawpos[1]+0.2*ballsize[1]

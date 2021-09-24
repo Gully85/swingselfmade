@@ -44,7 +44,7 @@ class Playfield:
 				return False
 		return True
 		
-	def landBall(self, coords, ball, eventQueue):
+	def land_ball(self, coords, ball, eventQueue):
 		"""Land a ball at coords. Check for weight-moves, then for Scores, then for loss."""
 		x,y = coords
 		if isinstance(ball, Colored_Ball):
@@ -70,13 +70,9 @@ class Playfield:
 					# move by one, throw highest neighbor Ball (if exists)
 					moving = True
 					# neighbor up by one
-					for height in range(8, 0, -1):
-						self.content[neighbor][height] = self.content[neighbor][height-1]
-					self.content[neighbor][0] = self.content[x][0] 
+					self.raise_neighbouring_column_by_one(neighbor, x)
 					# landing stack down by one
-					for height in range(0, y):
-						self.content[x][height] = self.content[x][height+1]
-					self.content[x][y] = NotABall()
+					self.lower_column_by_one(x, y)
 					#TODO throw top ball of neighbor, if exists
 					# seesaw was balanced, is now tilted towards landing side. -1 if landingleft, +1 else
 					self.seesaws[sesa] = 1 - 2*landingleft 
@@ -91,13 +87,9 @@ class Playfield:
 					# move by one, set seesaw state to balanced
 					moving = True
 					# neighbor up by one
-					for height in range(8,0,-1):
-						self.content[neighbor][height] = self.content[neighbor][height-1]
-					self.content[neighbor][0] = self.content[x][0]
+					self.raise_neighbouring_column_by_one(neighbor, x)
 					# landing stack down by one
-					for height in range(0,y):
-						self.content[x][height] = self.content[x][height+1]
-					self.content[x][y] = NotABall()
+					self.lower_column_by_one(x, y)
 					self.seesaws[sesa] = 0
 					print("Seesaw state: ",self.seesaws)
 				else:
@@ -119,6 +111,16 @@ class Playfield:
 			if not moving:
 				# check Scores
 				pass
+
+	def lower_column_by_one(self, x, y):
+		for height in range(0, y):
+			self.content[x][height] = self.content[x][height + 1]
+		self.content[x][y] = NotABall()
+
+	def raise_neighbouring_column_by_one(self, neighbor, x):
+		for height in range(8, 0, -1):
+			self.content[neighbor][height] = self.content[neighbor][height - 1]
+		self.content[neighbor][0] = self.content[x][0]
 
 	def update_weights(self):
 		"""calculate all weights, saves results in self.weights"""
