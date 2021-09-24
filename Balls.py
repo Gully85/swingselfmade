@@ -53,7 +53,6 @@ class Blocked(Ball):
 		"""just a black rectangle for now"""
 		pygame.draw.rect(surf, (0,0,0), pygame.Rect(drawpos, ballsize))
 
-
 class Colored_Ball(Ball):
 	"""Child-class of Ball. Has a color (int, 1 <= color <= maxcolors) and a weight (int, 0 <= weight <= INT_MAX). Constructor is Colored_Ball(color, weight)."""
 	# never change these globals, static for all ColoredBalls
@@ -66,14 +65,11 @@ class Colored_Ball(Ball):
 		"""draws this Ball onto pygame.Surface surf to offset-position drawpos. Returns None"""
 		color = ballcolors[self.color]
 		pixelpos_rect = Rect(drawpos, ballsize)
+		ellipse = pygame.draw.ellipse(surf, color, pixelpos_rect, 0)
 		weighttext = ballfont.render(str(self.weight), True, textcols[self.color])
 		posx = drawpos[0]+0.2*ballsize[0]
 		posy = drawpos[1]+0.2*ballsize[1]
 		surf.blit(weighttext, (posx, posy))
-	
-
-		
-
 
 class Special_Ball(Ball):
 	"""Child-class of Ball. Has weight=0 and type (int, 0 < type <= 1, this will grow as more types are added).
