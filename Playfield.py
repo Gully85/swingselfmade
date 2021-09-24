@@ -7,7 +7,7 @@ debugprints = False
 
 from pygame import Rect, Surface, font
 from Balls import *
-from Constants import playfield_ballcoord, playfield_ballspacing, weightdisplay_coords, weightdisplay_x_perCol
+from Constants import playfield_ballcoord, playfield_ballspacing, weightdisplay_coords, weightdisplay_x_per_column
 
 #weightdisplayheight = 40
 weightdisplayfont = font.SysFont("Arial", 12)
@@ -15,7 +15,7 @@ weightdisplayfont = font.SysFont("Arial", 12)
 class Playfield:
 	"""Information about the current Playfield. Variables:
 		content (10x9 array of either NotABall or Blocked or Balls). Leftmost and Rightmost 
-			cols are all Blocked, as a dummy, to simplify boundaries. Second index counts y from 
+			columns are all Blocked, as a dummy, to simplify boundaries. Second index counts y from
 			bottom (index=0) to highest position (index=7). At y=8 there should always be NotABall
 		weights (8 ints, left to right). Keep in mind that content has a dummy row: weights[0] is 
 			the total weight of all Balls in content[1][.]
@@ -225,6 +225,6 @@ class Playfield:
 			weighttext = weightdisplayfont.render(str(self.weights[x-1]), True, (0,0,0))
 			weightdisplay_x = weightdisplay_coords[0]
 			weightdisplay_y = weightdisplay_coords[1]
-			self.surf.blit(weighttext, (weightdisplay_x + (x-1)*weightdisplay_x_perCol, weightdisplay_y))
+			self.surf.blit(weighttext, (weightdisplay_x + (x-1) * weightdisplay_x_per_column, weightdisplay_y))
 			
 		return self.surf
