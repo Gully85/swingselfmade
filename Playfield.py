@@ -44,7 +44,7 @@ class Playfield:
 				return False
 		return True
 		
-	def landBall(self, coords, ball, eventQueue):
+	def land_ball(self, coords, ball, eventQueue):
 		"""Land a ball at coords. Check for weight-moves, then for Scores, then for loss."""
 		x,y = coords
 		if isinstance(ball, Colored_Ball):

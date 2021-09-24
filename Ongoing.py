@@ -50,7 +50,7 @@ class FallingBall(Ongoing):
 			x = self.col
 			y = new_height+1 # index in content[][.]
 			#self.ball.land((x,y), playfield, eventQueue)
-			playfield.landBall((x,y), self.ball, eventQueue)
+			playfield.land_ball((x, y), self.ball, eventQueue)
 			eventQueue.remove(self)
 
 
