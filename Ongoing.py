@@ -9,7 +9,7 @@ import Balls as bal
 
 from Constants import ballsize, playfield_ballcoord, playfield_ballspacing, scoring_delay
 
-from Constants import falling_per_tick
+from Constants import falling_per_tick, tilting_per_tick
 
 class Ongoing:
 	"""abstract Parent class, should not be instanciated"""
@@ -27,37 +27,32 @@ class FallingBall(Ongoing):
 	
 	# Note to myself: Make sure that FallingBalls in the same col are at least 1.0 height apart
 	
-	def __init__(self, ball, column, starting_height=8.0):
+	def __init__(self, ball, col, starting_height=8.0):
 		self.ball = ball
-		self.column = column
+		self.col = col
 		self.height = starting_height
 		
 	def draw(self, surf):
-		x = playfield_ballcoord[0] + (self.column-1)*playfield_ballspacing[0]
+		x = playfield_ballcoord[0] + (self.col-1)*playfield_ballspacing[0]
 		y = playfield_ballcoord[1] + (7.-self.height)*playfield_ballspacing[1]
 		self.ball.draw(surf, (x,y))
 
 	def tick(self, playfield, eventQueue):
 		content = playfield.content
 		new_height = int(self.height - falling_per_tick)
+		playfield.changed=True
 		if new_height > 7: #still higher in the air than where any playfield-Ball could be
 			self.height -= falling_per_tick
-			playfield.changed=True
-		elif isinstance(content[self.column][new_height], bal.NotABall):
+		elif isinstance(content[self.col][new_height], bal.NotABall):
 			self.height -= falling_per_tick
-			playfield.changed=True
 		else:
 			print("reached Ground")
-			x = self.column
+			x = self.col
 			y = new_height+1 # index in content[][.]
-			content[x][y] = self.ball
-			if playfield.check_Scoring([x,y]):
-				print("Scored!")
-				eventQueue.append(Scoring([x,y], self.ball))
-			else:
-				content[x][y] = self.ball
+			#self.ball.land((x,y), playfield, eventQueue)
+			playfield.landBall((x,y), self.ball, eventQueue)
 			eventQueue.remove(self)
-			playfield.changed=True
+
 
 
 class SeesawTilting(Ongoing):
@@ -66,13 +61,18 @@ class SeesawTilting(Ongoing):
 		before (int, -1 or 0 or +1, seesaw state before tilting)
 		after (int, -1 or 0 or +1, seesaw state after tilting). Must be different to before.
 		progress (float, 0.0 to 1.0, counts up until tilt is finished)
+
+		Constructor: SeesawTilting(sesa, before, after, playfield, eventQueue).
+		When the Constructor is called, it will put the playfield.content columns in the positions of the final state. If needed, it will throw the top Ball and create&add a ThrownBall to the eventQueue
 	"""
-	
+
 	def __init__(self, sesa, before, after):
 		self.sesa = sesa
 		self.before = before
 		self.after = after
 		self.progress = 0.0
+		if before == after:
+			raise ValueError("can not tilt seesaw ",sesa," from position",before,"to the same one.")
 		
 	def draw(self, surf):
 		# TODO. Draw blocked areas partially, according to self.progress. 
@@ -80,9 +80,11 @@ class SeesawTilting(Ongoing):
 		pass
 
 
-	def tick(self, eventQueue, playfield):
-		# TODO
-		pass
+	def tick(self, playfield, eventQueue):
+		self.progress += tilting_per_tick
+		if self.progress >= 1.0:
+			eventQueue.remove(self)
+		playfield.changed = True
 
 
 class Scoring(Ongoing):
@@ -92,7 +94,7 @@ class Scoring(Ongoing):
 		color (int, corresponds to Ball.color)
 		delay (int, counting down from scoring_delay. Number of ticks until Scoring will expand next)
 		weight_so_far (int)
-
+		
 		Constructor: Scoring((x,y), ball)
 	"""
 	
@@ -100,10 +102,10 @@ class Scoring(Ongoing):
 		self.past = []
 		self.next = [coords]
 		self.color = ball.color
-		print("New Scoring, color=",self.color)
+		#print("New Scoring, color=",self.color)
 		self.delay = scoring_delay
 		self.weight_so_far = ball.weight
-
+		
 	def draw(self, surf):
 		# TODO put a placeholder. Different for past and present
 		pass
@@ -120,8 +122,9 @@ class Scoring(Ongoing):
 				# TODO score and display
 
 	def expand(self, playfield, eventQueue):
-		"""checks if neighboring balls are same color, adds them to self.coords_next if yes. Returns True if the Scoring grew."""
-		# TODO if on top of a scored Ball is a (not color matching) Ball, convert it into a FallingBall. And all Balls on top of that.
+		"""checks if neighboring balls are same color, removes them and saves their coords in self.next for the next expand() call. Returns True if the Scoring grew.
+		
+		"""
 
 		now = self.next
 		self.next = []
@@ -131,6 +134,14 @@ class Scoring(Ongoing):
 			self.past.append(coords)
 			x,y = coords
 			playfield.content[x][y] = bal.NotABall()
+			# removing a Ball may cause those on top to fall down
+			if playfield.content[x][y+1].isBall and playfield.content[x][y+1].color != color:
+				for ystack in range(y+1,8):
+					eventQueue.append(FallingBall(playfield.content[x][ystack], x, starting_height=ystack))
+					playfield.content[x][ystack] = bal.NotABall()
+					if not playfield.content[x][ystack+1].isBall:
+						break
+			
 			coords_to_check = [(x-1,y), (x+1,y), (x,y-1), (x,y+1)]
 			for (x2,y2) in coords_to_check:
 				if playfield.content[x2][y2].color == color:
@@ -145,23 +156,7 @@ class Scoring(Ongoing):
 							if not playfield.content[x2][ystack+1].isBall:
 								break
 
-			#if playfield.content[x-1][y].color == color:
-			#	self.next.append([x-1,y])
-			#	self.weight_so_far += playfield.content[x-1][y].weight
-			#	playfield.content[x-1][y] = bal.NotABall()
-			#if playfield.content[x+1][y].color == color:
-			#	self.next.append([x+1,y])
-			#	self.weight_so_far += playfield.content[x+1][y].weight
-			#	playfield.content[x+1][y] = bal.NotABall()
-			#if playfield.content[x][y-1].color == color:
-			#	self.next.append([x,y-1])
-			#	self.weight_so_far += playfield.content[x][y-1].weight
-			#	playfield.content[x][y-1] = bal.NotABall()
-			#if playfield.content[x][y+1].color == color:
-			#	self.next.append([x,y+1])
-			#	self.weight_so_far += playfield.content[x][y+1].weight
-			#	playfield.content[x][y+1] = bal.NotABall()
-		#print("more matching Ball found: next=",self.next)
+		#print("more matching Balls found: next=",self.next)
 		if len(self.next) > 0:
 			playfield.changed = True
 			return True
@@ -169,4 +164,4 @@ class Scoring(Ongoing):
 			score = len(self.past) * self.weight_so_far
 			print("Score from this: ",score)
 			return False
-
+		
