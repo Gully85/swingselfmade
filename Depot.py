@@ -23,8 +23,8 @@ class Depot:
 						
 		# fill with randomly generated Balls
 		for i in range(8):
-			self.content[i][0] = bal.generate_starting_Ball()
-			self.content[i][1] = bal.generate_starting_Ball()
+			self.content[i][0] = bal.generate_starting_ball()
+			self.content[i][1] = bal.generate_starting_ball()
 	
 	
 	def draw(self):

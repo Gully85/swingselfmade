@@ -7,7 +7,7 @@
 
 import Balls as bal
 
-from Constants import ballsize, playfield_ballcoord, playfield_ballspacing, scoring_delay
+from Constants import ball_size, playfield_ballcoord, playfield_ballspacing, scoring_delay
 
 from Constants import falling_per_tick, tilting_per_tick
 
@@ -27,13 +27,13 @@ class FallingBall(Ongoing):
 	
 	# Note to myself: Make sure that FallingBalls in the same col are at least 1.0 height apart
 	
-	def __init__(self, ball, col, starting_height=8.0):
+	def __init__(self, ball, column, starting_height=8.0):
 		self.ball = ball
-		self.col = col
+		self.column = column
 		self.height = starting_height
 		
 	def draw(self, surf):
-		x = playfield_ballcoord[0] + (self.col-1)*playfield_ballspacing[0]
+		x = playfield_ballcoord[0] + (self.column - 1) * playfield_ballspacing[0]
 		y = playfield_ballcoord[1] + (7.-self.height)*playfield_ballspacing[1]
 		self.ball.draw(surf, (x,y))
 
@@ -43,11 +43,11 @@ class FallingBall(Ongoing):
 		playfield.changed=True
 		if new_height > 7: #still higher in the air than where any playfield-Ball could be
 			self.height -= falling_per_tick
-		elif isinstance(content[self.col][new_height], bal.NotABall):
+		elif isinstance(content[self.column][new_height], bal.NotABall):
 			self.height -= falling_per_tick
 		else:
 			print("reached Ground")
-			x = self.col
+			x = self.column
 			y = new_height+1 # index in content[][.]
 			#self.ball.land((x,y), playfield, eventQueue)
 			playfield.land_ball((x, y), self.ball, eventQueue)
