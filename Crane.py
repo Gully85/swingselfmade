@@ -2,7 +2,7 @@
 
 from Balls import *
 from pygame import Rect, Surface
-from Constants import cranearea_ballcoord, cranearea_x_perCol, ballsize
+from Constants import cranearea_ballcoord, cranearea_x_perCol, ball_size
 
 class Crane:
 	"""Information about the Crane. Has x (int, 0 <= x <= 7) and current_Ball (Ball).
@@ -11,7 +11,7 @@ class Crane:
 	
 	def __init__(self, size):
 		self.x = 0
-		self.current_Ball = generate_starting_Ball()
+		self.current_Ball = generate_starting_ball()
 		self.size = size
 		self.surf = Surface(size)
 		self.changed = True # True if redraw needed. If the Crane changed since the last tick.
@@ -26,7 +26,7 @@ class Crane:
 		# draw Ball, then an ellipse on top of it
 		self.current_Ball.draw(self.surf, (xcoord, cranearea_ballcoord[1]))
 		
-		pixelpos_rect = Rect((xcoord,cranearea_ballcoord[1]), ballsize)
+		pixelpos_rect = Rect((xcoord,cranearea_ballcoord[1]), ball_size)
 		pygame.draw.ellipse(self.surf, (0,0,0), pixelpos_rect, width=3)
 		
 		return self.surf

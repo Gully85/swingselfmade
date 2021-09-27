@@ -66,7 +66,7 @@ def main():
 	pygame.display.flip()
 	
 	ongoing_Events = []
-	ongoing_Events.append(ong.FallingBall(bal.generate_starting_Ball(), 2))
+	ongoing_Events.append(ong.FallingBall(bal.generate_starting_ball(), 2))
 	
 	# Event Loop
 	while 1:
@@ -99,7 +99,7 @@ def main():
 					ongoing_Events.append(ong.FallingBall(the_crane.current_Ball, column+1))
 					the_crane.current_Ball = the_depot.content[column][1]
 					the_depot.content[column][1] = the_depot.content[column][0]
-					the_depot.content[column][0] = bal.generate_starting_Ball()
+					the_depot.content[column][0] = bal.generate_starting_ball()
 					the_crane.changed = True
 					the_depot.changed = True
 
