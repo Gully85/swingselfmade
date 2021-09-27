@@ -9,6 +9,8 @@ Current TODO List:
 - global variables total_Score, total_dropped_Balls, level
 - increase level every 50 balls, level is maxweight and number of possible colors for new random-generated Balls
 
+
+
 Current untested stuff:
 
 

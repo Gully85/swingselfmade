@@ -69,10 +69,8 @@ class Playfield:
 				if ball.weight > 0:
 					# move by one, throw highest neighbor Ball (if exists)
 					moving = True
-					# neighbor up by one
-					self.raise_neighbouring_column_by_one(neighbor, x)
-					# landing stack down by one
-					self.lower_column_by_one(x, y)
+					self.raise_column(neighbor, 1)
+					self.lower_column(x, 1)
 					#TODO throw top ball of neighbor, if exists
 					# seesaw was balanced, is now tilted towards landing side. -1 if landingleft, +1 else
 					self.seesaws[sesa] = 1 - 2*landingleft 
@@ -86,41 +84,41 @@ class Playfield:
 				elif ball.weight == weightdiff:
 					# move by one, set seesaw state to balanced
 					moving = True
-					# neighbor up by one
-					self.raise_neighbouring_column_by_one(neighbor, x)
-					# landing stack down by one
-					self.lower_column_by_one(x, y)
+					self.raise_column(neighbor, 1)
+					self.lower_column(x, 1)
 					self.seesaws[sesa] = 0
 					print("Seesaw state: ",self.seesaws)
 				else:
 					# move by two, flip seesaw state, throw highest neighbor Ball (it always exists)
 					moving = True
-					# neighbor up by two. TODO lose if neighbor stack is already 7 high
-					for height in range(8, 1, -1):
-						self.content[neighbor][height] = self.content[neighbor][height-2]
-					# TODO throw highest ball on neighbor stack. It always exists.
-					self.content[neighbor][1] = self.content[x][0]
-					self.content[neighbor][0] = self.content[x][1]
-					# landing stack down by two.
-					for height in range(0, y-1):
-						self.content[x][height] = self.content[x][height+2]
-					self.content[x][y-1] = NotABall()
-					self.content[x][y] = NotABall()
+					self.raise_column(neighbor, 2)
+					self.lower_column(x,2)
+					#self.content[x][y-1] = NotABall()
+					#self.content[x][y] = NotABall()
 					self.seesaws[sesa] = - self.seesaws[sesa]
 					print("Seesaw state: ",self.seesaws)
 			if not moving:
 				# check Scores
 				pass
 
-	def lower_column_by_one(self, x, y):
-		for height in range(0, y):
-			self.content[x][height] = self.content[x][height + 1]
-		self.content[x][y] = NotABall()
+	def lower_column(self, x, dy):
+		"""move all balls in a stack (dy) places down. """
+		for height in range(0, 9-dy):
+			self.content[x][height] = self.content[x][height + dy]
+		# This will "duplicate" the NotABall on top of a stack. Is that a problem when 
+		# it is later filled with an actual ball? I think not, but not sure. A fix would be 
+		# to create a new NotABall for y=8.
 
-	def raise_neighbouring_column_by_one(self, neighbor, x):
-		for height in range(8, 0, -1):
-			self.content[neighbor][height] = self.content[neighbor][height - 1]
-		self.content[neighbor][0] = self.content[x][0]
+	def raise_column(self, x, dy):
+		"""moves all balls in a stack (dy) places up. This can fill the highest place y=8 so the player loses."""
+		for height in range(8, dy-1, -1):
+			self.content[x][height] = self.content[x][height - dy]
+		
+		# the lowest 1 or 2 (depending on dy) become (newly-created) Blockeds. 
+		# I let go of the old idea of re-using the Blockeds, code too ugly when 
+		# not splitting this function into dy=1 and dy=2.
+		for height in range(dy):
+			self.content[x][height] = Blocked()
 
 	def update_weights(self):
 		"""calculate all weights, saves results in self.weights"""
