@@ -11,7 +11,7 @@ Current TODO List:
 - like Scoring, there is Combining: A stack of five balls of the same color will Combine to a single ball with the same total weight.
 
 Recent changes:
-- Combined Playfield.raise_column_by_one() and _by_two() and lower_column_by_xx() into Playfield.push_column(x, dy). dy should be 1 or 2.
+- Combined all the weight logic into Playfield.gravity_moves(). It does a full scan for wrong-aligned seesaws, (TODO starts SeesawTilting), pushes columns to the correct positions and (TODO throws balls if needed).
 
 Current untested stuff:
 

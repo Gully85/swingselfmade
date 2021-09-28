@@ -146,16 +146,19 @@ class Playfield:
 		Checks bottom-up, only the lowest row with a horizontal-three is checked, only the leftmost Three is found.
 		"""
 		
-		content = self.content
+		print("Entering full scoring check")
 		# x range 1..8, y range 1..7 can have valid horizontal-threes
 		for y in range(1,8):
 			for x in range(1,7):
-				color = content[x][y].color
+				color = self.content[x][y].color
 				if color == -1:
 					continue
-				if content[x][y+1].color != color:
+				#print("non-empty color at (", x, ",", y, ")")
+				if self.content[x+1][y].color != color:
 					continue
-				if content[x][y+2].color == color:
+				#print("matching right neighbor (", x+1, ",", y, ")")
+				if self.content[x+2][y].color == color:
+					print("Found Scoring")
 					return (x,y)
 		return (-1, -1)
 		
