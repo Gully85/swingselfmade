@@ -3,13 +3,16 @@
 # - SeesawTilting. One of the four seesaws shifts position because weights have changed recently
 # - Scoring. 3 horizontal are expanding, then remove the Balls and score points.
 
-# all must have a .draw(surf) and a .tick(eventQueue, playfield) method.
+# all must have a .draw(surf) and a .tick(playfield) method.
 
-import Balls as bal
+import Balls
 
-from Constants import ball_size, playfield_ballcoord, playfield_ballspacing, scoring_delay
+from Constants import ball_size, playfield_ballcoord, playfield_ballspacing
+from Constants import falling_per_tick, tilting_per_tick, scoring_delay
 
-from Constants import falling_per_tick, tilting_per_tick
+# this is a local variable of the "module" Ongoing. Other files, if they import Ongoing,
+# can use and modify this. Their local name is Ongoing.eventQueue
+eventQueue = []
 
 class Ongoing:
 	"""abstract Parent class, should not be instanciated"""
@@ -25,8 +28,6 @@ class FallingBall(Ongoing):
 			if the Ball drops from Playfield instead of Crane/Thrown
 		"""
 	
-	# Note to myself: Make sure that FallingBalls in the same col are at least 1.0 height apart
-	
 	def __init__(self, ball, column, starting_height=8.0):
 		self.ball = ball
 		self.column = column
@@ -37,22 +38,21 @@ class FallingBall(Ongoing):
 		y = playfield_ballcoord[1] + (7.-self.height)*playfield_ballspacing[1]
 		self.ball.draw(surf, (x,y))
 
-	def tick(self, playfield, eventQueue):
+	def tick(self, playfield):
 		content = playfield.content
 		new_height = int(self.height - falling_per_tick)
-		playfield.changed=True
+		playfield.changed = True
 		if new_height > 7: #still higher in the air than where any playfield-Ball could be
 			self.height -= falling_per_tick
-		elif isinstance(content[self.column][new_height], bal.NotABall):
+		elif isinstance(content[self.column][new_height], Balls.NotABall):
 			self.height -= falling_per_tick
 		else:
-			print("reached Ground")
+			#print("reached Ground")
 			x = self.column
 			y = new_height+1 # index in content[][.]
 			#self.ball.land((x,y), playfield, eventQueue)
-			playfield.land_ball((x, y), self.ball, eventQueue)
+			playfield.land_ball((x, y), self.ball)
 			eventQueue.remove(self)
-
 
 
 class SeesawTilting(Ongoing):
@@ -72,19 +72,18 @@ class SeesawTilting(Ongoing):
 		self.after = after
 		self.progress = 0.0
 		if before == after:
-			raise ValueError("can not tilt seesaw ",sesa," from position",before,"to the same one.")
+			raise ValueError("can not tilt seesaw ",sesa," from position ", before," to the same one.")
 		
 	def draw(self, surf):
 		# TODO. Draw blocked areas partially, according to self.progress. 
 		# Draw both stacks in current (moving) position over the already drawn stacks on surf. 
 		pass
 
-
-	def tick(self, playfield, eventQueue):
+	def tick(self, playfield):
 		self.progress += tilting_per_tick
+		playfield.changed = True
 		if self.progress >= 1.0:
 			eventQueue.remove(self)
-		playfield.changed = True
 
 
 class Scoring(Ongoing):
@@ -107,21 +106,25 @@ class Scoring(Ongoing):
 		self.weight_so_far = ball.weight
 		
 	def draw(self, surf):
-		# TODO put a placeholder. Different for past and present
+		# TODO put a placeholder for each removed Ball. Maybe a different one for past and present
 		pass
 
-	def tick(self, playfield, eventQueue):
-		"""should be called once per tick. counts down delay, expands if zero was reached. If no expansion, removes this from the eventQueue"""
+	def tick(self, playfield):
+		"""called once per tick. Counts down delay, expands if zero was reached. 
+		If no expansion, removes this from the eventQueue
+		"""
 		#print(self, self.delay)
 		self.delay -= 1
 		if self.delay < 0:
-			if self.expand(playfield, eventQueue):
+			if self.expand(playfield):
 				self.delay = scoring_delay
 			else:
+				# Formula for Scores: Total weight x number of balls x level (level does not exist yet)
+				print("Score from this: ", self.weight_so_far * len(self.past))
 				eventQueue.remove(self)
 				# TODO score and display
 
-	def expand(self, playfield, eventQueue):
+	def expand(self, playfield):
 		"""checks if neighboring balls are same color, removes them and saves their coords in self.next for the next expand() call. Returns True if the Scoring grew.
 		
 		"""
@@ -133,12 +136,12 @@ class Scoring(Ongoing):
 		for coords in now:
 			self.past.append(coords)
 			x,y = coords
-			playfield.content[x][y] = bal.NotABall()
+			playfield.content[x][y] = Balls.NotABall()
 			# removing a Ball may cause those on top to fall down
 			if playfield.content[x][y+1].isBall and playfield.content[x][y+1].color != color:
 				for ystack in range(y+1,8):
 					eventQueue.append(FallingBall(playfield.content[x][ystack], x, starting_height=ystack))
-					playfield.content[x][ystack] = bal.NotABall()
+					playfield.content[x][ystack] = Balls.NotABall()
 					if not playfield.content[x][ystack+1].isBall:
 						break
 			
@@ -147,21 +150,23 @@ class Scoring(Ongoing):
 				if playfield.content[x2][y2].color == color:
 					self.next.append([x2,y2])
 					self.weight_so_far += playfield.content[x2][y2].weight
-					playfield.content[x2][y2] = bal.NotABall()
+					playfield.content[x2][y2] = Balls.NotABall()
 					# removing a Ball may cause those on top to fall down
 					if playfield.content[x2][y2+1].isBall and playfield.content[x2][y2+1].color != color:
 						for ystack in range(y2+1,8):
 							eventQueue.append(FallingBall(playfield.content[x2][ystack], x2, starting_height=ystack))
-							playfield.content[x2][ystack] = bal.NotABall()
+							playfield.content[x2][ystack] = Balls.NotABall()
 							if not playfield.content[x2][ystack+1].isBall:
 								break
 
 		#print("more matching Balls found: next=",self.next)
-		if len(self.next) > 0:
-			playfield.changed = True
-			return True
-		else:
-			score = len(self.past) * self.weight_so_far
-			print("Score from this: ",score)
-			return False
+		playfield.changed = True
+		return len(self.next) > 0
+		#if len(self.next) > 0:
+		#	playfield.changed = True
+		#	return True
+		#else:
+		#	#score = len(self.past) * self.weight_so_far
+		#	#print("Score from this: ",score)
+		#	return False
 		

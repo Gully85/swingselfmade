@@ -1,9 +1,7 @@
 Current TODO List:
 
 
-- move weight logic out of Playfield.land_ball(). The weight logic is (at least) also needed when a Scoring finishes. There should be a Playfield.ensure_weight_correctness() that calculates all weights, calls lower_column()/raise_column(), throws Balls if needed etc. It should return True if something starts moving, else False. Use that return-value to decide whether to check for Scoring or delay that until Seesaw_Tilting is finished. Maybe ensure_weight_correctness() is not the best name for that.
-- move the EventQueue to global scope (or local variable of module Ongoing?). There will always be only one EventQueue, no need to have it as a parameter for a billion functions
-- maybe sort content of Constants into timings and pixel-counting stuff? Make it two (or more) separate objects?
+- maybe sort content of Constants into timings and pixel-counting stuff? Make it two (or more) separate objects? Local dictionary of the Constants module?
 - a finished Scoring or Seesaw_Tilting should trigger a (playfield-wide) check for Scoring. In case of finished Scoring, check for weight-correctness first.
 - throw_ball(), Ongoing.Thrown_Ball. Skip the conversions if the Ball is thrown off the playfield for now.
 - global variables total_Score, total_dropped_Balls, level
@@ -12,6 +10,7 @@ Current TODO List:
 
 Recent changes:
 - Combined all the weight logic into Playfield.gravity_moves(). It does a full scan for wrong-aligned seesaws, (TODO starts SeesawTilting), pushes columns to the correct positions and (TODO throws balls if needed).
+- moved the EventQueue to global scope (as a local variable of module Ongoing). There will always be exactly one EventQueue, no need to have it as a parameter for a billion functions
 
 Current untested stuff:
 
