@@ -1,7 +1,7 @@
 # provides the Depot. The depot holds 8x2 Balls (array of Balls). This file also provides the drawing method for the Depot.
 
 
-import Balls as bal
+import Balls
 from pygame import Surface 
 from Constants import depot_ballcoord, depot_ballspacing
 
@@ -20,11 +20,11 @@ class Depot:
 						[None,None], [None,None], [None,None], [None,None]]
 		# second index is bot or top-row. 0 is top row (spawned Balls appear here), 
 		# 1 is bot row (Crane takes from here, moving top-row here and spawning a new Ball in top-row)
-						
+
 		# fill with randomly generated Balls
 		for i in range(8):
-			self.content[i][0] = bal.generate_starting_ball()
-			self.content[i][1] = bal.generate_starting_ball()
+			self.content[i][0] = Balls.generate_starting_ball()
+			self.content[i][1] = Balls.generate_starting_ball()
 	
 	
 	def draw(self):

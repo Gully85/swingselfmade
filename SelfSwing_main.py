@@ -14,18 +14,20 @@ from pygame.locals import *
 pygame.init()
 
 
-from Constants import *
+#from Constants import *
+from Constants import falling_per_tick, max_FPS
+from Constants import screensize, depotsize, craneareasize, playfieldsize
+from Constants import depot_position, cranearea_position, playfield_position
 
+import Depot
 
-import Depot as dep
+import Balls
 
-import Balls as bal
+import Crane
 
-import Crane as cra
+import Playfield
 
-import Playfield as pla
-
-import Ongoing as ong
+import Ongoing
 
 
 # (max) number of ticks occuring per second
@@ -37,13 +39,13 @@ if falling_per_tick > 1.0:
 
 	
 # initialize depot
-the_depot = dep.Depot(depotsize)
+the_depot = Depot.Depot(depotsize)
 
 # initialize crane
-the_crane = cra.Crane(craneareasize)
+the_crane = Crane.Crane(craneareasize)
 
 # initialize playfield
-the_playfield = pla.Playfield(playfieldsize)
+the_playfield = Playfield.Playfield(playfieldsize)
 
 # test
 #the_playfield.content[3][3] = bal.generate_starting_Ball()
@@ -65,8 +67,8 @@ def main():
 	screen.blit(background, (0,0))
 	pygame.display.flip()
 	
-	ongoing_Events = []
-	ongoing_Events.append(ong.FallingBall(bal.generate_starting_ball(), 2))
+	Ongoing.eventQueue.append(Ongoing.FallingBall(Balls.generate_starting_ball(), 2))
+	#ongoing_Events.append(ong.FallingBall(bal.generate_starting_ball(), 2))
 	
 	# Event Loop
 	while 1:
@@ -94,29 +96,25 @@ def main():
 					if the_crane.x > 7:
 						the_crane.x = 7
 				if event.key == K_DOWN or event.key == K_SPACE:
-
 					column = the_crane.x
-					ongoing_Events.append(ong.FallingBall(the_crane.current_Ball, column+1))
+					Ongoing.eventQueue.append(Ongoing.FallingBall(the_crane.current_Ball, column+1))
 					the_crane.current_Ball = the_depot.content[column][1]
 					the_depot.content[column][1] = the_depot.content[column][0]
-					the_depot.content[column][0] = bal.generate_starting_ball()
+					the_depot.content[column][0] = Balls.generate_starting_ball()
 					the_crane.changed = True
 					the_depot.changed = True
 
 
 		## Step 2, proceed ongoing Events
-		#print (ongoing_Events)
-		for event in ongoing_Events:
-			event.tick(the_playfield, ongoing_Events)
+		for event in Ongoing.eventQueue:
+			event.tick(the_playfield)
 		
 		
 		### Step 3, update screen where necessary
-		
 		if the_depot.changed:
 			drawn_depot = the_depot.draw()
 			screen.blit(drawn_depot, depot_position)
 			the_depot.changed = False
-		
 		
 		if the_crane.changed:
 			#print("Crane position: ",the_crane.x)
@@ -127,7 +125,7 @@ def main():
 		if the_playfield.changed:
 			the_playfield.update_weights()
 			drawn_playfield = the_playfield.draw()
-			for event in ongoing_Events:
+			for event in Ongoing.eventQueue:
 				event.draw(drawn_playfield)
 			screen.blit(drawn_playfield, playfield_position)
 			the_playfield.changed = False

@@ -50,14 +50,13 @@ class Blocked(Ball):
         pass
 
     def draw(self, surf, drawpos):
-        """just a black rectangle for now"""
+        # just a black rectangle for now
         pygame.draw.rect(surf, (0, 0, 0), pygame.Rect(drawpos, ball_size))
 
 
 class Colored_Ball(Ball):
-
     """Child-class of Ball. Has a color (int, 1 <= color <= maxcolors) and a weight (int, 0 <= weight <= INT_MAX). Constructor is Colored_Ball(color, weight)."""
-    # never change these globals, static for all ColoredBalls
+    # never change these globals, static var for all ColoredBalls
     isBall = True
 
     def __init__(self, color, weight):
@@ -75,27 +74,25 @@ class Colored_Ball(Ball):
         surf.blit(weighttext, (posx, posy))
 
 
-
 class Special_Ball(Ball):
     """Child-class of Ball. Has weight=0 and type (int, 0 < type <= 1, this will grow as more types are added).
 	Types are (for now):
 	0: Joker. Counts as any color for the purpose of Scoring a horizontal.
 	1: Bomb. Upon landing, destroy all neighboring Balls (3x3 area centered on the Bomb spot). 
 	Constructor is Special_Ball(type)"""
-
-    weight = 0  # shared static var by all Special_Balls. Never change this.
+	# never change these globals, static vars for all ColoredBalls
+    weight = 0  
     isBall = True
 
     def __init__(self, type):
         self.type = type
 
     def draw(self, surf, drawpos):
-        pass  # TODO
+        pass  # later, when Special_Balls are actually introduced
 
 
 def generate_starting_ball():
     color = random.randint(1, 4)
     weight = random.randint(1, 4)
     the_ball = Colored_Ball(color, weight)
-    # print("Generating random Ball. Color={}, Weight={}.".format(color,weight))
     return the_ball

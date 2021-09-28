@@ -6,9 +6,11 @@
 debugprints = False
 
 from pygame import Rect, Surface, font
-from Balls import *
+import Balls
+from Balls import Blocked, NotABall, Colored_Ball, Special_Ball
+import Ongoing
 from Constants import playfield_ballcoord, playfield_ballspacing, weightdisplay_coords, weightdisplay_x_per_column
-from Ongoing import Scoring
+#from Ongoing import Scoring
 
 #weightdisplayheight = 40
 weightdisplayfont = font.SysFont("Arial", 12)
@@ -45,7 +47,7 @@ class Playfield:
 				return False
 		return True
 		
-	def land_ball(self, coords, ball, eventQueue):
+	def land_ball(self, coords, ball):
 		"""Land a ball at coords. Check for weight-moves, then for Scores, then for loss."""
 		x,y = coords
 		if isinstance(ball, Colored_Ball):
@@ -54,11 +56,13 @@ class Playfield:
 			if self.gravity_moves():
 				return
 			# if not, check for Scoring, start one if possible
-			scorex, scorey = self.check_Scoring_full()
-			if scorex != -1:
-				ball = self.content[scorex][scorey]
-				eventQueue.append(Scoring((scorex,scorey), ball))
-				self.content[scorex][scorey] = NotABall()
+			if self.check_Scoring_full():
+				return
+			#scorex, scorey = self.check_Scoring_full()
+			#if scorex != -1:
+			#	ball = self.content[scorex][scorey]
+			#	Ongoing.eventQueue.append(Ongoing.Scoring((scorex,scorey), ball))
+			#	self.content[scorex][scorey] = NotABall()
 		else:
 			raise TypeError("Trying to land unexpected type ", " at playfield position ", x, y)
 			
@@ -91,7 +95,7 @@ class Playfield:
 	def update_weights(self):
 		"""calculate all weights, saves results in self.weights"""
 		for x in range(1,9):
-			sum=0
+			sum = 0
 			for y in range(8):
 				sum += self.content[x][y].weight
 			self.weights[x-1]=sum
@@ -142,7 +146,8 @@ class Playfield:
 
 	def check_Scoring_full(self):
 		"""checks the full content for any horizontal-threes of the same color. 
-		Returns (int,int) coords, leftmost ball, or (-1, -1) if no horizontal-three is found.
+		Adds a Scoring to the eventQueue if one was found.
+		Returns True if a Scoring was found.
 		Checks bottom-up, only the lowest row with a horizontal-three is checked, only the leftmost Three is found.
 		"""
 		
@@ -159,8 +164,9 @@ class Playfield:
 				#print("matching right neighbor (", x+1, ",", y, ")")
 				if self.content[x+2][y].color == color:
 					print("Found Scoring")
-					return (x,y)
-		return (-1, -1)
+					Ongoing.eventQueue.append(Ongoing.Scoring((x,y), self.content[x][y]))
+					return True
+		return False
 		
 		
 
