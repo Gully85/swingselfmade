@@ -1,18 +1,24 @@
 Current TODO List:
 
 
-- maybe sort content of Constants into timings and pixel-counting stuff? Make it two (or more) separate objects? Local dictionary of the Constants module?
-- a finished Scoring or Seesaw_Tilting should trigger a (playfield-wide) check for Scoring. In case of finished Scoring, check for weight-correctness first.
 - throw_ball(), Ongoing.Thrown_Ball. Skip the conversions if the Ball is thrown off the playfield for now.
 - global variables total_Score, total_dropped_Balls, level
 - increase level every 50 balls, level is maxweight and number of possible colors for new random-generated Balls
 - like Scoring, there is Combining: A stack of five balls of the same color will Combine to a single ball with the same total weight.
+- maybe sort content of Constants into timings and pixel-counting stuff? Make it two (or more) separate objects? Local dictionary of the Constants module?
+
+
+
 
 Recent changes:
 - Combined all the weight logic into Playfield.gravity_moves(). It does a full scan for wrong-aligned seesaws, (TODO starts SeesawTilting), pushes columns to the correct positions and (TODO throws balls if needed).
+- Combined weight logic and Scoring-check into Playfield.refresh_status(). Not sure if that's the best name.
 - moved the EventQueue to global scope (as a local variable of module Ongoing). There will always be exactly one EventQueue, no need to have it as a parameter for a billion functions
+- a finished Scoring or Seesaw_Tilting now triggers a (playfield-wide) check for weight-moves and Scoring
 
-Current untested stuff:
+
+Suspicion of bugs:
+- still impossible to create a non-updated seesaw state?
 
 
 
@@ -22,14 +28,50 @@ maybe later TODOs:
 - (placeholder) graphics for Seesaw_Tilting. And for Thrown_Ball once it exists
 - more Special_Balls
 - Thrown_Ball logic for balls thrown out of the playfield
+- it is atm not consistent if we need playfield to be a parameter in the Ongoings. For later VS mode, we need to handle two Playfields at once, but with a shared eventQueue.
+
+
+Special Balls in the original SWING:
+- Joker: Counts as any color for the purpose of Scoring. Can start two Scorings at once, e.g. in a configuration like x x (Joker) y y
+- Bomb: When landing on a Ball, destroy all Balls in a 3x3 environment. When landing on an empty seesaw, do nothing. A Bomb lying aroung will explode once something lands on it, even if it lies under other Balls. A Bomb thrown out sideways will become a Heart. Any other Special Ball  (except negative Specials in VS mode) thrown out sideways will become a Bomb.
+- Cutter: Destroy the stack it lands on
+- Zap: Destroy all Balls of the color it lands on
+- Tint: Re-color all Balls (even Specials) of the stack into the color it lands on. Can multiply Special Balls except Stars and Bombs.
+- Flash: Re-color randomly in a triangle below it into the color it lands on. On average, two re-colors per row.
+- Color Joker: All Balls of the color it lands on are transformed to Jokers.
+- Diagonal Cutter: Destroy all Balls diagonal from its landing spot.
+- Zap Top: Destroy the top Ball of each stack, except when landing on an empty seesaw.
+- Tint Depot: Bottom row of the Depot is re-colored to the color it lands on.
+- Flash Diagonal: All Ball diagonal from its landing spot are re-colored to the color it lands on.
+- Color Bomb: Transforms all Balls of the color it lands on into Bombs.
+- Zap Horizontal: Destroys the row of its landing spot.
+- Multicolor Zap: Destroys all colors that exist in the stack it lands on.
+- Tint 3x3: Re-colors a 3x3 environment into the color it lands on.
+- Flash Triangle: Re-Color the full triangle below it into the color it lands on. 
+
+- Niveller: All Balls in the stack it lands on have their weight set to zero.
+- Stonemaker: All Balls in a 3x3 environment around its landing spot are transformed into Stones.
+- Shadowmaker: Makes a shadow in a 3x3 environment around its position. Balls under the shadow are not drawn, but still work normally.
+- Sting: From time to time, destroy the Ball below and on top of this. Random, becomes slower over time.
+- Color Stonemaker: All Balls of the color it lands on are transformed into Stones.
+- Shadow Clock: Make a shadow over the full Playfield for a while. If thrown, the shadow duration is proportional to throwing range. 
+- Tower: Stack Stones where it lands, until the highest allowed position.
+- Tornado: Suck all Balls from its stack and randomly throw them left and right
+
+- Questionmark: Becomes a random Special Ball in the Crane.
+- Silver Star: Spawns at every levelup in the Depot, can not be created by any Tint/Flash re-coloring. A horizontal Three of Silver Stars will Score everything in the Playfield.
+- Golden Star: Two stacked Silver Stars become a Gold Star. Can not be created by any Tint/Flash re-coloring. A horizontal Three of Gold Stars will Score everything in the Playfield, and add the previous total score, then multiply by the current Level, then add that number to the score.
+- Heart: Three Hearts can score a Three (with zero points).
+- Stone: No interactions/effects. Can not score a Three or Combine a vertical Five.
 
 Ideas (Special Balls):
 - The Pickup: Puts the ball where it lands into the Crane, discarding the one that's there.
 - Time-delayed Bomb: Shows a countdown, explodes at zero.
 - Color Time-delayed Bomb: Turns all balls of the color it hits into time-delayed Bombs, with random timers.
 - The big Stabilizer: The lowest Colored_Ball on each low-side of a seesaw has its weight multiplied by 10.
-- The big Destabilizer: All Colored_Balls have their weight set to zero, except one (randomly chosen) per column.
+- The big Destabilizer: All Colored_Balls have their weight set to zero, except the top one per column.
 
 Ideas (others):
 - unique permanent bonuses for 3 stars and 3 gold-stars. Like slower movement, global score factor, throw preview, higher rate of Special Balls
 - VS mode. Throw balls to opponent, give them special negative effects (inverted Crane movement, auto-drop every few seconds, weight-changes, ...)
+- auto-drop could be generally a good challenge. 

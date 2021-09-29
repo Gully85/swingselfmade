@@ -67,8 +67,9 @@ def main():
 	screen.blit(background, (0,0))
 	pygame.display.flip()
 	
+	# only a test, but doesn't hurt
 	Ongoing.eventQueue.append(Ongoing.FallingBall(Balls.generate_starting_ball(), 2))
-	#ongoing_Events.append(ong.FallingBall(bal.generate_starting_ball(), 2))
+	
 	
 	# Event Loop
 	while 1:

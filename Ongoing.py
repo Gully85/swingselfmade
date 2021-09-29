@@ -84,6 +84,7 @@ class SeesawTilting(Ongoing):
 		playfield.changed = True
 		if self.progress >= 1.0:
 			eventQueue.remove(self)
+			playfield.refresh_status()
 
 
 class Scoring(Ongoing):
@@ -110,7 +111,7 @@ class Scoring(Ongoing):
 		pass
 
 	def tick(self, playfield):
-		"""called once per tick. Counts down delay, expands if zero was reached. 
+		"""called once per tick. Counts down delay, expands if zero was reached, and reset delay. 
 		If no expansion, removes this from the eventQueue
 		"""
 		#print(self, self.delay)
@@ -122,6 +123,7 @@ class Scoring(Ongoing):
 				# Formula for Scores: Total weight x number of balls x level (level does not exist yet)
 				print("Score from this: ", self.weight_so_far * len(self.past))
 				eventQueue.remove(self)
+				playfield.refresh_status()
 				# TODO score and display
 
 	def expand(self, playfield):

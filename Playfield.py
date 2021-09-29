@@ -52,20 +52,21 @@ class Playfield:
 		x,y = coords
 		if isinstance(ball, Colored_Ball):
 			self.content[x][y] = ball
-			# check if a seesaw moves
-			if self.gravity_moves():
-				return
-			# if not, check for Scoring, start one if possible
-			if self.check_Scoring_full():
-				return
-			#scorex, scorey = self.check_Scoring_full()
-			#if scorex != -1:
-			#	ball = self.content[scorex][scorey]
-			#	Ongoing.eventQueue.append(Ongoing.Scoring((scorex,scorey), ball))
-			#	self.content[scorex][scorey] = NotABall()
+			self.refresh_status()
+			
 		else:
 			raise TypeError("Trying to land unexpected type ", " at playfield position ", x, y)
-			
+	
+	def refresh_status(self):
+		"""Checks if anything needs to start now. Performs weight-check, 
+		if that does nothing performs scoring-check, if that does nothing performs combining-check.
+		"""
+		if self.gravity_moves():
+			return
+		if self.check_Scoring_full():
+			return
+		# TODO combining of vertical Five.
+	
 	def push_column(self, x, dy):
 		"""pushes the x-column down by (dy) and its connected neighbor up by (dy)."""
 		# x can be 1..8. Its neighbor is x-1 if x is even, and x+1 else.
@@ -121,6 +122,7 @@ class Playfield:
 				continue
 			
 			# if this point is reached, the seesaw must start moving now. There are three cases: Sided to balanced, balanced to sided, one-sided to other-sided. 
+			Ongoing.eventQueue.append(Ongoing.SeesawTilting(sesa, oldstate, newstate))
 			self.seesaws[sesa] = newstate
 			ret = True
 			if newstate == 0:
