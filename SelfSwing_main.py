@@ -68,7 +68,8 @@ def main():
 	pygame.display.flip()
 	
 	# only a test, but doesn't hurt
-	Ongoing.eventQueue.append(Ongoing.FallingBall(Balls.generate_starting_ball(), 2))
+	#Ongoing.eventQueue.append(Ongoing.FallingBall(Balls.generate_starting_ball(), 2))
+	Ongoing.drop_ball(Balls.generate_starting_ball(), 2)
 	
 	
 	# Event Loop
@@ -98,7 +99,7 @@ def main():
 						the_crane.x = 7
 				if event.key == K_DOWN or event.key == K_SPACE:
 					column = the_crane.x
-					Ongoing.eventQueue.append(Ongoing.FallingBall(the_crane.current_Ball, column+1))
+					Ongoing.drop_ball(the_crane.current_Ball, column+1)
 					the_crane.current_Ball = the_depot.content[column][1]
 					the_depot.content[column][1] = the_depot.content[column][0]
 					the_depot.content[column][0] = Balls.generate_starting_ball()

@@ -17,7 +17,7 @@ Recent changes:
 - a finished Scoring or Seesaw_Tilting now triggers a (playfield-wide) check for weight-moves and Scoring
 
 
-Suspicion of bugs:
+Suspected possible bugs:
 - still impossible to create a non-updated seesaw state?
 
 
@@ -72,6 +72,7 @@ Ideas (Special Balls):
 - The big Destabilizer: All Colored_Balls have their weight set to zero, except the top one per column.
 
 Ideas (others):
+- ThrownBalls could have an actual trajectory like a thrown ball. It ends in the top place of the correct row and then becomes a FallingBall.
 - unique permanent bonuses for 3 stars and 3 gold-stars. Like slower movement, global score factor, throw preview, higher rate of Special Balls
 - VS mode. Throw balls to opponent, give them special negative effects (inverted Crane movement, auto-drop every few seconds, weight-changes, ...)
 - auto-drop could be generally a good challenge. 

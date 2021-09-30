@@ -5,10 +5,17 @@
 
 # all must have a .draw(surf) and a .tick(playfield) method.
 
+# shorts:
+# - drop_ball(ball, column) to drop a ball from crane-height
+# - tilt_seesaw(seesaw, before, after) to move a seesaw from a position to another
+# - throw_ball(ball, origin_coords, throwing_range) to throw a ball. Positive throwing_range indicates 
+# throwing to the right, to higher x-values / columns
+
 import Balls
 
 from Constants import ball_size, playfield_ballcoord, playfield_ballspacing
-from Constants import falling_per_tick, tilting_per_tick, scoring_delay
+from Constants import falling_per_tick, tilting_per_tick, scoring_delay, rising_per_tick, sideway_per_tick
+from Constants import throwing_height
 
 # this is a local variable of the "module" Ongoing. Other files, if they import Ongoing,
 # can use and modify this. Their local name is Ongoing.eventQueue
@@ -21,8 +28,8 @@ class Ongoing:
 class FallingBall(Ongoing):
 	"""a Ball that is being dropped, falling after being thrown, or the Ball below it vanished somehow. Vars:
 		ball (Colored_Ball or Special_Ball)
-		col (int, allowed range 1 <= col <= 8, matching the index in Playfield.content[.][])
-		height (float, allowed range 8.0 >= height >= highest filled position in Playfield.content)
+		column (int, allowed range 1 <= column <= 8, matching the index in Playfield.content[.][])
+		height (float, allowed range 8.0 >= height >= highest filled position in Playfield.content in respective column)
 		
 		Constructor: FallingBall(ball, col, starting_height=8.0). The starting height is optional, only to be used 
 			if the Ball drops from Playfield instead of Crane/Thrown
@@ -47,13 +54,70 @@ class FallingBall(Ongoing):
 		elif isinstance(content[self.column][new_height], Balls.NotABall):
 			self.height -= falling_per_tick
 		else:
-			#print("reached Ground")
 			x = self.column
 			y = new_height+1 # index in content[][.]
-			#self.ball.land((x,y), playfield, eventQueue)
-			playfield.land_ball((x, y), self.ball)
 			eventQueue.remove(self)
+			playfield.land_ball((x, y), self.ball)
 
+def drop_ball(ball, column):
+	eventQueue.append(FallingBall(ball, column))
+
+class ThrownBall(Ongoing):
+	"""A ball that was thrown by a seesaw. Moves up, then sideways to the correct column, then becomes a FallingBall. Vars:
+		ball (Colored_Ball or Special_Ball)
+		column (float, not int), allowed range 1.0 <= column <= 8.0. Current position x
+		height (float), allowed range 1.0 <= height <= 9.0. Current position y
+		throwing_range (float), all values possible. How far will this be thrown sideways, in columns. 
+			Positive values indicate throwing to the right, negative to the left.
+		Constructor: ThrownBall(ball, (x,y), throwingRange), x and y and throwingRange should all be ints
+		"""
+	
+	def __init__(self, ball, coords, throwing_range):
+		self.ball = ball
+		self.column = float(coords[0])
+		self.height = float(coords[1])
+		self.throwing_range = float (throwing_range)
+	
+	def draw(self, surf):
+		# identical to FallingBall.draw() so far
+		x = playfield_ballcoord[0] + (self.column-1)*playfield_ballspacing[0]
+		y = playfield_ballcoord[0] + (7. - self.height)*playfield_ballspacing[1]
+		self.ball.draw(surf, (x,y))
+		
+	def tick(self, playfield):
+		# up until self.height==9.0, then sideways until throwingRange==0, then become a FallingBall
+		# The whole out-of-bounds and convert-to-Bomb/Heart mechanic does not
+		# exist yet. For now, just discard anything that leaves the bounds. 
+		# Discard when column < 0.5 or column > 8.5
+		playfield.changed=True
+		if self.height < 8.5:
+			self.height += rising_per_tick
+			return
+		elif self.height > throwing_height:
+			self.height = throwing_height
+			print("ThrownBall reached final height")
+		
+		if self.throwing_range > 0.0:
+			self.column += sideway_per_tick
+			self.throwing_range -= sideway_per_tick
+			if self.throwing_range <= 0.0:
+				eventQueue.append(FallingBall(self.ball, int(self.column+0.5), starting_height=throwing_height-1.0))
+				eventQueue.remove(self)
+		else:
+			self.column -= sideway_per_tick
+			self.throwing_range += sideway_per_tick
+			if self.throwing_range >= 0.0:
+				eventQueue.append(FallingBall(self.ball, int(self.column+0.5), starting_height=throwing_height-1.0))
+				eventQueue.remove(self)
+				print("removing ThrownBall, converting to FallingBall")
+		
+		if self.column < 0.5 or self.column > 8.5:
+			eventQueue.remove(self)
+			print("removing ThrownBall, sideway out-of-bounds")
+
+def throw_ball(ball, origin_coords, throwing_range):
+	eventQueue.append(ThrownBall(ball, origin_coords, throwing_range))
+	print("throwing Ball, ", ball, origin_coords, throwing_range)
 
 class SeesawTilting(Ongoing):
 	"""A seesaw that is shifting position over time. Vars:
@@ -86,6 +150,9 @@ class SeesawTilting(Ongoing):
 			eventQueue.remove(self)
 			playfield.refresh_status()
 
+def tilt_seesaw(seesaw, before, after):
+	eventQueue.append(SeesawTilting(seesaw, before, after))
+	print("tilting seesaw, ", seesaw, before, after)
 
 class Scoring(Ongoing):
 	"""Balls currently scoring points. Vars:

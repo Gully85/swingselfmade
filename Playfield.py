@@ -53,9 +53,8 @@ class Playfield:
 		if isinstance(ball, Colored_Ball):
 			self.content[x][y] = ball
 			self.refresh_status()
-			
 		else:
-			raise TypeError("Trying to land unexpected type ", " at playfield position ", x, y)
+			raise TypeError("Trying to land unexpected ball type ", " at playfield position ", x, y)
 	
 	def refresh_status(self):
 		"""Checks if anything needs to start now. Performs weight-check, 
@@ -121,8 +120,9 @@ class Playfield:
 			if newstate == oldstate:
 				continue
 			
-			# if this point is reached, the seesaw must start moving now. There are three cases: Sided to balanced, balanced to sided, one-sided to other-sided. 
-			Ongoing.eventQueue.append(Ongoing.SeesawTilting(sesa, oldstate, newstate))
+			# if this point is reached, the seesaw must start moving now. There are 
+			# three cases: Sided to balanced, balanced to sided, one-sided to other-sided. 
+			Ongoing.tilt_seesaw(sesa, oldstate, newstate)
 			self.seesaws[sesa] = newstate
 			ret = True
 			if newstate == 0:
@@ -136,15 +136,41 @@ class Playfield:
 				else:
 					self.push_column(left, 2)
 				# TODO throw top ball of right to the left. Distance is self.weights[left]-self.weights[right] (is always > 0)
+				print("weight left=", self.weights[left-1], ", weight right=", self.weights[right-1])
+				self.throw_top_ball(right, self.weights[right-1] - self.weights[left-1])
 			else:
 				if oldstate == 0:
 					self.push_column(right, 1)
 				else:
 					self.push_column(right, 2)
 				# TODO throw top ball of left to the right. Distance is self.weights[right]-self.weights[left] (is always > 0)
+				print("weight left=", self.weights[left-1], ", weight right=", self.weights[right-1])
+				self.throw_top_ball(left, self.weights[right-1] - self.weights[left-1])
 			
 		# when this point is reached, all seesaws have been checked and updated
 		return ret
+	
+	def throw_top_ball(self, column, throwing_range):
+		"""throw the top ball of column. If there is no ball, do nothing."""
+		# throwing can only happen if the column is already the high side of a seesaw. Can safely 
+		# assume that y=0 and y=1 are Blocked. Remove this sanity check once tests look good.
+		if not isinstance(self.content[column][0], Blocked) and isinstance(self.content[column][1], Blocked):
+			raise Error("Trying to throw from a non-lifted seesaw side, x=", column)
+		lastball = self.content[column][2]
+		if isinstance(lastball, NotABall):
+			return
+		
+		for y in range(3, 8):
+			ball = self.content[column][y]
+			if isinstance(ball, Blocked):
+				continue
+			elif isinstance(ball, NotABall):
+				Ongoing.throw_ball(lastball, (column, y-1), throwing_range)
+				self.content[column][y-1] = NotABall()
+				self.weights[column-1] -= self.content[column][y-1].weight
+				return
+			else:
+				lastball = ball
 
 	def check_Scoring_full(self):
 		"""checks the full content for any horizontal-threes of the same color. 

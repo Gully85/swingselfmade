@@ -16,6 +16,17 @@ tilting_speed = 4.0
 # same in tilts/tick
 tilting_per_tick = tilting_speed / max_FPS
 
+# speed of rising ThrownBalls, in tiles/sec
+rising_speed = 2*tilting_speed
+rising_per_tick = rising_speed / max_FPS
+
+# speed of sideway-moving ThrownBalls, in tiles/sec
+sideway_speed = rising_speed
+sideway_per_tick = sideway_speed / max_FPS
+
+# how high do thrown balls rise before moving sideway
+throwing_height = 8.5
+
 # speed of Scoring. How fast does ball-removing travel (in Balls/sec)
 scoring_speed = 5.0
 # delay in ticks until next stage of scoring
