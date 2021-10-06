@@ -14,8 +14,8 @@
 import Balls
 
 from Constants import ball_size, playfield_ballcoord, playfield_ballspacing
-from Constants import falling_per_tick, tilting_per_tick, scoring_delay, rising_per_tick, sideway_per_tick
-from Constants import throwing_height
+from Constants import falling_per_tick, tilting_per_tick, scoring_delay
+from Constants import thrown_ball_dropheight
 
 # this is a local variable of the "module" Ongoing. Other files, if they import Ongoing,
 # can use and modify this. Their local name is Ongoing.eventQueue
@@ -63,57 +63,121 @@ def drop_ball(ball, column):
 	eventQueue.append(FallingBall(ball, column))
 
 class ThrownBall(Ongoing):
-	"""A ball that was thrown by a seesaw. Moves up, then sideways to the correct column, then becomes a FallingBall. Vars:
-		ball (Colored_Ball or Special_Ball)
-		column (float, not int), allowed range 1.0 <= column <= 8.0. Current position x
-		height (float), allowed range 1.0 <= height <= 9.0. Current position y
-		throwing_range (float), all values possible. How far will this be thrown sideways, in columns. 
-			Positive values indicate throwing to the right, negative to the left.
-		Constructor: ThrownBall(ball, (x,y), throwingRange), x and y and throwingRange should all be ints
+	"""A ball that was thrown by a seesaw. Follows a certain trajectory 
+		(see comment in tick() for details), then becomes a FallingBall. Vars:
+		ball (Colored_Ball or Special_Ball).
+		destination (int), allowed range 0 <= destination <= 9. Values 1..8 indicate landing in that column,
+			Values 0 or 9 indicate flying out sideway. Destination height is always 8.2
+		origin (int,int tuple), x and y coordinate of the spot from where it was launched. 1 <= x <= 8. 
+			If it came in flying from the side, x = 0 or 9 and y = 7.
+		x (float, not int), allowed range 1.0 <= column <= 8.0. Current position.
+		y (float), allowed range 1.0 <= height <= 9.0. Current position.
+		remaining_range (int), all values possible. Value is 0 except when it will be thrown out sideway, 
+			in which case it is the remaining number of columns to be thrown. Not to be confused with the 
+			constructor argument throwing_range. This is the remaining number of columns after the next fly-out,
+			the constructor argument is the total number of columns to fly. Negative if flying to the left
+		t (float), running parameter for the trajectory. Values -1 <= t <= +1
+		
+		
+		Constructor: ThrownBall(ball, (x,y), throwing_range), x and y and throwing_range should all be ints. 
+		Positive throwing_range indicates throwing to the right, negative to the left
 		"""
 	
 	def __init__(self, ball, coords, throwing_range):
 		self.ball = ball
-		self.column = float(coords[0])
-		self.height = float(coords[1])
-		self.throwing_range = float (throwing_range)
-	
+		self.origin = coords
+		self.x = float(coords[0])
+		self.y = float(coords[1])
+		if throwing_range == 0:
+			raise ValueError("Attempting to throw ball ", ball, " from position ", coords, " with range zero.")
+		
+		# calculate destination. Three possible cases: Flying out left, landing in-bound, flying out right.
+		destination_raw = coords[0] + throwing_range
+		if destination_raw < 1: # fly out left
+			self.destination = 0
+			self.remaining_range = destination_raw
+		elif destination_raw > 8: # fly out right
+			self.destination = 9
+			self.remaining_range = destination_raw
+		else: # stay in-bound
+			self.destination = destination_raw
+			self.remaining_range = 0
+		
+		# the trajectory is parametrized with t going from -1 to +1
+		self.t = -1
+		
+		# Maybe generate the trajectory here, as a local lambda(t)?
+		
 	def draw(self, surf):
 		# identical to FallingBall.draw() so far
-		x = playfield_ballcoord[0] + (self.column-1)*playfield_ballspacing[0]
-		y = playfield_ballcoord[0] + (7. - self.height)*playfield_ballspacing[1]
+		x = playfield_ballcoord[0] + (self.x-1)*playfield_ballspacing[0]
+		y = playfield_ballcoord[0] + (7. - self.y)*playfield_ballspacing[1]
 		self.ball.draw(surf, (x,y))
 		
 	def tick(self, playfield):
-		# up until self.height==9.0, then sideways until throwingRange==0, then become a FallingBall
-		# The whole out-of-bounds and convert-to-Bomb/Heart mechanic does not
-		# exist yet. For now, just discard anything that leaves the bounds. 
-		# Discard when column < 0.5 or column > 8.5
+		# increase t. If destination was reached (t>1), convert into a FallingBall or perform the fly-out.
+		# If not, calculate new position x,y from the trajectory.
+		from Constants import thrown_ball_dt , thrown_ball_maxheight
+		
+		self.t += thrown_ball_dt
 		playfield.changed=True
-		if self.height < 8.5:
-			self.height += rising_per_tick
-			return
-		elif self.height > throwing_height:
-			self.height = throwing_height
-			print("ThrownBall reached final height")
 		
-		if self.throwing_range > 0.0:
-			self.column += sideway_per_tick
-			self.throwing_range -= sideway_per_tick
-			if self.throwing_range <= 0.0:
-				eventQueue.append(FallingBall(self.ball, int(self.column+0.5), starting_height=throwing_height-1.0))
+		# is the destination reached? If yes, it can become a FallingBall or it can fly out
+		if self.t > 1.0:
+			if self.remaining_range == 0: # reached a destination column, start falling
+				#drop_ball(self.ball, self.destination)
+				eventQueue.append(FallingBall(self.ball, self.destination, starting_height=thrown_ball_dropheight-1))
 				eventQueue.remove(self)
+			else:
+				self.fly_out(self.remaining_range < 0)
 		else:
-			self.column -= sideway_per_tick
-			self.throwing_range += sideway_per_tick
-			if self.throwing_range >= 0.0:
-				eventQueue.append(FallingBall(self.ball, int(self.column+0.5), starting_height=throwing_height-1.0))
-				eventQueue.remove(self)
-				print("removing ThrownBall, converting to FallingBall")
-		
-		if self.column < 0.5 or self.column > 8.5:
-			eventQueue.remove(self)
-			print("removing ThrownBall, sideway out-of-bounds")
+			# Ball has not reached its destination yet. Update x and y of the trajectory.
+			# The trajectory is a standard parabola -t**2. The t<0 side is for origin to max, 
+			# t>0 arm for max to destination. t=-1 is origin, t=0 is max, t=1 is destination.
+			# max is always at x=(origin+destination)/2, y=thrown_ball_maxheight
+			# (That implies that the derivative is not smooth at the max. So be it.)
+			maxx = (self.origin[0] + self.destination)/2
+			maxy = thrown_ball_maxheight
+			
+			if self.t < 0.0:
+				# t<0 origin side: t=0 is (maxx, maxy), t=-1 is origin
+				self.x = maxx + self.t *  (maxx - self.origin[0])
+				self.y = maxy - self.t**2*(maxy - self.origin[1])
+			else:
+				# t>0 destination side: Same thing with destination instead of origin
+				self.x = maxx - self.t *  (maxx - self.destination)
+				self.y = maxy - self.t**2*(maxy - thrown_ball_dropheight+1)
+				
+	
+	def fly_out(self, left):
+		"""Ball flew out to the left or right (indicated by argument). Insert it at the
+			very right/left, set new origin, calculate and set new destination
+		"""
+		from Constants import thrown_ball_flyover_height as flyover_height
+		self.t = -1.0
+		self.y = flyover_height
+		if left:
+			self.x = 9.0
+		else:
+			self.x = 0.0
+		self.origin = (self.x, self.y)
+		# calculate new destination. It can be another fly-out (if remaining_range is high enough) or a column.
+		# Didn't find a way to make this shorter without losing readability...
+		if left:
+			if self.remaining_range < -7:
+				self.destination = 0
+				self.remaining_range += 8
+			else:
+				self.destination = 8 - self.remaining_range
+				self.remaining_range = 0
+		else:
+			if self.remaining_range > 7:
+				self.destination = 9
+				self.remaining_range -= 8
+			else:
+				self.destination = self.remaining_range
+				self.remaining_range = 0
+			
 
 def throw_ball(ball, origin_coords, throwing_range):
 	eventQueue.append(ThrownBall(ball, origin_coords, throwing_range))

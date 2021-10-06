@@ -16,16 +16,28 @@ tilting_speed = 4.0
 # same in tilts/tick
 tilting_per_tick = tilting_speed / max_FPS
 
-# speed of rising ThrownBalls, in tiles/sec
-rising_speed = 2*tilting_speed
-rising_per_tick = rising_speed / max_FPS
+## speed of rising ThrownBalls, in tiles/sec
+#rising_speed = 2*tilting_speed
+#rising_per_tick = rising_speed / max_FPS
+#
+## speed of sideway-moving ThrownBalls, in tiles/sec
+#sideway_speed = rising_speed
+#sideway_per_tick = sideway_speed / max_FPS
+#
+## how high do thrown balls rise before moving sideway
+#throwing_height = 8.5
 
-# speed of sideway-moving ThrownBalls, in tiles/sec
-sideway_speed = rising_speed
-sideway_per_tick = sideway_speed / max_FPS
-
-# how high do thrown balls rise before moving sideway
-throwing_height = 8.5
+# total time it takes for a thrown Ball to travel, in seconds
+# (in case of [multiple times?] sideway fly-out, this is for each round)
+thrown_ball_totaltime = 3
+# trajectory parameter t goes from -1 to +1, increase this much in each tick
+thrown_ball_dt = 2./ max_FPS / thrown_ball_totaltime
+# thrown ball trajectory: y-value of highest point
+thrown_ball_maxheight = 8.5
+# if ball is thrown off the field, this position is their destination
+thrown_ball_flyover_height = 7.0
+# if ball is targeting a column, this is the height where they convert to a FallingBall
+thrown_ball_dropheight = 7.5
 
 # speed of Scoring. How fast does ball-removing travel (in Balls/sec)
 scoring_speed = 5.0

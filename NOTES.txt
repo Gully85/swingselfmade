@@ -6,7 +6,7 @@ Current TODO List:
 - increase level every 50 balls, level is maxweight and number of possible colors for new random-generated Balls
 - like Scoring, there is Combining: A stack of five balls of the same color will Combine to a single ball with the same total weight.
 - maybe sort content of Constants into timings and pixel-counting stuff? Make it two (or more) separate objects? Local dictionary of the Constants module?
-
+- placeholder graphics for moving seesaw
 
 
 
@@ -32,7 +32,7 @@ maybe later TODOs:
 
 
 Special Balls in the original SWING:
-- Joker: Counts as any color for the purpose of Scoring. Can start two Scorings at once, e.g. in a configuration like x x (Joker) y y
+- Joker: Counts as any color for the purpose of Scoring. Can start two Scorings at once, e.g. in a configuration like x x (Joker) y y. Will not start a Combining (vertical five).
 - Bomb: When landing on a Ball, destroy all Balls in a 3x3 environment. When landing on an empty seesaw, do nothing. A Bomb lying aroung will explode once something lands on it, even if it lies under other Balls. A Bomb thrown out sideways will become a Heart. Any other Special Ball  (except negative Specials in VS mode) thrown out sideways will become a Bomb.
 - Cutter: Destroy the stack it lands on
 - Zap: Destroy all Balls of the color it lands on
@@ -40,7 +40,7 @@ Special Balls in the original SWING:
 - Flash: Re-color randomly in a triangle below it into the color it lands on. On average, two re-colors per row.
 - Color Joker: All Balls of the color it lands on are transformed to Jokers.
 - Diagonal Cutter: Destroy all Balls diagonal from its landing spot.
-- Zap Top: Destroy the top Ball of each stack, except when landing on an empty seesaw.
+- Zap Top: Destroy the top Ball of each stack, except if landing on an empty seesaw.
 - Tint Depot: Bottom row of the Depot is re-colored to the color it lands on.
 - Flash Diagonal: All Ball diagonal from its landing spot are re-colored to the color it lands on.
 - Color Bomb: Transforms all Balls of the color it lands on into Bombs.
