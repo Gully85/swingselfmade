@@ -59,11 +59,11 @@ class Colored_Ball(Ball):
     # never change these globals, static var for all ColoredBalls
     isBall = True
 
-    def __init__(self, color, weight):
+    def __init__(self, color: int, weight: int):
         self.color = color
         self.weight = weight
 
-    def draw(self, surf, drawpos):
+    def draw(self, surf: pygame.Surface, drawpos: (int,int)):
         """draws this Ball onto pygame.Surface surf to offset-position drawpos. Returns None"""
         color = ball_colors[self.color]
         pixelpos_rect = Rect(drawpos, ball_size)
@@ -84,10 +84,10 @@ class Special_Ball(Ball):
     weight = 0  
     isBall = True
 
-    def __init__(self, type):
+    def __init__(self, type: int):
         self.type = type
 
-    def draw(self, surf, drawpos):
+    def draw(self, surf: pygame.Surface, drawpos: (int, int)):
         pass  # later, when Special_Balls are actually introduced
 
 

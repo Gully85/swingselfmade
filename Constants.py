@@ -33,11 +33,11 @@ thrown_ball_totaltime = 3
 # trajectory parameter t goes from -1 to +1, increase this much in each tick
 thrown_ball_dt = 2./ max_FPS / thrown_ball_totaltime
 # thrown ball trajectory: y-value of highest point
-thrown_ball_maxheight = 8.5
+thrown_ball_maxheight = 9.2
 # if ball is thrown off the field, this position is their destination
 thrown_ball_flyover_height = 7.0
 # if ball is targeting a column, this is the height where they convert to a FallingBall
-thrown_ball_dropheight = 7.5
+thrown_ball_dropheight = 8.5
 
 # speed of Scoring. How fast does ball-removing travel (in Balls/sec)
 scoring_speed = 5.0

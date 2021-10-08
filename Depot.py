@@ -9,7 +9,7 @@ class Depot:
 	"""Information about the Depot state. Balls stored here, and drawing procedure. Stores a local Surface."""
 	
 	# size in pixels is provided by the constructor call. Initial filling with Colored_Balls is done here for now. 
-	def __init__(self, size):
+	def __init__(self, size: (int, int)):
 		self.size_x = size[0]
 		self.size_y = size[1]
 		self.surf = Surface(size)

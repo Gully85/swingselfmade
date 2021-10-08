@@ -28,7 +28,7 @@ class Playfield:
 		surf (pygame.Surface)
 	Constructor takes size in pixels."""
 	
-	def __init__(self, size):
+	def __init__(self, size: (int, int)):
 		self.content = [[ Blocked(),Blocked(),Blocked(),Blocked(), Blocked(),Blocked(),Blocked(),Blocked(),NotABall() ]]
 		for i in range(8):
 			self.content.append([ Blocked(),NotABall(),NotABall(),NotABall(), NotABall(),NotABall(),NotABall(),NotABall(),NotABall() ])
@@ -47,7 +47,7 @@ class Playfield:
 				return False
 		return True
 		
-	def land_ball(self, coords, ball):
+	def land_ball(self, coords: (int, int), ball):
 		"""Land a ball at coords. Check for weight-moves, then for Scores, then for loss."""
 		x,y = coords
 		if isinstance(ball, Colored_Ball):
@@ -66,14 +66,14 @@ class Playfield:
 			return
 		# TODO combining of vertical Five.
 	
-	def push_column(self, x, dy):
+	def push_column(self, x: int, dy: int):
 		"""pushes the x-column down by (dy) and its connected neighbor up by (dy)."""
 		# x can be 1..8. Its neighbor is x-1 if x is even, and x+1 else.
 		neighbor = x+1 - 2*(x%2 == 0)
 		self.raise_column(neighbor, dy)
 		self.lower_column(x, dy)
 
-	def lower_column(self, x, dy):
+	def lower_column(self, x: int, dy: int):
 		"""move all balls in a stack (dy) places down. """
 		for height in range(0, 9-dy):
 			self.content[x][height] = self.content[x][height + dy]
@@ -81,7 +81,7 @@ class Playfield:
 		# it is later filled with an actual ball? I think not, but not 100% sure. A fix would be 
 		# to create a new NotABall for y=8.
 
-	def raise_column(self, x, dy):
+	def raise_column(self, x: int, dy: int):
 		"""moves all balls in a stack (dy) places up. This can fill the highest place y=8 so the player loses."""
 		for height in range(8, dy-1, -1):
 			self.content[x][height] = self.content[x][height - dy]
@@ -150,7 +150,7 @@ class Playfield:
 		# when this point is reached, all seesaws have been checked and updated
 		return ret
 	
-	def throw_top_ball(self, column, throwing_range):
+	def throw_top_ball(self, column: int, throwing_range: int):
 		"""throw the top ball of column. If there is no ball, do nothing."""
 		# throwing can only happen if the column is already the high side of a seesaw. Can safely 
 		# assume that y=0 and y=1 are Blocked. Remove this sanity check once tests look good.

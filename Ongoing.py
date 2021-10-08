@@ -12,10 +12,12 @@
 # throwing to the right, to higher x-values / columns
 
 import Balls
+from pygame import Surface
 
 from Constants import ball_size, playfield_ballcoord, playfield_ballspacing
 from Constants import falling_per_tick, tilting_per_tick, scoring_delay
 from Constants import thrown_ball_dropheight
+
 
 # this is a local variable of the "module" Ongoing. Other files, if they import Ongoing,
 # can use and modify this. Their local name is Ongoing.eventQueue
@@ -35,7 +37,7 @@ class FallingBall(Ongoing):
 			if the Ball drops from Playfield instead of Crane/Thrown
 		"""
 	
-	def __init__(self, ball, column, starting_height=8.0):
+	def __init__(self, ball, column: int, starting_height=8.0):
 		self.ball = ball
 		self.column = column
 		self.height = starting_height
@@ -59,7 +61,7 @@ class FallingBall(Ongoing):
 			eventQueue.remove(self)
 			playfield.land_ball((x, y), self.ball)
 
-def drop_ball(ball, column):
+def drop_ball(ball, column: int):
 	eventQueue.append(FallingBall(ball, column))
 
 class ThrownBall(Ongoing):
@@ -83,7 +85,7 @@ class ThrownBall(Ongoing):
 		Positive throwing_range indicates throwing to the right, negative to the left
 		"""
 	
-	def __init__(self, ball, coords, throwing_range):
+	def __init__(self, ball, coords: (int, int), throwing_range: int):
 		self.ball = ball
 		self.origin = coords
 		self.x = float(coords[0])
@@ -98,13 +100,16 @@ class ThrownBall(Ongoing):
 			self.remaining_range = destination_raw
 		elif destination_raw > 8: # fly out right
 			self.destination = 9
-			self.remaining_range = destination_raw
+			self.remaining_range = destination_raw - 8
 		else: # stay in-bound
 			self.destination = destination_raw
 			self.remaining_range = 0
 		
 		# the trajectory is parametrized with t going from -1 to +1
 		self.t = -1
+		
+		print("Throwing ball ", ball, " from position ", coords, " with range ",
+				throwing_range, ". Destination is ", self.destination, ", remaining is ", self.remaining_range)
 		
 		# Maybe generate the trajectory here, as a local lambda(t)?
 		
@@ -126,7 +131,7 @@ class ThrownBall(Ongoing):
 		if self.t > 1.0:
 			if self.remaining_range == 0: # reached a destination column, start falling
 				#drop_ball(self.ball, self.destination)
-				eventQueue.append(FallingBall(self.ball, self.destination, starting_height=thrown_ball_dropheight-1))
+				eventQueue.append(FallingBall(self.ball, self.destination, starting_height=thrown_ball_dropheight-1.0))
 				eventQueue.remove(self)
 			else:
 				self.fly_out(self.remaining_range < 0)
@@ -149,13 +154,13 @@ class ThrownBall(Ongoing):
 				self.y = maxy - self.t**2*(maxy - thrown_ball_dropheight+1)
 				
 	
-	def fly_out(self, left):
+	def fly_out(self, left: bool):
 		"""Ball flew out to the left or right (indicated by argument). Insert it at the
 			very right/left, set new origin, calculate and set new destination
 		"""
-		from Constants import thrown_ball_flyover_height as flyover_height
+		from Constants import thrown_ball_flyover_height
 		self.t = -1.0
-		self.y = flyover_height
+		self.y = thrown_ball_flyover_height
 		if left:
 			self.x = 9.0
 		else:
@@ -168,7 +173,7 @@ class ThrownBall(Ongoing):
 				self.destination = 0
 				self.remaining_range += 8
 			else:
-				self.destination = 8 - self.remaining_range
+				self.destination = 8 + self.remaining_range  # self.remaining is negative
 				self.remaining_range = 0
 		else:
 			if self.remaining_range > 7:
@@ -177,11 +182,13 @@ class ThrownBall(Ongoing):
 			else:
 				self.destination = self.remaining_range
 				self.remaining_range = 0
-			
+		
+		print("Ball flying out, left=", left, ", new remaining_range=", self.remaining_range, 
+			" and destination=", self.destination)
 
-def throw_ball(ball, origin_coords, throwing_range):
+def throw_ball(ball, origin_coords: (int, int), throwing_range: int):
 	eventQueue.append(ThrownBall(ball, origin_coords, throwing_range))
-	print("throwing Ball, ", ball, origin_coords, throwing_range)
+	# print("throwing Ball, ", ball, origin_coords, throwing_range)
 
 class SeesawTilting(Ongoing):
 	"""A seesaw that is shifting position over time. Vars:
@@ -194,7 +201,7 @@ class SeesawTilting(Ongoing):
 		When the Constructor is called, it will put the playfield.content columns in the positions of the final state. If needed, it will throw the top Ball and create&add a ThrownBall to the eventQueue
 	"""
 
-	def __init__(self, sesa, before, after):
+	def __init__(self, sesa: int, before: int, after: int):
 		self.sesa = sesa
 		self.before = before
 		self.after = after
@@ -214,7 +221,7 @@ class SeesawTilting(Ongoing):
 			eventQueue.remove(self)
 			playfield.refresh_status()
 
-def tilt_seesaw(seesaw, before, after):
+def tilt_seesaw(seesaw: int, before: int, after: int):
 	eventQueue.append(SeesawTilting(seesaw, before, after))
 	print("tilting seesaw, ", seesaw, before, after)
 
@@ -229,7 +236,7 @@ class Scoring(Ongoing):
 		Constructor: Scoring((x,y), ball)
 	"""
 	
-	def __init__(self, coords, ball):
+	def __init__(self, coords: (int, int), ball):
 		self.past = []
 		self.next = [coords]
 		self.color = ball.color
