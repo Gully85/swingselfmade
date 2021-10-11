@@ -11,6 +11,10 @@ falling_speed = 3.0
 # same in tiles/tick
 falling_per_tick = falling_speed / max_FPS
 
+# Stop if falling Speed is higher than one tile per tick. This could break the FallingBall mechanic
+if falling_per_tick > 1.0:
+	raise ValueError("Falling Speed too high. Do not fall more than one tile per tick.")
+
 # speed of tilting Seesaws, in 1/sec. For example 4.0 means 0.25sec to tilt to final position
 tilting_speed = 4.0
 # same in tilts/tick

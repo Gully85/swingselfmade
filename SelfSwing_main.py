@@ -13,19 +13,25 @@ from pygame.locals import *
 
 pygame.init()
 
-
 #from Constants import *
-from Constants import falling_per_tick, max_FPS
-from Constants import screensize, depotsize, craneareasize, playfieldsize
+#from Constants import falling_per_tick, max_FPS
+#from Constants import screensize, depotsize, craneareasize, playfieldsize
+#from Constants import depot_position, cranearea_position, playfield_position
+
+from Constants import max_FPS, screensize
 from Constants import depot_position, cranearea_position, playfield_position
 
-import Depot
+import Game
+
+Game.init()
+
+#import Depot
 
 import Balls
 
-import Crane
+#import Crane
 
-import Playfield
+#import Playfield
 
 import Ongoing
 
@@ -33,19 +39,17 @@ import Ongoing
 # (max) number of ticks occuring per second
 FrameLimiter = pygame.time.Clock()
 
-# Warn if falling Speed is higher than one tile per tick. This could break the FallingBall mechanic
-if falling_per_tick > 1.0:
-	print("Falling Speed too high. Do not fall more than one tile per tick.")
+
 
 	
 # initialize depot
-the_depot = Depot.Depot(depotsize)
+#the_depot = Depot.Depot(depotsize)
 
 # initialize crane
-the_crane = Crane.Crane(craneareasize)
+#the_crane = Crane.Crane(craneareasize)
 
 # initialize playfield
-the_playfield = Playfield.Playfield(playfieldsize)
+#the_playfield = Playfield.Playfield(playfieldsize)
 
 # test
 #the_playfield.content[3][3] = bal.generate_starting_Ball()
@@ -88,49 +92,51 @@ def main():
 			# accepted user inputs: K_LEFT, K_RIGHT, K_DOWN, K_SPACE. Move crane left/right, but not past the boundaries
 			if event.type == KEYDOWN:
 				if event.key == K_LEFT:
-					the_crane.x -= 1
-					the_crane.changed = True
-					if the_crane.x < 0:
-						the_crane.x = 0
+					#the_crane.x -= 1
+					#the_crane.changed = True
+					Game.crane.x -= 1
+					Game.crane.changed = True
+					if Game.crane.x < 0:
+						Game.crane.x = 0
 				if event.key == K_RIGHT:
-					the_crane.x += 1
-					the_crane.changed = True
-					if the_crane.x > 7:
-						the_crane.x = 7
+					Game.crane.x += 1
+					Game.crane.changed = True
+					if Game.crane.x > 7:
+						Game.crane.x = 7
 				if event.key == K_DOWN or event.key == K_SPACE:
-					column = the_crane.x
-					Ongoing.drop_ball(the_crane.current_Ball, column+1)
-					the_crane.current_Ball = the_depot.content[column][1]
-					the_depot.content[column][1] = the_depot.content[column][0]
-					the_depot.content[column][0] = Balls.generate_starting_ball()
-					the_crane.changed = True
-					the_depot.changed = True
+					column = Game.crane.x
+					Ongoing.drop_ball(Game.crane.current_Ball, column+1)
+					Game.crane.current_Ball = Game.depot.content[column][1]
+					Game.depot.content[column][1] = Game.depot.content[column][0]
+					Game.depot.content[column][0] = Balls.generate_starting_ball()
+					Game.crane.changed = True
+					Game.depot.changed = True
 
 
 		## Step 2, proceed ongoing Events
 		for event in Ongoing.eventQueue:
-			event.tick(the_playfield)
+			event.tick(Game.playfield)
 		
 		
 		### Step 3, update screen where necessary
-		if the_depot.changed:
-			drawn_depot = the_depot.draw()
+		if Game.depot.changed:
+			drawn_depot = Game.depot.draw()
 			screen.blit(drawn_depot, depot_position)
-			the_depot.changed = False
+			Game.depot.changed = False
 		
-		if the_crane.changed:
+		if Game.crane.changed:
 			#print("Crane position: ",the_crane.x)
-			drawn_crane = the_crane.draw()
+			drawn_crane = Game.crane.draw()
 			screen.blit(drawn_crane, cranearea_position)
-			the_crane.changed = False
+			Game.crane.changed = False
 		
-		if the_playfield.changed:
-			the_playfield.update_weights()
-			drawn_playfield = the_playfield.draw()
+		if Game.playfield.changed:
+			Game.playfield.update_weights()
+			drawn_playfield = Game.playfield.draw()
 			for event in Ongoing.eventQueue:
 				event.draw(drawn_playfield)
 			screen.blit(drawn_playfield, playfield_position)
-			the_playfield.changed = False
+			Game.playfield.changed = False
 		
 		pygame.display.flip()
 		
