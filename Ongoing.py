@@ -198,7 +198,6 @@ class SeesawTilting(Ongoing):
 		progress (float, 0.0 to 1.0, counts up until tilt is finished)
 
 		Constructor: SeesawTilting(sesa, before, after, playfield, eventQueue).
-		When the Constructor is called, it will put the playfield.content columns in the positions of the final state. If needed, it will throw the top Ball and create&add a ThrownBall to the eventQueue
 	"""
 
 	def __init__(self, sesa: int, before: int, after: int):
