@@ -1,7 +1,7 @@
 Current TODO List:
 
 
-- debug the throwing mechanics of Balls. Saw some correct fly-outs, but also some disappearing balls. Is remaining_range=0 handled correctly? In both directions?
+
 - fix height when converting ThrownBalls to FallingBalls
 - global variables total_Score, total_dropped_Balls, level
 - increase level every 50 balls, level is maxweight and number of possible colors for new random-generated Balls. In the first 10 balls, the new color is more likely (~ every 2nd should be the new color)
@@ -22,6 +22,7 @@ Recent changes:
 
 Suspected possible bugs:
 - still impossible to create a non-updated seesaw state?
+- perhaps range is off by one if flying out to the left for at least twice (range 10 or greater)
 
 
 Known bugs, need to find exact conditions to reproduce

@@ -129,12 +129,11 @@ class ThrownBall(Ongoing):
 		
 		# is the destination reached? If yes, it can become a FallingBall or it can fly out
 		if self.t > 1.0:
-			if self.remaining_range == 0: # reached a destination column, start falling
-				#drop_ball(self.ball, self.destination)
-				eventQueue.append(FallingBall(self.ball, self.destination, starting_height=thrown_ball_dropheight-1.0))
-				eventQueue.remove(self)
+			if self.destination == 0 or self.destination == 9:
+				self.fly_out(self.destination == 0)
 			else:
-				self.fly_out(self.remaining_range < 0)
+				eventQueue.append(FallingBall(self.ball, self.destination, starting_height=thrown_ball_dropheight-2.0))
+				eventQueue.remove(self)
 		else:
 			# Ball has not reached its destination yet. Update x and y of the trajectory.
 			# The trajectory is a standard parabola -t**2. The t<0 side is for origin to max, 
@@ -151,7 +150,7 @@ class ThrownBall(Ongoing):
 			else:
 				# t>0 destination side: Same thing with destination instead of origin
 				self.x = maxx - self.t *  (maxx - self.destination)
-				self.y = maxy - self.t**2*(maxy - thrown_ball_dropheight+1)
+				self.y = maxy - self.t**2*(maxy - thrown_ball_dropheight)
 				
 	
 	def fly_out(self, left: bool):
