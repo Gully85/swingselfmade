@@ -92,7 +92,13 @@ class Special_Ball(Ball):
 
 
 def generate_starting_ball():
-    color = random.randint(1, 4)
-    weight = random.randint(1, 4)
-    the_ball = Colored_Ball(color, weight)
-    return the_ball
+	import Game
+	
+	# in the first 10 Balls of each level, the new color is more likely
+	if Game.balls_dropped % 50 < 10 and random.choice([True,False]):
+		color = Game.level
+	else:
+		color = random.randint(1, Game.level)
+	weight = random.randint(1, Game.level)
+	the_ball = Colored_Ball(color, weight)
+	return the_ball

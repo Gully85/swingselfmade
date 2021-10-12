@@ -250,14 +250,17 @@ class Scoring(Ongoing):
 		"""called once per tick. Counts down delay, expands if zero was reached, and reset delay. 
 		If no expansion, removes this from the eventQueue
 		"""
-		#print(self, self.delay)
+		
+		import Game
 		self.delay -= 1
 		if self.delay < 0:
 			if self.expand(playfield):
 				self.delay = scoring_delay
 			else:
 				# Formula for Scores: Total weight x number of balls x level (level does not exist yet)
-				print("Score from this: ", self.weight_so_far * len(self.past))
+				print("Score from this: ", self.weight_so_far * len(self.past) * Game.level)
+				Game.score += self.weight_so_far * len(self.past) * Game.level
+				print("Total score: ", Game.score)
 				eventQueue.remove(self)
 				playfield.refresh_status()
 				# TODO score and display

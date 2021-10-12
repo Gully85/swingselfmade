@@ -92,8 +92,6 @@ def main():
 			# accepted user inputs: K_LEFT, K_RIGHT, K_DOWN, K_SPACE. Move crane left/right, but not past the boundaries
 			if event.type == KEYDOWN:
 				if event.key == K_LEFT:
-					#the_crane.x -= 1
-					#the_crane.changed = True
 					Game.crane.x -= 1
 					Game.crane.changed = True
 					if Game.crane.x < 0:
@@ -106,9 +104,13 @@ def main():
 				if event.key == K_DOWN or event.key == K_SPACE:
 					column = Game.crane.x
 					Ongoing.drop_ball(Game.crane.current_Ball, column+1)
+					Game.balls_dropped += 1
+					if Game.balls_dropped % 50 == 0:
+						Game.level += 1
 					Game.crane.current_Ball = Game.depot.content[column][1]
 					Game.depot.content[column][1] = Game.depot.content[column][0]
 					Game.depot.content[column][0] = Balls.generate_starting_ball()
+					# force re-draw of crane and depot
 					Game.crane.changed = True
 					Game.depot.changed = True
 
