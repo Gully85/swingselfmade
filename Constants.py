@@ -69,9 +69,9 @@ rowspacing = 5
 # Size of area for the depot, relative to screensize
 depot_width_fraction, depot_height_fraction = (0.7, 0.2)
 depotsize = (screen_width * depot_width_fraction, screen_height * depot_height_fraction)
-# Pixel coordinates of the top-left corner of the Depot. It is centered at the top for now.
+# Pixel coordinates of the top-left corner of the Depot. 
 depot_position_y = global_ymargin
-depot_position_x = int(0.5 * (1.0 - depot_width_fraction) * screen_width)
+depot_position_x = int(0.2 * (1.0 - depot_width_fraction) * screen_width)
 depot_position = (depot_position_x, depot_position_y)
 
 # Calculate Pixel coords of the (top-left corner of the) first Ball in the depot, and 
@@ -143,7 +143,6 @@ playfield_ballcoord_perCol = ball_size[0] + column_spacing
 # => x-coord of Ball in playfield col i is playfield_ballcoord_x + (i-1)*playfield_ballcoord_perCol
 
 # y direction. The index in theplayfield.content[][.] counts up from bottom instead of down.
-
 px_used = 8 * ball_size[1] + 7 * rowspacing + weightdisplayheight
 if px_used > playfieldsize[1]:
 	raise ValueError("Playfield not high enough.")
@@ -158,3 +157,15 @@ weightdisplay_y = playfield_ballcoord_y + 8 * ball_size[1] + 7 * rowspacing
 weightdisplay_x = playfield_ballcoord_x + int(0.4 * ball_size[0])
 weightdisplay_x_per_column = ball_size[0] + column_spacing
 weightdisplay_coords = [weightdisplay_x, weightdisplay_y]
+
+
+# area where the score-display is. Located 5px to the right of the playfield-area
+px_used = playfield_position_x + playfieldsize[0]
+
+scoredisplayarea_position_x = px_used + 5
+scoredisplayarea_position_y = playfield_position_y
+scoredisplayarea_position = (scoredisplayarea_position_x, scoredisplayarea_position_y)
+
+scoredisplayarea_size_x = screen_width - px_used - global_xmargin
+scoredisplayarea_size_y = playfieldsize[1]
+scoredisplayarea_size = (scoredisplayarea_size_x, scoredisplayarea_size_y)

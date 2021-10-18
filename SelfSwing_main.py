@@ -19,7 +19,7 @@ pygame.init()
 #from Constants import depot_position, cranearea_position, playfield_position
 
 from Constants import max_FPS, screensize
-from Constants import depot_position, cranearea_position, playfield_position
+from Constants import depot_position, cranearea_position, playfield_position, scoredisplayarea_position
 
 import Game
 
@@ -107,12 +107,14 @@ def main():
 					Game.balls_dropped += 1
 					if Game.balls_dropped % 50 == 0:
 						Game.level += 1
+						Game.score_area.update_level()
 					Game.crane.current_Ball = Game.depot.content[column][1]
 					Game.depot.content[column][1] = Game.depot.content[column][0]
 					Game.depot.content[column][0] = Balls.generate_starting_ball()
 					# force re-draw of crane and depot
 					Game.crane.changed = True
 					Game.depot.changed = True
+					Game.score_area.changed = True
 
 
 		## Step 2, proceed ongoing Events
@@ -139,6 +141,11 @@ def main():
 				event.draw(drawn_playfield)
 			screen.blit(drawn_playfield, playfield_position)
 			Game.playfield.changed = False
+		
+		if Game.score_area.changed:
+			drawn_score_area = Game.score_area.draw()
+			screen.blit(drawn_score_area, scoredisplayarea_position)
+			Game.score_area.changed = False
 		
 		pygame.display.flip()
 		

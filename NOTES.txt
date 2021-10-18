@@ -2,7 +2,7 @@ Current TODO List:
 
 
 
-- show thrown Balls, Score and Level somewhere
+- show dropped Balls, Score and Level somewhere
 - like Scoring, there is Combining: A stack of five balls of the same color will Combine to a single ball with the same total weight.
 - maybe sort content of Constants into timings and pixel-counting stuff? Make it two (or more) separate objects? Local dictionary of the Constants module?
 - placeholder graphics for moving seesaw
@@ -10,12 +10,13 @@ Current TODO List:
 - Ball generation. 
 - "Logbook mode", write events to a log-file. Helpful if we let others look for bugs.
 - expand Colorscheme to more than 10 Ball colors. Can just use 5 different shapes (ellipse, rectangle, circle, ?), thats enough for 50 levels. The original SWING had 54 levels, beyond that no new colors were coming.
+- after Scoring, show the score added for a few frames. Can use an Ongoing Event for this.
 
 
 Recent changes:
 - a finished Scoring or Seesaw_Tilting now triggers a (playfield-wide) check for weight-moves and Scoring
 - Throwing Balls (due to tilting seesaws) now works, but probably still buggy. On fly-out, they just enter from the other side (with a local variable remaining_range updated). No conversion to Bomb/Heart as of now.
-- Level, total thrown balls and Score are global properties now. 
+- Level, total dropped balls and Score are global properties now. 
 
 Suspected possible bugs:
 - still impossible to create a non-updated seesaw state?

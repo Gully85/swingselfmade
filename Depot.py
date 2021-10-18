@@ -6,7 +6,13 @@ from pygame import Surface
 from Constants import depot_ballcoord, depot_ballspacing
 
 class Depot:
-	"""Information about the Depot state. Balls stored here, and drawing procedure. Stores a local Surface."""
+	"""Information about the Depot state. Balls stored here, and drawing procedure. 
+	Vars:
+		size (tuple int, int), drawing size in pixels
+		changed (bool), True if redraw is needed
+		surf (pygame.Surface), draw() will draw everything on this and return it
+	Constructor: Depot((size_x, size_y))	
+	"""
 	
 	# size in pixels is provided by the constructor call. Initial filling with Colored_Balls is done here for now. 
 	def __init__(self, size: (int, int)):

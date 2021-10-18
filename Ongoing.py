@@ -261,6 +261,7 @@ class Scoring(Ongoing):
 				print("Score from this: ", self.weight_so_far * len(self.past) * Game.level)
 				Game.score += self.weight_so_far * len(self.past) * Game.level
 				print("Total score: ", Game.score)
+				Game.score_area.changed = True
 				eventQueue.remove(self)
 				playfield.refresh_status()
 				# TODO score and display
