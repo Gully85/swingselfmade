@@ -121,6 +121,10 @@ def main():
 		for event in Ongoing.eventQueue:
 			event.tick(Game.playfield)
 		
+		### Step 2.5, check if the player lost
+		if not Game.playfield.check_alive():
+			print("Final score: ", Game.score)
+			break
 		
 		### Step 3, update screen where necessary
 		if Game.depot.changed:

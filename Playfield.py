@@ -1,7 +1,7 @@
 # provides the Playfield class. The playfield has 8 stacks of Balls 
 # (lowest 0-2 are blocked, depending on seesaw state). An empty space in the playfield 
 # is represented as None, same for a blocked space at the bottom.
-# content[0][] and content[
+
 
 debugprints = False
 
