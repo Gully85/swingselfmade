@@ -7,7 +7,7 @@
 max_FPS = 20
 
 # speed of falling Balls, in tiles/sec
-falling_speed = 3.0
+falling_speed = 6.0
 # same in tiles/tick
 falling_per_tick = falling_speed / max_FPS
 
@@ -16,7 +16,7 @@ if falling_per_tick > 1.0:
 	raise ValueError("Falling Speed too high. Do not fall more than one tile per tick.")
 
 # speed of tilting Seesaws, in 1/sec. For example 4.0 means 0.25sec to tilt to final position
-tilting_speed = 4.0
+tilting_speed = 2.0
 # same in tilts/tick
 tilting_per_tick = tilting_speed / max_FPS
 
@@ -33,7 +33,7 @@ tilting_per_tick = tilting_speed / max_FPS
 
 # total time it takes for a thrown Ball to travel, in seconds
 # (in case of [multiple times?] sideway fly-out, this is for each round)
-thrown_ball_totaltime = 3
+thrown_ball_totaltime = 2
 # trajectory parameter t goes from -1 to +1, increase this much in each tick
 thrown_ball_dt = 2./ max_FPS / thrown_ball_totaltime
 # thrown ball trajectory: y-value of highest point

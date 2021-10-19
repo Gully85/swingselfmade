@@ -79,6 +79,7 @@ class ThrownBall(Ongoing):
 			constructor argument throwing_range. This is the remaining number of columns after the next fly-out,
 			the constructor argument is the total number of columns to fly. Negative if flying to the left
 		t (float), running parameter for the trajectory. Values -1 <= t <= +1
+		speedup_pastmax (float), factor to the t increase per tick once t>0. Is calculated as (dy_origin)/(dy_destination).
 		
 		
 		Constructor: ThrownBall(ball, (x,y), throwing_range), x and y and throwing_range should all be ints. 
@@ -86,6 +87,7 @@ class ThrownBall(Ongoing):
 		"""
 	
 	def __init__(self, ball, coords: (int, int), throwing_range: int):
+		from Constants import thrown_ball_maxheight
 		self.ball = ball
 		self.origin = coords
 		self.x = float(coords[0])
@@ -108,6 +110,8 @@ class ThrownBall(Ongoing):
 		# the trajectory is parametrized with t going from -1 to +1
 		self.t = -1
 		
+		self.speedup_pastmax = (thrown_ball_maxheight - self.origin[1]) / (thrown_ball_maxheight - thrown_ball_dropheight)
+		
 		print("Throwing ball ", ball, " from position ", coords, " with range ",
 				throwing_range, ". Destination is ", self.destination, ", remaining is ", self.remaining_range)
 		
@@ -124,7 +128,10 @@ class ThrownBall(Ongoing):
 		# If not, calculate new position x,y from the trajectory.
 		from Constants import thrown_ball_dt , thrown_ball_maxheight
 		
-		self.t += thrown_ball_dt
+		if self.t < 0:
+			self.t += thrown_ball_dt
+		else:
+			self.t += thrown_ball_dt * self.speedup_pastmax
 		playfield.changed=True
 		
 		# is the destination reached? If yes, it can become a FallingBall or it can fly out
@@ -157,7 +164,7 @@ class ThrownBall(Ongoing):
 		"""Ball flew out to the left or right (indicated by argument). Insert it at the
 			very right/left, set new origin, calculate and set new destination
 		"""
-		from Constants import thrown_ball_flyover_height
+		from Constants import thrown_ball_flyover_height, thrown_ball_maxheight
 		self.t = -1.0
 		self.y = thrown_ball_flyover_height
 		if left:
@@ -182,6 +189,7 @@ class ThrownBall(Ongoing):
 				self.destination = self.remaining_range
 				self.remaining_range = 0
 		
+		self.speedup_pastmax = (thrown_ball_maxheight - self.origin[1]) / (thrown_ball_maxheight - thrown_ball_dropheight)
 		print("Ball flying out, left=", left, ", new remaining_range=", self.remaining_range, 
 			" and destination=", self.destination)
 

@@ -1,8 +1,6 @@
 Current TODO List:
 
 
-
-- show dropped Balls, Score and Level somewhere
 - like Scoring, there is Combining: A stack of five balls of the same color will Combine to a single ball with the same total weight.
 - maybe sort content of Constants into timings and pixel-counting stuff? Make it two (or more) separate objects? Local dictionary of the Constants module?
 - placeholder graphics for moving seesaw
@@ -16,7 +14,7 @@ Current TODO List:
 Recent changes:
 - a finished Scoring or Seesaw_Tilting now triggers a (playfield-wide) check for weight-moves and Scoring
 - Throwing Balls (due to tilting seesaws) now works, but probably still buggy. On fly-out, they just enter from the other side (with a local variable remaining_range updated). No conversion to Bomb/Heart as of now.
-- Level, total dropped balls and Score are global properties now. 
+- Level, total dropped balls and Score are global properties now. These are drawn in the bottom-right. Level increase every 50 Balls works.
 
 Suspected possible bugs:
 - still impossible to create a non-updated seesaw state?
@@ -30,9 +28,8 @@ Known bugs, need to find exact conditions to reproduce
 
 maybe later TODOs:
 
-- (placeholder) graphics for Seesaw_Tilting. And for Thrown_Ball once it exists
+- (placeholder) graphics for Seesaw_Tilting. 
 - more Special_Balls
-- Thrown_Ball logic for balls thrown out of the playfield
 - it is atm not consistent if we need playfield to be a parameter in the Ongoings. For later VS mode, we need to handle two Playfields at once, but with a shared eventQueue.
 
 
