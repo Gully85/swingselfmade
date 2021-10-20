@@ -9,6 +9,7 @@ Current TODO List:
 - "Logbook mode", write events to a log-file. Helpful if we let others look for bugs.
 - expand Colorscheme to more than 10 Ball colors. Can just use 5 different shapes (ellipse, rectangle, circle, ?), thats enough for 50 levels. The original SWING had 54 levels, beyond that no new colors were coming.
 - after Scoring, show the score added for a few frames. Can use an Ongoing Event for this.
+- draw seesaws in a way that shows which ones are connected
 
 
 Recent changes:

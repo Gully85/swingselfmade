@@ -4,7 +4,7 @@
 # - Where in the depot area is the first/second/nth column drawn?
 
 # (max) number of ticks to be calculated per second
-max_FPS = 20
+max_FPS = 50
 
 # speed of falling Balls, in tiles/sec
 falling_speed = 6.0
