@@ -99,8 +99,7 @@ def generate_ball():
 	else:
 		color = random.randint(1, Game.level)
 	weight = random.randint(1, Game.level)
-	the_ball = Colored_Ball(color, weight)
-	return the_ball
+	return Colored_Ball(color, weight)
 
 def generate_starting_ball():
 	color = random.randint(1, 4)

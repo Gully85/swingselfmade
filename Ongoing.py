@@ -302,12 +302,8 @@ class Scoring(Ongoing):
 					self.weight_so_far += playfield.content[x2][y2].weight
 					playfield.content[x2][y2] = Balls.NotABall()
 					# removing a Ball may cause those on top to fall down
-					if playfield.content[x2][y2+1].isBall and playfield.content[x2][y2+1].color != color:
-						for ystack in range(y2+1,8):
-							eventQueue.append(FallingBall(playfield.content[x2][ystack], x2, starting_height=ystack))
-							playfield.content[x2][ystack] = Balls.NotABall()
-							if not playfield.content[x2][ystack+1].isBall:
-								break
+					# possible glitch: If a status update (Playfield.refresh_status()) is triggered, the "hanging" ball on 
+					# top will drop instead of being scored
 
 		#print("more matching Balls found: next=",self.next)
 		playfield.changed = True

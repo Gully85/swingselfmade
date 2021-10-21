@@ -54,7 +54,7 @@ class Playfield:
 			self.content[x][y] = ball
 			self.refresh_status()
 		else:
-			raise TypeError("Trying to land unexpected ball type ", " at playfield position ", x, y)
+			raise TypeError("Trying to land unexpected ball type ", ball, " at playfield position ", x, y)
 	
 	def refresh_status(self):
 		"""Checks if anything needs to start now. Performs weight-check, 
@@ -64,7 +64,9 @@ class Playfield:
 			return
 		if self.check_Scoring_full():
 			return
-		# TODO combining of vertical Five.
+		# TODO combining of vertical Five here
+		if self.check_hanging_balls():
+			return
 	
 	def push_column(self, x: int, dy: int):
 		"""pushes the x-column down by (dy) and its connected neighbor up by (dy)."""
@@ -196,7 +198,34 @@ class Playfield:
 					return True
 		return False
 		
+	def check_hanging_balls(self):
+		"""checks the full playfield for balls that 'hang', i.e. no ball/Blocked below them.
+		Convert them all into FallingBalls. Returns True if any were converted."""
 		
+		ret = False
+		for x in range(1,9):
+			# search highest position that can support a ball
+			for y in range(0,8):
+				current = self.content[x][y]
+				if current.isBall:
+					continue
+				elif isinstance(current, Blocked):
+					continue
+				elif isinstance(current, NotABall):
+					air_height = y
+					break
+				else:
+					raise TypeError("in hanging-Balls check: Unexpected ball type ", current, "  at position ", x, y)
+			
+			for y in range(air_height, 8):
+				current = self.content[x][y]
+				if current.isBall:
+					ret = True
+					Ongoing.eventQueue.append(Ongoing.FallingBall(current, x, starting_height=y))
+					self.content[x][y] = NotABall()
+		
+		return ret
+			
 
 	def draw(self):
 		"""draws the Playfield including all Balls. Returns surface."""
