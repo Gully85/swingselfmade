@@ -1,12 +1,12 @@
 Current TODO List:
 
-
 - like Scoring, there is Combining: A stack of five balls of the same color will Combine to a single ball with the same total weight.
+- dropping Balls that have an empty space below them should be a part of gravity_moves(). Atm it is in Scoring.expand()
 - maybe sort content of Constants into timings and pixel-counting stuff? Make it two (or more) separate objects? Local dictionary of the Constants module?
 - placeholder graphics for moving seesaw
 - Special Balls. Start with Bomb or Cutter, that should be the easiest ones.
 - Ball generation. 
-- "Logbook mode", write events to a log-file. Helpful if we let others look for bugs.
+- "Logbook mode", write events to a log-file. Helpful if we let others look for bugs. Have a tmp logfile, if a certain key is pressed, move it to a permanent file. Regular updates (at each level?) for the full game state. Track all Ongoing_Events in there.
 - expand Colorscheme to more than 10 Ball colors. Can just use 5 different shapes (ellipse, rectangle, circle, ?), thats enough for 50 levels. The original SWING had 54 levels, beyond that no new colors were coming.
 - after Scoring, show the score added for a few frames. Can use an Ongoing Event for this.
 - draw seesaws in a way that shows which ones are connected
@@ -15,7 +15,7 @@ Current TODO List:
 Recent changes:
 - a finished Scoring or Seesaw_Tilting now triggers a (playfield-wide) check for weight-moves and Scoring
 - Throwing Balls (due to tilting seesaws) now works, but probably still buggy. On fly-out, they just enter from the other side (with a local variable remaining_range updated). No conversion to Bomb/Heart as of now.
-- Level, total dropped balls and Score are global properties now. These are drawn in the bottom-right. Level increase every 50 Balls works.
+- Level, total dropped balls and Score are global properties now. These are drawn in the bottom-right. Level increase every 50 Balls works. At level 10, the game crashes, because the game runs out of Colorschemes.
 
 Suspected possible bugs:
 - still impossible to create a non-updated seesaw state?
@@ -24,6 +24,7 @@ Suspected possible bugs:
 
 Known bugs, need to find exact conditions to reproduce
 - A Scoring can remove a Blocked if a seesaw tilts while the Scoring expands. Only saw it removing a bottom Blocked of a low seesaw, the one above it did not start to fall
+- Scoring seems to remove wrong-colored Balls sometimes
 
 
 

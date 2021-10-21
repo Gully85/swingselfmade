@@ -8,14 +8,13 @@
 # Blocked.
 
 import Colorschemes
-from pygame import Rect, font  # , Surface
 import pygame
 import random
 from Constants import ball_size
 
 ball_colors = Colorschemes.simple_standard_ball_colors
 text_colors = Colorschemes.simple_standard_text_colors
-ballfont = font.SysFont("monospace", 24)
+ballfont = pygame.font.SysFont("monospace", 24)
 
 
 # size of Balls in pixels. Is fix for now
@@ -35,7 +34,7 @@ class NotABall(Ball):
     def __init__(self):
         pass
 
-    def draw(self, surf, drawpos):
+    def draw(self, surf: pygame.Surface, drawpos: (int,int)):
         pass
 
 
@@ -49,7 +48,7 @@ class Blocked(Ball):
     def __init__(self):
         pass
 
-    def draw(self, surf, drawpos):
+    def draw(self, surf: pygame.Surface, drawpos: (int,int)):
         # just a black rectangle for now
         pygame.draw.rect(surf, (0, 0, 0), pygame.Rect(drawpos, ball_size))
 
@@ -66,7 +65,7 @@ class Colored_Ball(Ball):
     def draw(self, surf: pygame.Surface, drawpos: (int,int)):
         """draws this Ball onto pygame.Surface surf to offset-position drawpos. Returns None"""
         color = ball_colors[self.color]
-        pixelpos_rect = Rect(drawpos, ball_size)
+        pixelpos_rect = pygame.Rect(drawpos, ball_size)
         pygame.draw.ellipse(surf, color, pixelpos_rect, 0)
         weighttext = ballfont.render(str(self.weight), True, text_colors[self.color])
         posx = drawpos[0] + 0.2 * ball_size[0]
@@ -91,7 +90,7 @@ class Special_Ball(Ball):
         pass  # later, when Special_Balls are actually introduced
 
 
-def generate_starting_ball():
+def generate_ball():
 	import Game
 	
 	# in the first 10 Balls of each level, the new color is more likely
@@ -102,3 +101,8 @@ def generate_starting_ball():
 	weight = random.randint(1, Game.level)
 	the_ball = Colored_Ball(color, weight)
 	return the_ball
+
+def generate_starting_ball():
+	color = random.randint(1, 4)
+	weight = random.randint(1,4)
+	return Colored_Ball(color, weight)

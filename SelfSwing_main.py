@@ -110,7 +110,7 @@ def main():
 						Game.score_area.update_level()
 					Game.crane.current_Ball = Game.depot.content[column][1]
 					Game.depot.content[column][1] = Game.depot.content[column][0]
-					Game.depot.content[column][0] = Balls.generate_starting_ball()
+					Game.depot.content[column][0] = Balls.generate_ball()
 					# force re-draw of crane and depot
 					Game.crane.changed = True
 					Game.depot.changed = True
