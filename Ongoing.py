@@ -315,4 +315,27 @@ class Scoring(Ongoing):
 		#	#score = len(self.past) * self.weight_so_far
 		#	#print("Score from this: ",score)
 		#	return False
-		
+
+class Combining(Ongoing):
+	"""Balls from a vertical Five that combine into one ball with the total weight. 
+	Once an animation is added to this, this class will make sense. For now, it only serves as a placeholder. Counts down
+	for a few ticks, then dies. Drawing is just 'do nothing'. Vars:
+	coords (tuple int,int), bottom coordinate where the resulting ball is placed.
+	t (float), parameter that counts up from 0.0 to 1.0, tracks progress of the animation
+	color (int), color of the resulting ball, as defined in the Colorscheme
+	weight (int), weight of the resulting ball"""
+	
+	def __init__(self, coords:(int,int), color:int, weight:int):
+		self.coords = coords
+		self.color = color
+		self.weight = weight
+		self.t = 0.0
+
+	def tick(self, playfield):
+		from Constants import combining_dt
+		self.t += combining_dt
+		if self.t > 1.0:
+			eventQueue.remove(self)
+	
+	def draw(self, surf):
+		pass

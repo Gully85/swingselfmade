@@ -64,7 +64,8 @@ class Playfield:
 			return
 		if self.check_Scoring_full():
 			return
-		# TODO combining of vertical Five here
+		if self.check_combining():
+			return
 		if self.check_hanging_balls():
 			return
 	
@@ -182,7 +183,8 @@ class Playfield:
 		"""
 		
 		print("Entering full scoring check")
-		# x range 1..8, y range 1..7 can have valid horizontal-threes
+		# x range 1..8, y range 1..7 can have valid horizontal-threes. These x,y loops look for the leftmost
+		# Ball in a horizontal Three, so the x loop runs 1..6
 		for y in range(1,8):
 			for x in range(1,7):
 				color = self.content[x][y].color
@@ -197,7 +199,7 @@ class Playfield:
 					Ongoing.eventQueue.append(Ongoing.Scoring((x,y), self.content[x][y]))
 					return True
 		return False
-		
+
 	def check_hanging_balls(self):
 		"""checks the full playfield for balls that 'hang', i.e. no ball/Blocked below them.
 		Convert them all into FallingBalls. Returns True if any were converted."""
@@ -225,8 +227,46 @@ class Playfield:
 					self.content[x][y] = NotABall()
 		
 		return ret
-			
 
+	def check_combining(self):
+		"""Checks the full gameboard for vertical Fives. Only one per stack is possible. 
+		Combines if one is found, and creates an Ongoing.Combining. Returns True if any are found"""
+		# feels like this could be written easier. Especially the thing in the check_height loop. 
+		# @Chris, do you have an idea?
+		ret = False
+		
+		print("Entering full Combining check")
+		for x in range(1,9):
+			for y in range(0, 4):
+				this_color = self.content[x][y].color
+				if this_color == -1:
+					continue
+				# if this point is reached, the current ball is a Colored_Ball. All others have the 
+				# attribute color==-1
+				total_weight = self.content[x][y].weight
+				
+				# five balls are needed: y, y+1, ..., y+4. If this loop reaches y+5, do not check 
+				# the (y+5)-position, but Combine instead
+				for check_height in range(y, y+6):
+					if check_height == y+5:
+						ret = True
+						self.content[x][y] = Colored_Ball(this_color, total_weight)
+						Ongoing.eventQueue.append(Ongoing.Combining((x,y), this_color, total_weight))
+						self.content[x][y+1] = NotABall()
+						self.content[x][y+2] = NotABall()
+						self.content[x][y+3] = NotABall()
+						self.content[x][y+4] = NotABall()
+					
+					if self.content[x][check_height].color != this_color:
+						break 
+					
+					total_weight += self.content[x][check_height].weight
+		
+		if (ret):
+			self.check_hanging_balls()
+		
+		return ret
+		
 	def draw(self):
 		"""draws the Playfield including all Balls. Returns surface."""
 		self.surf.fill((127,127,127))

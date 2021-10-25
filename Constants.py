@@ -33,9 +33,9 @@ tilting_per_tick = tilting_speed / max_FPS
 
 # total time it takes for a thrown Ball to travel, in seconds
 # (in case of [multiple times?] sideway fly-out, this is for each round)
-thrown_ball_totaltime = 2
+thrown_ball_totaltime = 2.0
 # trajectory parameter t goes from -1 to +1, increase this much in each tick
-thrown_ball_dt = 2./ max_FPS / thrown_ball_totaltime
+thrown_ball_dt = 2./ (max_FPS * thrown_ball_totaltime)
 # thrown ball trajectory: y-value of highest point
 thrown_ball_maxheight = 9.8
 # if ball is thrown off the field, this position is their destination
@@ -49,8 +49,12 @@ scoring_speed = 5.0
 # delay in ticks until next stage of scoring
 scoring_delay = int(max_FPS / scoring_speed)
 
+# speed of Combining. How long does it take to Combine a vertical Five, in seconds
+combining_totaltime = 1.0
+# parameter t goes from 0.0 to 1.0, how much to add per tick
+combining_dt = 1./ (max_FPS * combining_totaltime)
 
-#  of the canvas
+# size of the canvas
 screensize = (1024, 768)
 screen_width, screen_height = (1024, 768)
 
