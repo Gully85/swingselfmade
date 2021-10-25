@@ -1,5 +1,6 @@
 # provides the Depot. The depot holds 8x2 Balls (array of Balls). This file also provides the drawing method for the Depot.
 
+from typing import Tuple
 
 import Balls
 from pygame import Surface 
@@ -15,7 +16,7 @@ class Depot:
 	"""
 	
 	# size in pixels is provided by the constructor call. Initial filling with Colored_Balls is done here for now. 
-	def __init__(self, size: (int, int)):
+	def __init__(self, size: Tuple(int, int)):
 		self.size_x = size[0]
 		self.size_y = size[1]
 		self.surf = Surface(size)

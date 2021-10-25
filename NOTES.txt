@@ -1,20 +1,29 @@
 Current TODO List:
 
-- maybe sort content of Constants into timings and pixel-counting stuff? Make it two (or more) separate objects? Local dictionary of the Constants module?
+- track problem with a high stack, atm game loss check doesn't work
+- maybe sort content of Constants into timings and pixel-counting stuff? 
+    Make it two (or more) separate objects? Local dictionary of the Constants module?
 - placeholder graphics for moving seesaw
 - placeholder graphics for Combining
 - Special Balls. Start with Bomb or Cutter, that should be the easiest ones.
 - Ball generation. 
-- "Logbook mode", write events to a log-file. Helpful if we let others look for bugs. Have a tmp logfile, if a certain key is pressed, move it to a permanent file. Regular updates (at each level?) for the full game state. Track all Ongoing_Events in there.
-- expand Colorscheme to more than 10 Ball colors. Can just use 5 different shapes (ellipse, rectangle, circle, ?), thats enough for 50 levels. The original SWING had 54 levels, beyond that no new colors were coming.
+- "Logbook mode", write events to a log-file. Helpful if we let others look for bugs. 
+    Have a tmp logfile, if a certain key is pressed, move it to a permanent file. Regular 
+    updates (at each level?) for the full game state. Track all Ongoing_Events in there. 
+    While at it, remove unneccessary console output.
+- expand Colorscheme to more than 10 Ball colors. Can just use 5 different shapes (ellipse, 
+    rectangle, circle, ?), thats enough for 50 levels. The original SWING had 54 levels, beyond 
+    that no new colors were coming.
 - after Scoring, show the score added for a few frames. Can use an Ongoing Event for this.
 - draw seesaws in a way that shows which ones are connected
+- re-do ThrowingBall. If landing in-field, can just use the ascending half of a parabola
+- unittests. Do some easy ones, but also longer ones like "drop a ball, tick() at least 3 in-game 
+    seconds, then it should have landed.". Or even some with complicated set-up, where a Scoring 
+    drops balls, and once they land something else happens. Check for empty eventQueue after the 
+    long ones.
 
 
 Recent changes:
-- a finished Scoring or Seesaw_Tilting now triggers a (playfield-wide) check for weight-moves and Scoring
-- Throwing Balls (due to tilting seesaws) now works, but probably still buggy. On fly-out, they just enter from the other side (with a local variable remaining_range updated). No conversion to Bomb/Heart as of now.
-- Level, total dropped balls and Score are global properties now. These are drawn in the bottom-right. Level increase every 50 Balls works. At level 10, the game crashes, because the game runs out of Colorschemes.
 - moved Ball dropping logic to Playfield.refresh_status() and Playfield.check_hanging_balls()
 - Added Combining of vertical Fives into one ball with the same total weight. The check for this is in Playfield.refresh_status() in the correct priority.
 

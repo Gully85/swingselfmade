@@ -7,6 +7,7 @@
 # attribute isBall is True for ColoredBall and SpecialBall, and False for the placeholder-Dummys NotABall and
 # Blocked.
 
+from typing import Tuple
 import Colorschemes
 import pygame
 import random
@@ -34,7 +35,7 @@ class NotABall(Ball):
     def __init__(self):
         pass
 
-    def draw(self, surf: pygame.Surface, drawpos: (int,int)):
+    def draw(self, surf: pygame.Surface, drawpos: Tuple(int,int)):
         pass
 
 
@@ -48,7 +49,7 @@ class Blocked(Ball):
     def __init__(self):
         pass
 
-    def draw(self, surf: pygame.Surface, drawpos: (int,int)):
+    def draw(self, surf: pygame.Surface, drawpos: Tuple(int,int)):
         # just a black rectangle for now
         pygame.draw.rect(surf, (0, 0, 0), pygame.Rect(drawpos, ball_size))
 
@@ -62,7 +63,7 @@ class Colored_Ball(Ball):
         self.color = color
         self.weight = weight
 
-    def draw(self, surf: pygame.Surface, drawpos: (int,int)):
+    def draw(self, surf: pygame.Surface, drawpos: Tuple(int,int)):
         """draws this Ball onto pygame.Surface surf to offset-position drawpos. Returns None"""
         color = ball_colors[self.color]
         pixelpos_rect = pygame.Rect(drawpos, ball_size)
@@ -86,7 +87,7 @@ class Special_Ball(Ball):
     def __init__(self, type: int):
         self.type = type
 
-    def draw(self, surf: pygame.Surface, drawpos: (int, int)):
+    def draw(self, surf: pygame.Surface, drawpos: Tuple(int, int)):
         pass  # later, when Special_Balls are actually introduced
 
 

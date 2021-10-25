@@ -1,6 +1,7 @@
 # class that holds the general game variables (Score, total dropped balls etc) as local variables.
 # and the bigger objects (Playfield, Depot etc) also
 
+
 import Depot, Crane, Playfield, ScoreArea
 from Constants import depotsize, craneareasize, playfieldsize, scoredisplayarea_size
 
@@ -22,3 +23,7 @@ balls_dropped = 0
 
 # Total score
 score = 0
+
+
+class GameStateError():
+	pass
