@@ -1,5 +1,6 @@
 # Scoring area, where the current level, number of dropped balls and Score is shown
 
+from typing import Tuple
 from pygame import Surface, font
 import Balls
 from Constants import ball_size
@@ -21,7 +22,7 @@ class ScoreArea:
 	
 	
 	
-	def __init__(self, size: (int, int)):
+	def __init__(self, size: Tuple(int, int)):
 		self.surf = Surface(size)
 		self.size = size
 		self.changed = True
