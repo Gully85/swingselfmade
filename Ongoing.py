@@ -321,10 +321,12 @@ class Combining(Ongoing):
 	"""Balls from a vertical Five that combine into one ball with the total weight. 
 	Once an animation is added to this, this class will make sense. For now, it only serves as a placeholder. Counts down
 	for a few ticks, then dies. Drawing is just 'do nothing'. Vars:
-	coords (tuple int,int), bottom coordinate where the resulting ball is placed.
-	t (float), parameter that counts up from 0.0 to 1.0, tracks progress of the animation
-	color (int), color of the resulting ball, as defined in the Colorscheme
-	weight (int), weight of the resulting ball"""
+		coords (tuple int,int), bottom coordinate where the resulting ball is placed.
+		t (float), parameter that counts up from 0.0 to 1.0, tracks progress of the animation
+		color (int), color of the resulting ball, as defined in the Colorscheme
+		weight (int), weight of the resulting ball
+	Constructor: Combining(coords, color, weight), coords is (int,int)
+	"""
 	
 	def __init__(self, coords:Tuple(int,int), color:int, weight:int):
 		self.coords = coords

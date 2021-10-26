@@ -72,7 +72,7 @@ rowspacing = 5
 
 # Size of area for the depot, relative to screensize
 depot_width_fraction, depot_height_fraction = (0.7, 0.2)
-depotsize = (screen_width * depot_width_fraction, screen_height * depot_height_fraction)
+depotsize = (int(screen_width * depot_width_fraction), int(screen_height * depot_height_fraction))
 # Pixel coordinates of the top-left corner of the Depot. 
 depot_position_y = global_ymargin
 depot_position_x = int(0.2 * (1.0 - depot_width_fraction) * screen_width)
@@ -104,7 +104,7 @@ depot_ballspacing = [depot_x_perCol, depot_y_perRow]
 
 # Size of area where the crane moves, relative to screensize
 craneareasize_fraction = (0.7, 0.1)
-craneareasize = (screen_width*craneareasize_fraction[0], screen_height*craneareasize_fraction[1])
+craneareasize = (int(screen_width*craneareasize_fraction[0]), int(screen_height*craneareasize_fraction[1]))
 # Pixel coords of the top-left corner of the crane area. For now, just 3 px below the depot
 crane_position_x = depot_position_x
 crane_position_y = depot_position_y + depotsize[1] + 3
@@ -128,7 +128,7 @@ cranearea_ballspacing = [0, cranearea_x_perCol]
 
 # Size of area where the playfield is, including falling Balls, blocked tiles from the seesaws, weightdisplay
 playfieldsize_fraction = (0.7, 0.6)
-playfieldsize = (screen_width*playfieldsize_fraction[0], screen_height*playfieldsize_fraction[1])
+playfieldsize = (int(screen_width*playfieldsize_fraction[0]), int(screen_height*playfieldsize_fraction[1]))
 # Pixel coords of the top-left corner of the playfield area. For now, just 3 px below the crane area
 playfield_position_x = crane_position_x
 playfield_position_y = crane_position_y + craneareasize[1] + 3
