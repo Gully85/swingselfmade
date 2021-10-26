@@ -122,7 +122,7 @@ def main():
 			event.tick(Game.playfield)
 		
 		### Step 2.5, check if the player lost
-		if not Game.playfield.check_alive():
+		if not Game.playfield.alive:
 			print("Final score: ", Game.score)
 			break
 		

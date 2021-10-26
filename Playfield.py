@@ -28,6 +28,7 @@ class Playfield:
 			weights, -1 for heavier left, +1 for heavier right).
 		size (2 ints). Size of drawing are in px
 		surf (pygame.Surface)
+		alive (Bool). Indicates whether the game is lost.
 	Constructor takes size in pixels."""
 
 	def __init__(self, size: Tuple[int]):
@@ -41,6 +42,7 @@ class Playfield:
 		self.size = size
 		self.surf = Surface(size)
 		self.changed = True # if anything changed since the last tick. Starts True so the initial gamestate is drawn.
+		self.alive = True
 
 	def check_alive(self):
 		"""True if all topmost positions in self.content are NotABall. Player loses if any stack gets too high"""
@@ -52,6 +54,8 @@ class Playfield:
 	def land_ball(self, coords: Tuple[int], ball):
 		"""Land a ball at coords. Check for weight-moves, then for Scores, then for loss."""
 		x,y = coords
+		print("Landing at ",x,y)
+		print("height 2 was ", self.content[x][2])
 		if isinstance(ball, Colored_Ball):
 			self.content[x][y] = ball
 			self.refresh_status()
@@ -62,14 +66,19 @@ class Playfield:
 		"""Checks if anything needs to start now. Performs weight-check, 
 		if that does nothing performs scoring-check, if that does nothing performs combining-check.
 		"""
+		print("Entering full status check...")
+
 		if self.gravity_moves():
-			return
-		if self.check_Scoring_full():
-			return
-		if self.check_combining():
-			return
-		if self.check_hanging_balls():
-			return
+			print("seesaw starts moving")
+		elif self.check_Scoring_full():
+			print("found Scoring")
+		#elif self.check_combining():
+		#	print("found vertical Five")
+		elif self.check_hanging_balls():
+			print("dropping hanging ball(s)")
+		elif not self.check_alive():
+			self.alive = False
+
 	
 	def push_column(self, x: int, dy: int):
 		"""pushes the x-column down by (dy) and its connected neighbor up by (dy)."""
@@ -185,7 +194,7 @@ class Playfield:
 		Checks bottom-up, only the lowest row with a horizontal-three is checked, only the leftmost Three is found.
 		"""
 		
-		print("Entering full scoring check")
+		#print("Entering full scoring check")
 		# x range 1..8, y range 1..7 can have valid horizontal-threes. These x,y loops look for the leftmost
 		# Ball in a horizontal Three, so the x loop runs 1..6
 		for y in range(1,8):
@@ -210,24 +219,24 @@ class Playfield:
 		ret = False
 		for x in range(1,9):
 			# search highest position that can support a ball
-			for y in range(0,8):
+			for y in range(0,9):
 				current = self.content[x][y]
-				if current.isBall:
-					continue
-				elif isinstance(current, Blocked):
+				if current.isBall or isinstance(current, Blocked):
 					continue
 				elif isinstance(current, NotABall):
-					air_height = y
 					break
 				else:
 					raise TypeError("in hanging-Balls check: Unexpected ball type ", current, "  at position ", x, y)
-			
+			air_height = y
+			#print("in hanging-check: air-height=", air_height)
 			for y in range(air_height, 8):
 				current = self.content[x][y]
 				if current.isBall:
 					ret = True
 					Ongoing.eventQueue.append(Ongoing.FallingBall(current, x, starting_height=y))
 					self.content[x][y] = NotABall()
+					print("dropping hanging ball ", current, " from position", x, y)
+
 		
 		return ret
 
@@ -238,7 +247,7 @@ class Playfield:
 		# @Chris, do you have an idea?
 		ret = False
 		
-		print("Entering full Combining check")
+		#print("Entering full Combining check")
 		for x in range(1,9):
 			for y in range(0, 4):
 				this_color = self.content[x][y].color
@@ -259,6 +268,7 @@ class Playfield:
 						self.content[x][y+2] = NotABall()
 						self.content[x][y+3] = NotABall()
 						self.content[x][y+4] = NotABall()
+						break
 					
 					if self.content[x][check_height].color != this_color:
 						break 
