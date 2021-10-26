@@ -230,7 +230,7 @@ class SeesawTilting(Ongoing):
 
 def tilt_seesaw(seesaw: int, before: int, after: int):
 	eventQueue.append(SeesawTilting(seesaw, before, after))
-	print("tilting seesaw, ", seesaw, before, after)
+	# print("tilting seesaw, ", seesaw, before, after)
 
 class Scoring(Ongoing):
 	"""Balls currently scoring points. Vars:

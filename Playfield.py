@@ -54,8 +54,8 @@ class Playfield:
 	def land_ball(self, coords: Tuple[int], ball):
 		"""Land a ball at coords. Check for weight-moves, then for Scores, then for loss."""
 		x,y = coords
-		print("Landing at ",x,y)
-		print("height 2 was ", self.content[x][2])
+		#print("Landing at ",x,y)
+		#print("height 2 was ", self.content[x][2])
 		if isinstance(ball, Colored_Ball):
 			self.content[x][y] = ball
 			self.refresh_status()
@@ -66,16 +66,20 @@ class Playfield:
 		"""Checks if anything needs to start now. Performs weight-check, 
 		if that does nothing performs scoring-check, if that does nothing performs combining-check.
 		"""
-		print("Entering full status check...")
+		#print("Entering full status check...")
 
 		if self.gravity_moves():
-			print("seesaw starts moving")
+			#print("seesaw starts moving")
+			pass
 		elif self.check_Scoring_full():
-			print("found Scoring")
+			#print("found Scoring")
+			pass
 		#elif self.check_combining():
 		#	print("found vertical Five")
+			pass
 		elif self.check_hanging_balls():
-			print("dropping hanging ball(s)")
+			#print("dropping hanging ball(s)")
+			pass
 		elif not self.check_alive():
 			self.alive = False
 
@@ -149,16 +153,14 @@ class Playfield:
 					self.push_column(left, 1)
 				else:
 					self.push_column(left, 2)
-				# TODO throw top ball of right to the left. Distance is self.weights[left]-self.weights[right] (is always > 0)
-				print("weight left=", self.weights[left-1], ", weight right=", self.weights[right-1])
+				#print("weight left=", self.weights[left-1], ", weight right=", self.weights[right-1])
 				self.throw_top_ball(right, self.weights[right-1] - self.weights[left-1])
 			else:
 				if oldstate == 0:
 					self.push_column(right, 1)
 				else:
 					self.push_column(right, 2)
-				# TODO throw top ball of left to the right. Distance is self.weights[right]-self.weights[left] (is always > 0)
-				print("weight left=", self.weights[left-1], ", weight right=", self.weights[right-1])
+				#print("weight left=", self.weights[left-1], ", weight right=", self.weights[right-1])
 				self.throw_top_ball(left, self.weights[right-1] - self.weights[left-1])
 			
 		# when this point is reached, all seesaws have been checked and updated
@@ -235,7 +237,7 @@ class Playfield:
 					ret = True
 					Ongoing.eventQueue.append(Ongoing.FallingBall(current, x, starting_height=y))
 					self.content[x][y] = NotABall()
-					print("dropping hanging ball ", current, " from position", x, y)
+					#print("dropping hanging ball ", current, " from position", x, y)
 
 		
 		return ret

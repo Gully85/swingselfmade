@@ -1,6 +1,5 @@
 Current TODO List:
 
-- track problem with a high stack, atm game loss check doesn't work
 - maybe sort content of Constants into timings and pixel-counting stuff? 
     Make it two (or more) separate objects? Local dictionary of the Constants module?
 - placeholder graphics for moving seesaw
