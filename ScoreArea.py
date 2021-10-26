@@ -22,7 +22,7 @@ class ScoreArea:
 	
 	
 	
-	def __init__(self, size: Tuple(int, int)):
+	def __init__(self, size: Tuple[int]):
 		self.surf = Surface(size)
 		self.size = size
 		self.changed = True

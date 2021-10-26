@@ -87,7 +87,7 @@ class ThrownBall(Ongoing):
 		Positive throwing_range indicates throwing to the right, negative to the left
 		"""
 	
-	def __init__(self, ball, coords: Tuple(int, int), throwing_range: int):
+	def __init__(self, ball, coords: Tuple[int], throwing_range: int):
 		from Constants import thrown_ball_maxheight
 		self.ball = ball
 		self.origin = coords
@@ -194,7 +194,7 @@ class ThrownBall(Ongoing):
 		print("Ball flying out, left=", left, ", new remaining_range=", self.remaining_range, 
 			" and destination=", self.destination)
 
-def throw_ball(ball, origin_coords: Tuple(int, int), throwing_range: int):
+def throw_ball(ball, origin_coords: Tuple[int], throwing_range: int):
 	eventQueue.append(ThrownBall(ball, origin_coords, throwing_range))
 	# print("throwing Ball, ", ball, origin_coords, throwing_range)
 
@@ -243,7 +243,7 @@ class Scoring(Ongoing):
 		Constructor: Scoring((x,y), ball)
 	"""
 	
-	def __init__(self, coords: Tuple(int, int), ball):
+	def __init__(self, coords: Tuple[int], ball):
 		self.past = []
 		self.next = [coords]
 		self.color = ball.color
@@ -328,7 +328,7 @@ class Combining(Ongoing):
 	Constructor: Combining(coords, color, weight), coords is (int,int)
 	"""
 	
-	def __init__(self, coords:Tuple(int,int), color:int, weight:int):
+	def __init__(self, coords:Tuple[int], color:int, weight:int):
 		self.coords = coords
 		self.color = color
 		self.weight = weight

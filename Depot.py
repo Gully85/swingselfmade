@@ -16,7 +16,7 @@ class Depot:
 	"""
 	
 	# size in pixels is provided by the constructor call. Initial filling with Colored_Balls is done here for now. 
-	def __init__(self, size: Tuple(int, int)):
+	def __init__(self, size: Tuple[int]):
 		self.size_x = size[0]
 		self.size_y = size[1]
 		self.surf = Surface(size)

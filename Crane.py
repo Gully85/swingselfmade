@@ -12,7 +12,7 @@ class Crane:
 	Also holds a local var surf, surface to draw on, returned when draw() is called on it.
 	Constructor expects size of that surface."""
 	
-	def __init__(self, size: Tuple(int, int)):
+	def __init__(self, size: Tuple[int]):
 		self.x = 0
 		self.current_Ball = Balls.generate_starting_ball()
 		self.size = size

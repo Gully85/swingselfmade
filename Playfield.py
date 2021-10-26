@@ -9,7 +9,7 @@ from typing import Tuple
 from pygame import Rect, Surface, font
 import Balls
 from Balls import Blocked, NotABall, Colored_Ball, Special_Ball
-from Game import GameStateError
+
 import Ongoing
 from Constants import playfield_ballcoord, playfield_ballspacing, weightdisplay_coords, weightdisplay_x_per_column
 #from Ongoing import Scoring
@@ -30,7 +30,7 @@ class Playfield:
 		surf (pygame.Surface)
 	Constructor takes size in pixels."""
 
-	def __init__(self, size: Tuple(int, int)):
+	def __init__(self, size: Tuple[int]):
 		self.content = [[ Blocked(),Blocked(),Blocked(),Blocked(), Blocked(),Blocked(),Blocked(),Blocked(),NotABall() ]]
 		for i in range(8):
 			self.content.append([ Blocked(),NotABall(),NotABall(),NotABall(), NotABall(),NotABall(),NotABall(),NotABall(),NotABall() ])
@@ -49,7 +49,7 @@ class Playfield:
 				return False
 		return True
 	
-	def land_ball(self, coords: Tuple(int, int), ball):
+	def land_ball(self, coords: Tuple[int], ball):
 		"""Land a ball at coords. Check for weight-moves, then for Scores, then for loss."""
 		x,y = coords
 		if isinstance(ball, Colored_Ball):
@@ -159,6 +159,7 @@ class Playfield:
 		"""throw the top ball of column. If there is no ball, do nothing."""
 		# throwing can only happen if the column is already the high side of a seesaw. Can safely 
 		# assume that y=0 and y=1 are Blocked. Remove this sanity check once tests look good.
+		from Game import GameStateError
 		if not isinstance(self.content[column][0], Blocked) and isinstance(self.content[column][1], Blocked):
 			raise GameStateError("Trying to throw from a non-lifted seesaw side, x=", column)
 		lastball = self.content[column][2]
