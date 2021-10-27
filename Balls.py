@@ -8,14 +8,14 @@
 # Blocked.
 
 from typing import Tuple
-import Colorschemes
+import colorschemes
 import pygame
 import random
-from Constants import ball_size
+from constants import ball_size
 
 pygame.font.init()
-ball_colors = Colorschemes.simple_standard_ball_colors
-text_colors = Colorschemes.simple_standard_text_colors
+ball_colors = colorschemes.simple_standard_ball_colors
+text_colors = colorschemes.simple_standard_text_colors
 ballfont = pygame.font.SysFont("monospace", 24)
 
 
@@ -93,14 +93,14 @@ class Special_Ball(Ball):
 
 
 def generate_ball():
-	import Game
+	import game
 	
 	# in the first 10 Balls of each level, the new color is more likely
-	if Game.balls_dropped % 50 < 10 and random.choice([True,False]):
-		color = Game.level
+	if game.balls_dropped % 50 < 10 and random.choice([True,False]):
+		color = game.level
 	else:
-		color = random.randint(1, Game.level)
-	weight = random.randint(1, Game.level)
+		color = random.randint(1, game.level)
+	weight = random.randint(1, game.level)
 	return Colored_Ball(color, weight)
 
 def generate_starting_ball():

@@ -2,6 +2,11 @@ Current TODO List:
 
 - maybe sort content of Constants into timings and pixel-counting stuff? 
     Make it two (or more) separate objects? Local dictionary of the Constants module?
+- move logic into respective classes (Game, Crane) where possible. The main game loop should be very short after that. 
+- unittests. Do some easy ones, but also longer ones like "drop a ball, tick() at least 3 in-game 
+    seconds, then it should have landed.". Or even some with complicated set-up, where a Scoring 
+    drops balls, and once they land something else happens. Check for empty eventQueue after the 
+    long ones.
 - placeholder graphics for moving seesaw
 - placeholder graphics for Combining
 - Special Balls. Start with Bomb or Cutter, that should be the easiest ones.
@@ -16,10 +21,7 @@ Current TODO List:
 - after Scoring, show the score added for a few frames. Can use an Ongoing Event for this.
 - draw seesaws in a way that shows which ones are connected
 - re-do ThrowingBall. If landing in-field, can just use the ascending half of a parabola
-- unittests. Do some easy ones, but also longer ones like "drop a ball, tick() at least 3 in-game 
-    seconds, then it should have landed.". Or even some with complicated set-up, where a Scoring 
-    drops balls, and once they land something else happens. Check for empty eventQueue after the 
-    long ones.
+
 
 
 Recent changes:
@@ -42,7 +44,8 @@ maybe later TODOs:
 - (placeholder) graphics for Seesaw_Tilting. 
 - more Special_Balls
 - it is atm not consistent if we need playfield to be a parameter in the Ongoings. For later VS mode, we need to handle two Playfields at once, but with a shared eventQueue.
-
+- automate creation of standalone-exe. For now, use the console command 
+pyinstaller --onefile SelfSwing_main.py
 
 Special Balls in the original SWING:
 - Joker: Counts as any color for the purpose of Scoring. Can start two Scorings at once, e.g. in a configuration like x x (Joker) y y. Will not start a Combining (vertical five).
