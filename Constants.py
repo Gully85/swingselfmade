@@ -13,7 +13,7 @@ falling_per_tick = falling_speed / max_FPS
 
 # Stop if falling Speed is higher than one tile per tick. This could break the FallingBall mechanic
 if falling_per_tick > 1.0:
-	raise ValueError("Falling Speed too high. Do not fall more than one tile per tick.")
+    raise ValueError("Falling Speed too high. Do not fall more than one tile per tick.")
 
 # speed of tilting Seesaws, in 1/sec. For example 4.0 means 0.25sec to tilt to final position
 tilting_speed = 2.0
@@ -84,7 +84,7 @@ depot_position = (depot_position_x, depot_position_y)
 px_used = 8 * ball_size[0] + 7 * column_spacing
 # Rest of the px is divided equally left and right
 if px_used > depotsize[0]:
-	raise ValueError("Depot not wide enough.")
+    raise ValueError("Depot not wide enough.")
 
 depot_xleft = int(0.5*(depotsize[0] - px_used))
 depot_x_perCol = ball_size[0] + column_spacing
@@ -93,7 +93,7 @@ depot_x_perCol = ball_size[0] + column_spacing
 # same for y-direction. Two rows of Balls use (2*ballsize[1] + colspacing) px.
 px_used = 2 * ball_size[1] + column_spacing
 if px_used > depotsize[1]:
-	raise ValueError("Depot not high enough.")
+    raise ValueError("Depot not high enough.")
 
 depot_ytop = int(0.5*(depotsize[1] - px_used))
 depot_y_perRow = ball_size[1] + column_spacing
@@ -113,13 +113,13 @@ cranearea_position = (crane_position_x, crane_position_y)
 # Calculate pixel coords of the leftmost position where the Crane can be. And spacing to the second-to-left position etc
 px_used = 8 * ball_size[0] + 7 * column_spacing
 if px_used > craneareasize[0]:
-	raise ValueError("Crane Area not wide enough.")
+    raise ValueError("Crane Area not wide enough.")
 cranearea_xleft = int(0.5*(craneareasize[0] - px_used))
 cranearea_x_perCol = ball_size[0] + column_spacing
 # => x-coord of Crane in col i is cranearea_xleft + col*cranearea_x_perCol
 
 if ball_size[1] > craneareasize[1]:
-	raise ValueError("Crane Area not high enough.")
+    raise ValueError("Crane Area not high enough.")
 cranearea_ytop = int(0.5 * (craneareasize[1] - ball_size[1]))
 
 cranearea_ballcoord = [cranearea_xleft, cranearea_ytop]
@@ -141,7 +141,7 @@ weightdisplayheight = 40
 # x direction. The index in theplayfield.content[.][] counts from 1 instead of 0, to make the "dummy row" possible.
 px_used = 8 * ball_size[0] + 7 * column_spacing
 if px_used > playfieldsize[0]:
-	raise ValueError("Playfield not wide enough.")
+    raise ValueError("Playfield not wide enough.")
 playfield_ballcoord_x = int(0.5*(playfieldsize[0] - px_used))
 playfield_ballcoord_perCol = ball_size[0] + column_spacing
 # => x-coord of Ball in playfield col i is playfield_ballcoord_x + (i-1)*playfield_ballcoord_perCol
@@ -149,7 +149,7 @@ playfield_ballcoord_perCol = ball_size[0] + column_spacing
 # y direction. The index in theplayfield.content[][.] counts up from bottom instead of down.
 px_used = 8 * ball_size[1] + 7 * rowspacing + weightdisplayheight
 if px_used > playfieldsize[1]:
-	raise ValueError("Playfield not high enough.")
+    raise ValueError("Playfield not high enough.")
 playfield_ballcoord_y = int(0.5*(playfieldsize[1] - px_used))
 playfield_ballcoord_perRow = ball_size[1] + column_spacing
 # => y-coord of Ball in playfield row j is playfield_ballcoord_y + (7-j)*playfield_ballcoord_perRow
