@@ -52,52 +52,17 @@ def main():
     # Event Loop
     while 1:
         ### Step 1, process user input
-        for event in pygame.event.get():
-            
-            # end process when window is closed, or when Escape Key is pressed
-            if event.type == QUIT:
-                return
-            # same when Escape Key is pressed
-            if event.type == KEYDOWN:
-                if event.key == K_ESCAPE:
-                    return
-            
-            # accepted user inputs: K_LEFT, K_RIGHT, K_DOWN, K_SPACE. Move crane left/right, but not past the boundaries
-            if event.type == KEYDOWN:
-                if event.key == K_LEFT:
-                    game.crane.x -= 1
-                    game.crane.changed = True
-                    if game.crane.x < 0:
-                        game.crane.x = 0
-                if event.key == K_RIGHT:
-                    game.crane.x += 1
-                    game.crane.changed = True
-                    if game.crane.x > 7:
-                        game.crane.x = 7
-                if event.key == K_DOWN or event.key == K_SPACE:
-                    column = game.crane.x
-                    ongoing.drop_ball(game.crane.current_Ball, column+1)
-                    game.balls_dropped += 1
-                    if game.balls_dropped % 50 == 0:
-                        game.level += 1
-                        game.score_area.update_level()
-                    game.crane.current_Ball = game.depot.content[column][1]
-                    game.depot.content[column][1] = game.depot.content[column][0]
-                    game.depot.content[column][0] = balls.generate_ball()
-                    # force re-draw of crane and depot
-                    game.crane.changed = True
-                    game.depot.changed = True
-                    game.score_area.changed = True
-
+        process_user_input()
+        
 
         ## Step 2, proceed ongoing Events
-        for event in ongoing.eventQueue:
-            event.tick(game.playfield)
+        game.tick()
+        
         
         ### Step 2.5, check if the player lost
         if not game.playfield.alive:
             print("Final score: ", game.score)
-            break
+            exit()
         
         ### Step 3, update screen where necessary
         if game.depot.changed:
@@ -106,7 +71,6 @@ def main():
             game.depot.changed = False
         
         if game.crane.changed:
-            #print("Crane position: ",the_crane.x)
             drawn_crane = game.crane.draw()
             screen.blit(drawn_crane, cranearea_position)
             game.crane.changed = False
@@ -129,6 +93,28 @@ def main():
         
         # make sure the loop doesn't cycle faster than the FPS limit
         FrameLimiter.tick(max_FPS)
+
+def process_user_input():
+    for event in pygame.event.get():
+            
+        # end process when window is closed
+        if event.type == QUIT:
+            exit()
+        # same when Escape Key is pressed
+        if event.type == KEYDOWN:
+            if event.key == K_ESCAPE:
+                exit()
+        
+        # accepted user inputs: K_LEFT, K_RIGHT, K_DOWN, K_SPACE. Move crane left/right, but not past the boundaries
+        if event.type == KEYDOWN:
+            if event.key == K_LEFT:
+                game.crane.move_left()
+            if event.key == K_RIGHT:
+                game.crane.move_right()
+            if event.key == K_DOWN or event.key == K_SPACE:
+                game.drop_ball()
+
+
 
 # execute main if this is the file called, not just imported
 if __name__ == "__main__": main()

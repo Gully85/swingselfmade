@@ -31,3 +31,22 @@ class Crane:
         
         return self.surf
         
+    def move_left(self):
+        """moves the Crane one position to the left. Does nothing if already in the leftmost position."""
+        self.x -= 1
+        if self.x < 0:
+            self.x = 0
+        self.changed = True
+        
+    
+    def move_right(self):
+        """moves the Crane one position to the right. Does nothing if already in the rightmost position."""
+        self.x += 1
+
+        if self.x > 7:
+            self.x = 7
+        self.changed = True
+    
+    def getx(self): 
+        """position of the crane. Always returns an int, possible values are 0..7"""
+        return self.x
