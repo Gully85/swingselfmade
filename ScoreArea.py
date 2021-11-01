@@ -18,6 +18,7 @@ class ScoreArea:
         changed (bool), True if redraw is needed
         levelball (Colored_Ball), whose draw() method is called on each redraw.
     Constructor: ScoreArea((size_x, size_y))
+    Methods
     """
     
     
