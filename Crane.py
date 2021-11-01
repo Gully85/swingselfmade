@@ -5,12 +5,18 @@ from typing import Tuple
 import pygame
 from pygame import Rect, Surface
 from constants import cranearea_ballcoord, cranearea_x_perCol, ball_size
-import balls
+import balls, depot, ongoing
 
 class Crane:
     """Information about the Crane. Has x (int, 0 <= x <= 7) and current_Ball (Ball).
     Also holds a local var surf, surface to draw on, returned when draw() is called on it.
-    Constructor expects size of that surface."""
+    Constructor expects size of that surface.
+    
+    Methods:
+        drop_ball(), drops ball at the current position, gets a new one from the depot
+        move_left()
+        move_right(), these two respect boundaries
+        getball(), returns the current ball"""
     
     def __init__(self, size: Tuple[int]):
         self.x = 0
@@ -42,7 +48,6 @@ class Crane:
     def move_right(self):
         """moves the Crane one position to the right. Does nothing if already in the rightmost position."""
         self.x += 1
-
         if self.x > 7:
             self.x = 7
         self.changed = True
@@ -50,3 +55,13 @@ class Crane:
     def getx(self): 
         """position of the crane. Always returns an int, possible values are 0..7"""
         return self.x
+
+    def getball(self):
+        """return the ball currently in the crane. Does not alter the state of the game"""
+        return self.current_Ball
+    
+    def drop_ball(self):
+        """drops ball at the current position, gets a new one from the depot"""
+        ongoing.ball_falls(self.current_Ball, self.x)
+        self.changed = True
+        self.current_Ball = depot.next_ball()

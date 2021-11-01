@@ -3,6 +3,7 @@ Current TODO List:
 - maybe sort content of Constants into timings and pixel-counting stuff? 
     Make it two (or more) separate objects? Local dictionary of the Constants module?
 - move logic into respective classes (Game, Crane) where possible. The main game loop should be very short after that. 
+- move the "off-by-one" logic of playfield.content completely into that class, so other classes can use 0..7 
 - unittests. Do some easy ones, but also longer ones like "drop a ball, tick() at least 3 in-game 
     seconds, then it should have landed.". Or even some with complicated set-up, where a Scoring 
     drops balls, and once they land something else happens. Check for empty eventQueue after the 

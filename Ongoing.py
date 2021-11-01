@@ -62,7 +62,7 @@ class FallingBall(Ongoing):
             eventQueue.remove(self)
             playfield.land_ball((x, y), self.ball)
 
-def drop_ball(ball, column: int):
+def ball_falls(ball, column: int):
     eventQueue.append(FallingBall(ball, column))
 
 class ThrownBall(Ongoing):

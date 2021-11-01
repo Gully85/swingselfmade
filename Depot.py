@@ -13,6 +13,8 @@ class Depot:
         changed (bool), True if redraw is needed
         surf (pygame.Surface), draw() will draw everything on this and return it
     Constructor: Depot((size_x, size_y))	
+    Methods:
+        next_ball(int), get ball of specified column, move ball down and generate a new one
     """
     
     # size in pixels is provided by the constructor call. Initial filling with Colored_Balls is done here for now. 
@@ -44,3 +46,10 @@ class Depot:
         
         return self.surf
     
+    def next_ball(self, column: int):
+        """get ball of specified column, move ball down and generate a new one"""
+        ret = self.content[column][1]
+        self.content[column][1] = self.content[column][0]
+        self.content[column][0] = balls.generate_ball()
+        self.changed = True
+        return ret

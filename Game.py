@@ -32,18 +32,12 @@ def drop_ball():
     """drops current ball from the Crane, puts next ball into Crane, generates new ball in the depot.
     And performs the connected bookkeeping (count dropped balls, levelup if needed)"""
     global balls_dropped, level
-    column = crane.getx()
-    ongoing.drop_ball(crane.current_Ball, column+1)
+    crane.drop_ball()
+    
     balls_dropped += 1
     if balls_dropped % 50 == 0:
         level += 1
         score_area.update_level()
-    crane.current_Ball = depot.content[column][1]
-    depot.content[column][1] = depot.content[column][0]
-    depot.content[column][0] = balls.generate_ball()
-    # force re-draws
-    crane.changed = True
-    depot.changed = True
     score_area.changed = True
 
 def tick():

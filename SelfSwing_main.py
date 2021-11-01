@@ -46,7 +46,7 @@ def main():
     
     # only a test, but doesn't hurt
     #Ongoing.eventQueue.append(Ongoing.FallingBall(Balls.generate_starting_ball(), 2))
-    ongoing.drop_ball(balls.generate_starting_ball(), 2)
+    ongoing.ball_falls(balls.generate_starting_ball(), 2)
     
     
     # Event Loop
