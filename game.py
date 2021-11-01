@@ -1,4 +1,4 @@
-# class that holds the general game variables (Score, total dropped balls etc) as local variables.
+# module that holds the general game variables (Score, total dropped balls etc) as local variables.
 # and the bigger objects (Playfield, Depot etc) also
 
 
@@ -17,16 +17,6 @@ def init():
     level = 4
     balls_dropped = 0
     score = 0
-
-# Level. Is the number of colors and the max weight of balls spawning in the depot, and factor for the score. 
-# Starts at 4, increases every 50 Balls dropped.
-#level = 4
-
-# Total number of Balls dropped with the crane
-#balls_dropped = 0
-
-# Total score
-#score = 0
 
 def drop_ball():
     """drops current ball from the Crane, puts next ball into Crane, generates new ball in the depot.

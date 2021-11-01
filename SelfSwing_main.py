@@ -45,7 +45,6 @@ def main():
     pygame.display.flip()
     
     # only a test, but doesn't hurt
-    #Ongoing.eventQueue.append(Ongoing.FallingBall(Balls.generate_starting_ball(), 2))
     ongoing.ball_falls(balls.generate_starting_ball(), 2)
     
     

@@ -20,8 +20,8 @@ from constants import falling_per_tick, tilting_per_tick, scoring_delay
 from constants import thrown_ball_dropheight
 
 
-# this is a local variable of the "module" Ongoing. Other files, if they import Ongoing,
-# can use and modify this. Their local name is Ongoing.eventQueue
+# this is a local variable of the module ongoing. Other files, if they import this,
+# can use and modify this. Their local name is ongoing.eventQueue
 eventQueue = []
 
 class Ongoing:
