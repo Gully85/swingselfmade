@@ -35,7 +35,13 @@ class Depot:
             self.content[i][0] = balls.generate_starting_ball()
             self.content[i][1] = balls.generate_starting_ball()
     
-    
+    def init(self):
+        """puts the depot into the state of game start"""
+        for i in range(8):
+            self.content[i][0] = balls.generate_starting_ball()
+            self.content[i][1] = balls.generate_starting_ball()
+        self.changed = True
+
     def draw(self):
         """draws full Depot, calls draw() methods of the Balls in the Depot. Returns self.surf"""
         self.surf.fill((127,127,127))

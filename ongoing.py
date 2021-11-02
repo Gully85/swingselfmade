@@ -24,8 +24,26 @@ from constants import thrown_ball_dropheight
 # can use and modify this. Their local name is ongoing.eventQueue
 eventQueue = []
 
+def init():
+    """empties eventQueue"""
+    eventQueue = []
+
+def get_number_of_events():
+    """Returns the number of currently ongoing events"""
+    return len(eventQueue)
+
+def get_oldest_event():
+    """Returns the oldest event that is still ongoing. If there are none, raises IndexError"""
+    return eventQueue[0]
+
+def get_newest_event():
+    """Returns the event that was added last and is still ongoing. If there are none, raises IndexError"""
+    return eventQueue[-1]
+
+
 class Ongoing:
-    """abstract Parent class, should not be instanciated"""
+    """abstract Parent class, should not be instanciated.
+    Any child class must have a tick(self, playfield) method and a draw(self,surf) method."""
     pass
 
 class FallingBall(Ongoing):
@@ -276,8 +294,8 @@ class Scoring(Ongoing):
                 # TODO score and display
 
     def expand(self, playfield):
-        """checks if neighboring balls are same color, removes them and saves their coords in self.next for the next expand() call. Returns True if the Scoring grew.
-        
+        """checks if neighboring balls are same color, removes them and saves their coords in 
+        self.next for the next expand() call. Returns True if the Scoring grew.
         """
 
         now = self.next
@@ -288,7 +306,7 @@ class Scoring(Ongoing):
             self.past.append(coords)
             x,y = coords
             playfield.content[x][y] = balls.NotABall()
-            # removing a Ball may cause those on top to fall down
+            # removing a Ball may cause those on top to fall down. 
             if playfield.content[x][y+1].isBall and playfield.content[x][y+1].color != color:
                 for ystack in range(y+1,8):
                     eventQueue.append(FallingBall(playfield.content[x][ystack], x, starting_height=ystack))

@@ -5,15 +5,21 @@
 import depot, crane, playfield, scoreArea, ongoing, balls
 from constants import depotsize, craneareasize, playfieldsize, scoredisplayarea_size
 
+depot = depot.Depot(depotsize)
+crane = crane.Crane(craneareasize)
+playfield = playfield.Playfield(playfieldsize)
+score_area = scoreArea.ScoreArea(scoredisplayarea_size)
+
 def init():
-    """Initializes the game state, including depot/crane/playfield constructor calls
-    """
-    global depot, crane, playfield, score_area
+    """Initializes the game state"""
+    global score_area
     global level, balls_dropped, score
-    depot = depot.Depot(depotsize)
-    crane = crane.Crane(craneareasize)
-    playfield = playfield.Playfield(playfieldsize)
-    score_area = scoreArea.ScoreArea(scoredisplayarea_size)
+
+    depot.init()
+    crane.init()
+    ongoing.init()
+    playfield.init()
+
     level = 4
     balls_dropped = 0
     score = 0

@@ -43,6 +43,17 @@ class Playfield:
         self.changed = True # if anything changed since the last tick. Starts True so the initial gamestate is drawn.
         self.alive = True
 
+    def init(self):
+        """puts the playfield into the state of game start"""
+        self.weights = [0,0,0,0, 0,0,0,0]
+        self.seesaws = [0,  0,   0,  0]
+        self.content = [[ Blocked(),Blocked(),Blocked(),Blocked(), Blocked(),Blocked(),Blocked(),Blocked(),NotABall() ]]
+        for i in range(8):
+            self.content.append([ Blocked(),NotABall(),NotABall(),NotABall(), NotABall(),NotABall(),NotABall(),NotABall(),NotABall() ])
+        self.content.append([ Blocked(),Blocked(),Blocked(),Blocked(), Blocked(),Blocked(),Blocked(),Blocked(),NotABall() ])
+        self.changed = True
+        self.alive = True
+
     def check_alive(self):
         """True if all topmost positions in self.content are NotABall. Player loses if any stack gets too high"""
         for x in range(1,9):
