@@ -10,7 +10,7 @@ crane = crane.Crane(craneareasize)
 playfield = playfield.Playfield(playfieldsize)
 score_area = scoreArea.ScoreArea(scoredisplayarea_size)
 
-def init():
+def reset():
     """Initializes the game state"""
     global score_area
     global level, balls_dropped, score

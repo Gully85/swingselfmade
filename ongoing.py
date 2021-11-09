@@ -25,7 +25,8 @@ from constants import thrown_ball_dropheight
 eventQueue = []
 
 def init():
-    """empties eventQueue"""
+    """empties eventQueue. This sets up the ongoing-module to the state of the game start"""
+    global eventQueue
     eventQueue = []
 
 def get_number_of_events():
@@ -79,6 +80,12 @@ class FallingBall(Ongoing):
             y = new_height+1 # index in content[][.]
             eventQueue.remove(self)
             playfield.land_ball((x, y), self.ball)
+    
+    def getheight(self):
+        return self.height
+
+    def getball(self):
+        return self.ball
 
 def ball_falls(ball, column: int):
     eventQueue.append(FallingBall(ball, column))
@@ -218,7 +225,7 @@ def throw_ball(ball, origin_coords: Tuple[int], throwing_range: int):
 
 class SeesawTilting(Ongoing):
     """A seesaw that is shifting position over time. Vars:
-        sesa (int, allowed values 0-3, from left to right. Tilting are columns 1+2*sesa and 2+2*sesa in theplayfield.content[.][])
+        sesa (int, allowed values 0..3, from left to right. Tilting are columns 1+2*sesa and 2+2*sesa in theplayfield.content[.][])
         before (int, -1 or 0 or +1, seesaw state before tilting)
         after (int, -1 or 0 or +1, seesaw state after tilting). Must be different to before.
         progress (float, 0.0 to 1.0, counts up until tilt is finished)
@@ -245,6 +252,14 @@ class SeesawTilting(Ongoing):
         if self.progress >= 1.0:
             eventQueue.remove(self)
             playfield.refresh_status()
+    
+    def getsesa(self):
+        """Returns the seesaw, 0..3"""
+        return self.sesa
+
+    def getprogress(self):
+        """Returns current progress, 0.0 .. 1.0"""
+        return self.progress
 
 def tilt_seesaw(seesaw: int, before: int, after: int):
     eventQueue.append(SeesawTilting(seesaw, before, after))

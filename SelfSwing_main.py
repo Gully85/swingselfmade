@@ -19,7 +19,7 @@ from constants import depot_position, cranearea_position, playfield_position, sc
 
 import game
 
-game.init()
+game.reset()
 
 
 import balls

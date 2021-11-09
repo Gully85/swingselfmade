@@ -67,7 +67,7 @@ class Playfield:
         #print("Landing at ",x,y)
         #print("height 2 was ", self.content[x][2])
         if isinstance(ball, Colored_Ball):
-            self.content[x][y] = ball
+            self.content[x+1][y] = ball
             self.refresh_status()
         else:
             raise TypeError("Trying to land unexpected ball type ", ball, " at playfield position ", x, y)
@@ -322,3 +322,6 @@ class Playfield:
             self.surf.blit(weighttext, (weightdisplay_x + (x-1) * weightdisplay_x_per_column, weightdisplay_y))
             
         return self.surf
+    
+    def get_seesaw_state(self, column: int):
+        return self.seesaws[column]
