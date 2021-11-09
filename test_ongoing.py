@@ -71,5 +71,55 @@ class TestOngoing(unittest.TestCase):
         else:
             self.assertEqual(1,  game.playfield.get_seesaw_state(chosen_seesaw))
 
+    def test_throwing(self):
+        game.reset()
+        # drop a ball of weight 1 to the leftmost column. Wait until eventQueue is empty.
+        ball1 = balls.Colored_Ball(1, 1)
+        game.playfield.land_ball((0,1), ball1)
+        while 0 != game.ongoing.get_number_of_events():
+            game.tick()
+        
+        # Then a ball of weight 3 to the second-to-left. This should start a SeesawTilting 
+        # and a ThrownBall, 2 to the right
+        ball3 = balls.Colored_Ball(1, 3)
+        game.playfield.land_ball((1,2), ball3)
+        self.assertEqual(game.ongoing.get_number_of_events(), 2)
+        the_throwing_event = game.ongoing.get_newest_event()
+        self.assertIsInstance(the_throwing_event, game.ongoing.ThrownBall)
+        self.assertEqual(the_throwing_event.getdestination(), 2)
+
+        # Wait until the eventQueue is empty again
+        while 0 != game.ongoing.get_number_of_events():
+            game.tick()
+
+        # Drop a ball of weight 15 to the left. This should throw the weight-3-ball to the left,
+        # out-of-bounds. Fly-out ranges should be -10, -2, 0. Finally, it should be converted to 
+        # a FallingBall in the 2nd column from the right, index 6 (in the range 0..6)
+        ball15 = balls.Colored_Ball(1, 15)
+        game.playfield.land_ball((0,2), ball15)
+        the_throwing_event = game.ongoing.get_newest_event()
+        self.assertIsInstance(the_throwing_event, game.ongoing.ThrownBall)
+        self.assertIs(the_throwing_event.getball(), ball3)
+        self.assertEqual(the_throwing_event.getdestination(), -1)
+
+        # TODO enable these once the off-by-one in playfield.content is resolved
+        if False:    
+            self.assertEqual(the_throwing_event.getremaining_range(), -10)
+
+            # wait until remaining_range changes
+            while -10 == the_throwing_event.getremaining_range():
+                game.tick()
+            
+            self.assertEqual(-1, the_throwing_event.getdestination())
+            self.assertEqual(-2, the_throwing_event.getremaining_range())
+
+            while -2 == the_throwing_event.getremaining_range():
+                game.tick()
+
+            self.assertEqual(0, the_throwing_event.getremaining_range())
+            self.assertEqual(6, the_throwing_event.getdestination())
+
+
+
 if __name__ == '__main__':
     unittest.main()

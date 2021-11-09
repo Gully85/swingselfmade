@@ -26,7 +26,7 @@ class Crane:
         self.surf = Surface(size)
         self.changed = True # True if redraw needed. If the Crane changed since the last tick.
     
-    def init(self):
+    def reset(self):
         """puts the crane into the state of game start"""
         self.x = 0
         self.current_Ball = balls.generate_starting_ball()

@@ -24,7 +24,7 @@ from constants import thrown_ball_dropheight
 # can use and modify this. Their local name is ongoing.eventQueue
 eventQueue = []
 
-def init():
+def reset():
     """empties eventQueue. This sets up the ongoing-module to the state of the game start"""
     global eventQueue
     eventQueue = []
@@ -142,6 +142,20 @@ class ThrownBall(Ongoing):
                 throwing_range, ". Destination is ", self.destination, ", remaining is ", self.remaining_range)
         
         # Maybe generate the trajectory here, as a local lambda(t)?
+    
+    def getdestination(self):
+        """Returns the destination of this ball-throwing event. Only x-coordinate. 
+        Possible values are -1 .. 8. -1 for fly-out left, 0..7 for landing, 8 for fly-out right"""
+        return self.destination-1
+
+    def getball(self):
+        """Returns the ball thrown"""
+        return self.ball
+
+    def getremaining_range(self):
+        """Returns the remaining throwing range. 0 if landing in-bound, negative if going to fly-out to the left,
+        positive if going to fly-out to the right"""
+        return self.remaining_range
         
     def draw(self, surf):
         # identical to FallingBall.draw() so far
@@ -218,6 +232,7 @@ class ThrownBall(Ongoing):
         self.speedup_pastmax = (thrown_ball_maxheight - self.origin[1]) / (thrown_ball_maxheight - thrown_ball_dropheight)
         print("Ball flying out, left=", left, ", new remaining_range=", self.remaining_range, 
             " and destination=", self.destination)
+
 
 def throw_ball(ball, origin_coords: Tuple[int], throwing_range: int):
     eventQueue.append(ThrownBall(ball, origin_coords, throwing_range))

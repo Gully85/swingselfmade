@@ -15,10 +15,10 @@ def reset():
     global score_area
     global level, balls_dropped, score
 
-    depot.init()
-    crane.init()
-    ongoing.init()
-    playfield.init()
+    depot.reset()
+    crane.reset()
+    ongoing.reset()
+    playfield.reset()
 
     level = 4
     balls_dropped = 0

@@ -35,7 +35,7 @@ class Depot:
             self.content[i][0] = balls.generate_starting_ball()
             self.content[i][1] = balls.generate_starting_ball()
     
-    def init(self):
+    def reset(self):
         """puts the depot into the state of game start"""
         for i in range(8):
             self.content[i][0] = balls.generate_starting_ball()

@@ -43,7 +43,7 @@ class Playfield:
         self.changed = True # if anything changed since the last tick. Starts True so the initial gamestate is drawn.
         self.alive = True
 
-    def init(self):
+    def reset(self):
         """puts the playfield into the state of game start"""
         self.weights = [0,0,0,0, 0,0,0,0]
         self.seesaws = [0,  0,   0,  0]
