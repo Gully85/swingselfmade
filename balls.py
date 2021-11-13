@@ -73,6 +73,14 @@ class Colored_Ball(Ball):
         posx = drawpos[0] + 0.2 * ball_size[0]
         posy = drawpos[1] + 0.2 * ball_size[1]
         surf.blit(weighttext, (posx, posy))
+    
+    def setweight(self, newweight: int):
+        """sets the weight of the ball to given weight"""
+        self.weight = newweight
+    
+    def getweight(self):
+        """gets weight of the ball"""
+        return self.weight
 
 
 class Special_Ball(Ball):

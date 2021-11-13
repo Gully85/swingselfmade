@@ -18,6 +18,7 @@ class TestOngoing(unittest.TestCase):
 
         # make sure it loses height over time
         self.assertIsInstance(the_falling_event, game.ongoing.FallingBall)
+        self.assertIsInstance(the_falling_event.getball(), balls.Ball)
         starting_height = the_falling_event.getheight()
         game.tick()
         self.assertLess(game.ongoing.get_newest_event().getheight(), starting_height)
@@ -40,7 +41,7 @@ class TestOngoing(unittest.TestCase):
         Testball = balls.generate_ball()
         chosen_column = random.randint(0,8)
         chosen_seesaw = chosen_column//2
-        game.playfield.land_ball((chosen_column, 1), Testball)
+        game.playfield.land_ball(Testball, (chosen_column, 1))
         self.assertEqual(1, game.ongoing.get_number_of_events())
         the_tilting_event = game.ongoing.get_newest_event()
         self.assertIsInstance(the_tilting_event, game.ongoing.SeesawTilting)
@@ -75,14 +76,14 @@ class TestOngoing(unittest.TestCase):
         game.reset()
         # drop a ball of weight 1 to the leftmost column. Wait until eventQueue is empty.
         ball1 = balls.Colored_Ball(1, 1)
-        game.playfield.land_ball((0,1), ball1)
+        game.playfield.land_ball(ball1, (0,1))
         while 0 != game.ongoing.get_number_of_events():
             game.tick()
         
         # Then a ball of weight 3 to the second-to-left. This should start a SeesawTilting 
         # and a ThrownBall, 2 to the right
         ball3 = balls.Colored_Ball(1, 3)
-        game.playfield.land_ball((1,2), ball3)
+        game.playfield.land_ball(ball3, (1,2))
         self.assertEqual(game.ongoing.get_number_of_events(), 2)
         the_throwing_event = game.ongoing.get_newest_event()
         self.assertIsInstance(the_throwing_event, game.ongoing.ThrownBall)
@@ -96,7 +97,7 @@ class TestOngoing(unittest.TestCase):
         # out-of-bounds. Fly-out ranges should be -10, -2, 0. Finally, it should be converted to 
         # a FallingBall in the 2nd column from the right, index 6 (in the range 0..6)
         ball15 = balls.Colored_Ball(1, 15)
-        game.playfield.land_ball((0,2), ball15)
+        game.playfield.land_ball(ball15, (0,2))
         the_throwing_event = game.ongoing.get_newest_event()
         self.assertIsInstance(the_throwing_event, game.ongoing.ThrownBall)
         self.assertIs(the_throwing_event.getball(), ball3)

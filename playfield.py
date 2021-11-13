@@ -42,7 +42,7 @@ class Playfield:
         self.surf = Surface(size)
         self.changed = True # if anything changed since the last tick. Starts True so the initial gamestate is drawn.
         self.alive = True
-
+    
     def reset(self):
         """puts the playfield into the state of game start"""
         self.weights = [0,0,0,0, 0,0,0,0]
@@ -53,6 +53,22 @@ class Playfield:
         self.content.append([ Blocked(),Blocked(),Blocked(),Blocked(), Blocked(),Blocked(),Blocked(),Blocked(),NotABall() ])
         self.changed = True
         self.alive = True
+    
+    def get_ball_at(self, coords: Tuple[int]):
+        """Returns ball at position, or NotABall/Blocked if there is no ball at that position. Coords must 
+        be (x,y) with x=0..7 and y=0..7
+        Blocked is returned if that position is blocked by the seesaw state, only possible for y=0 or y=1"""
+        x,y = coords
+        if x<0 or x>7 or y<0 or y>7:
+            raise IndexError("can't get Ball from position ({},{})".format(x,y))
+        return self.content[x+1][y]
+    
+    def get_weight_of_column(self, column:int):
+        """Returns total weight of the stack in given column 0..7."""
+        self.update_weights()
+        if column<0 or column>7:
+            raise ValueError("Trying to get weight of column {}, only 0..7 possible".format(column))
+        return self.weights[column]
 
     def check_alive(self):
         """True if all topmost positions in self.content are NotABall. Player loses if any stack gets too high"""
@@ -61,16 +77,30 @@ class Playfield:
                 return False
         return True
     
-    def land_ball(self, coords: Tuple[int], ball):
-        """Land a ball at coords. Check for weight-moves, then for Scores, then for loss."""
+    def land_ball(self, ball: balls.Ball, coords: Tuple[int]):
+        """Land a ball at coords. Triggers a status update. x=0..7"""
         x,y = coords
-        #print("Landing at ",x,y)
-        #print("height 2 was ", self.content[x][2])
         if isinstance(ball, Colored_Ball):
             self.content[x+1][y] = ball
             self.refresh_status()
         else:
             raise TypeError("Trying to land unexpected ball type ", ball, " at playfield position ", x, y)
+        
+    def land_ball_in_column(self, ball: balls.Ball, x: int):
+        """Land a ball in specified column on top of the stack. x=0..7"""
+        if x<0 or x>7:
+            raise ValueError("Trying to land outside the playfield, column must be 0..7, given {}.".format(x))
+        if not isinstance(ball, balls.Ball):
+            raise TypeError("Trying to land something that is not a ball, given ", ball)
+        
+        # find lowest empty position, land ball there
+        for y in range(8):
+            if isinstance(self.get_ball_at((x,y)), balls.NotABall):
+                self.land_ball(ball, (x, y))
+                return
+        
+        # if no free position on top is available, just do nothing. This may change later. If this position
+        # is reached, something landed on top of a full stack.
     
     def refresh_status(self):
         """Checks if anything needs to start now. Performs weight-check, 
@@ -84,7 +114,7 @@ class Playfield:
         elif self.check_Scoring_full():
             #print("found Scoring")
             pass
-        #elif self.check_combining():
+        elif self.check_combining():
         #	print("found vertical Five")
             pass
         elif self.check_hanging_balls():
@@ -95,14 +125,14 @@ class Playfield:
 
     
     def push_column(self, x: int, dy: int):
-        """pushes the x-column down by (dy) and its connected neighbor up by (dy)."""
+        """pushes the x-column down by (dy) and its connected neighbor up by (dy). x=1..8"""
         # x can be 1..8. Its neighbor is x-1 if x is even, and x+1 else.
         neighbor = x+1 - 2*(x%2 == 0)
         self.raise_column(neighbor, dy)
         self.lower_column(x, dy)
 
     def lower_column(self, x: int, dy: int):
-        """move all balls in a stack (dy) places down. """
+        """move all balls in a stack (dy) places down. x=1..8"""
         for height in range(0, 9-dy):
             self.content[x][height] = self.content[x][height + dy]
         # This will "duplicate" the NotABall on top of a stack. Is that a problem when 
@@ -110,13 +140,10 @@ class Playfield:
         # to create a new NotABall for y=8.
 
     def raise_column(self, x: int, dy: int):
-        """moves all balls in a stack (dy) places up. This can fill the highest place y=8 so the player loses."""
+        """moves all balls in a stack (dy) places up. x=1..8"""
         for height in range(8, dy-1, -1):
             self.content[x][height] = self.content[x][height - dy]
-        
-        # the lowest 1 or 2 (depending on dy) become (newly-created) Blockeds. 
-        # I let go of the old idea of re-using the Blockeds, code too ugly when 
-        # not splitting this function into dy=1 and dy=2.
+
         for height in range(dy):
             self.content[x][height] = Blocked()
 
@@ -177,11 +204,11 @@ class Playfield:
         return ret
     
     def throw_top_ball(self, column: int, throwing_range: int):
-        """throw the top ball of column. If there is no ball, do nothing."""
+        """throw the top ball of column. If there is no ball, do nothing. column=1..8"""
         # throwing can only happen if the column is already the high side of a seesaw. Can safely 
         # assume that y=0 and y=1 are Blocked. Remove this sanity check once tests look good.
         from game import GameStateError
-        if not isinstance(self.content[column][0], Blocked) and isinstance(self.content[column][1], Blocked):
+        if not isinstance(self.content[column][0], Blocked) or not isinstance(self.content[column][1], Blocked):
             raise GameStateError("Trying to throw from a non-lifted seesaw side, x=", column)
         lastball = self.content[column][2]
         if isinstance(lastball, NotABall):
@@ -190,9 +217,9 @@ class Playfield:
         for y in range(3, 8):
             ball = self.content[column][y]
             if isinstance(ball, Blocked):
-                continue
+                raise GameStateError("A Blocked should never be this high. Blocked found at ({},{})".format(column, y))
             elif isinstance(ball, NotABall):
-                ongoing.throw_ball(lastball, (column, y-1), throwing_range)
+                ongoing.throw_ball(lastball, (column-1, y-1), throwing_range)
                 self.content[column][y-1] = NotABall()
                 self.weights[column-1] -= self.content[column][y-1].weight
                 return

@@ -14,6 +14,7 @@
 from typing import Tuple
 import balls
 from pygame import Surface
+import game, playfield
 
 from constants import ball_size, playfield_ballcoord, playfield_ballspacing
 from constants import falling_per_tick, tilting_per_tick, scoring_delay
@@ -50,7 +51,7 @@ class Ongoing:
 class FallingBall(Ongoing):
     """a Ball that is being dropped, falling after being thrown, or the Ball below it vanished somehow. Vars:
         ball (Colored_Ball or Special_Ball)
-        column (int, allowed range 1 <= column <= 8, matching the index in Playfield.content[.][])
+        column (int, 0..7)
         height (float, allowed range 8.0 >= height >= highest filled position in Playfield.content in respective column)
         
         Constructor: FallingBall(ball, col, starting_height=8.0). The starting height is optional, only to be used 
@@ -63,23 +64,22 @@ class FallingBall(Ongoing):
         self.height = starting_height
         
     def draw(self, surf):
-        x = playfield_ballcoord[0] + (self.column - 1) * playfield_ballspacing[0]
+        x = playfield_ballcoord[0] + (self.column) * playfield_ballspacing[0]
         y = playfield_ballcoord[1] + (7.-self.height)*playfield_ballspacing[1]
         self.ball.draw(surf, (x,y))
 
-    def tick(self, playfield):
-        content = playfield.content
+    def tick(self, playfield: playfield.Playfield):
         new_height = int(self.height - falling_per_tick)
         playfield.changed = True
         if new_height > 7: #still higher in the air than where any playfield-Ball could be
             self.height -= falling_per_tick
-        elif isinstance(content[self.column][new_height], balls.NotABall):
+        elif isinstance(playfield.get_ball_at((self.column, new_height)), balls.NotABall):
             self.height -= falling_per_tick
         else:
             x = self.column
             y = new_height+1 # index in content[][.]
             eventQueue.remove(self)
-            playfield.land_ball((x, y), self.ball)
+            playfield.land_ball(self.ball, (x, y))
     
     def getheight(self):
         return self.height
@@ -235,6 +235,7 @@ class ThrownBall(Ongoing):
 
 
 def throw_ball(ball, origin_coords: Tuple[int], throwing_range: int):
+    """Throws ball from coords with specified range. origin_coords[0] = 0..7"""
     eventQueue.append(ThrownBall(ball, origin_coords, throwing_range))
     # print("throwing Ball, ", ball, origin_coords, throwing_range)
 

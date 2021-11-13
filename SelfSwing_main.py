@@ -46,7 +46,7 @@ def main():
     pygame.display.flip()
     
     # only a test, but doesn't hurt
-    ongoing.ball_falls(balls.generate_starting_ball(), 2)
+    ongoing.ball_falls(balls.generate_starting_ball(), 1)
     
     
     # Event Loop
