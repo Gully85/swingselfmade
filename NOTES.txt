@@ -1,13 +1,12 @@
 Current TODO List:
 
+- fix drawing of thrown Balls
+- expand unittests, ongoings and playfield are incomplete atm
+- remove the off-by-one from playfield.content
+- object.changed logic into the class. Call draw() every frame, but dont do anything if 
+    nothing changed
 - maybe sort content of Constants into timings and pixel-counting stuff? 
     Make it two (or more) separate objects? Local dictionary of the Constants module?
-- move logic into respective classes (Game, Crane) where possible. The main game loop should be very short after that. 
-- move the "off-by-one" logic of playfield.content completely into that class, so other classes can use 0..7 
-- unittests. Do some easy ones, but also longer ones like "drop a ball, tick() at least 3 in-game 
-    seconds, then it should have landed.". Or even some with complicated set-up, where a Scoring 
-    drops balls, and once they land something else happens. Check for empty eventQueue after the 
-    long ones.
 - placeholder graphics for moving seesaw
 - placeholder graphics for Combining
 - Special Balls. Start with Bomb or Cutter, that should be the easiest ones.
@@ -27,10 +26,10 @@ Current TODO List:
 
 Recent changes:
 - moved Ball dropping logic to Playfield.refresh_status() and Playfield.check_hanging_balls()
-- Added Combining of vertical Fives into one ball with the same total weight. The check for this is in Playfield.refresh_status() in the correct priority.
+- Added Combining of vertical Fives into one ball with the same total weight. The check for 
+    this is in Playfield.refresh_status() in the correct priority.
 
 Suspected possible bugs:
-- still impossible to create a non-updated seesaw state?
 - perhaps range is off by one if flying out to the left for at least twice (range 10 or greater)
 
 
@@ -41,19 +40,23 @@ Known bugs, need to find exact conditions to reproduce
 
 
 maybe later TODOs:
-
-- (placeholder) graphics for Seesaw_Tilting. 
 - more Special_Balls
-- it is atm not consistent if we need playfield to be a parameter in the Ongoings. For later VS mode, we need to handle two Playfields at once, but with a shared eventQueue.
+- it is atm not consistent if we need playfield to be a parameter in the Ongoings. For later VS mode,
+     we need to handle two Playfields at once, but with a shared eventQueue.
 - automate creation of standalone-exe. For now, use the console command 
 pyinstaller --onefile SelfSwing_main.py
 
 Special Balls in the original SWING:
-- Joker: Counts as any color for the purpose of Scoring. Can start two Scorings at once, e.g. in a configuration like x x (Joker) y y. Will not start a Combining (vertical five).
-- Bomb: When landing on a Ball, destroy all Balls in a 3x3 environment. When landing on an empty seesaw, do nothing. A Bomb lying aroung will explode once something lands on it, even if it lies under other Balls. A Bomb thrown out sideways will become a Heart. Any other Special Ball  (except negative Specials in VS mode) thrown out sideways will become a Bomb.
+- Joker: Counts as any color for the purpose of Scoring. Can start two Scorings at once, 
+    e.g. in a configuration like x x (Joker) y y. Will not start a Combining (vertical five).
+- Bomb: When landing on a Ball, destroy all Balls in a 3x3 environment. When landing on an 
+    empty seesaw, do nothing. A Bomb lying aroung will explode once something lands on it, 
+    even if it lies under other Balls. A Bomb thrown out sideways will become a Heart. Any
+    other Special Ball  (except negative Specials in VS mode) thrown out sideways will become a Bomb.
 - Cutter: Destroy the stack it lands on
 - Zap: Destroy all Balls of the color it lands on
-- Tint: Re-color all Balls (even Specials) of the stack into the color it lands on. Can multiply Special Balls except Stars and Bombs.
+- Tint: Re-color all Balls (even Specials) of the stack into the color it lands on. Can multiply 
+    Special Balls except Stars and Bombs.
 - Flash: Re-color randomly in a triangle below it into the color it lands on. On average, two re-colors per row.
 - Color Joker: All Balls of the color it lands on are transformed to Jokers.
 - Diagonal Cutter: Destroy all Balls diagonal from its landing spot.
@@ -68,16 +71,21 @@ Special Balls in the original SWING:
 
 - Niveller: All Balls in the stack it lands on have their weight set to zero.
 - Stonemaker: All Balls in a 3x3 environment around its landing spot are transformed into Stones.
-- Shadowmaker: Makes a shadow in a 3x3 environment around its position. Balls under the shadow are not drawn, but still work normally.
+- Shadowmaker: Makes a shadow in a 3x3 environment around its position. Balls under the shadow are not 
+    drawn, but still work normally.
 - Sting: From time to time, destroy the Ball below and on top of this. Random, becomes slower over time.
 - Color Stonemaker: All Balls of the color it lands on are transformed into Stones.
-- Shadow Clock: Make a shadow over the full Playfield for a while. If thrown, the shadow duration is proportional to throwing range. 
+- Shadow Clock: Make a shadow over the full Playfield for a while. If thrown, the shadow duration is 
+    proportional to throwing range. 
 - Tower: Stack Stones where it lands, until the highest allowed position.
 - Tornado: Suck all Balls from its stack and randomly throw them left and right
 
 - Questionmark: Becomes a random Special Ball in the Crane.
-- Silver Star: Spawns at every levelup in the Depot, can not be created by any Tint/Flash re-coloring. A horizontal Three of Silver Stars will Score everything in the Playfield.
-- Golden Star: Two stacked Silver Stars become a Gold Star. Can not be created by any Tint/Flash re-coloring. A horizontal Three of Gold Stars will Score everything in the Playfield, and add the previous total score, then multiply by the current Level, then add that number to the score.
+- Silver Star: Spawns at every levelup in the Depot, can not be created by any Tint/Flash re-coloring. 
+    A horizontal Three of Silver Stars will Score everything in the Playfield.
+- Golden Star: Two stacked Silver Stars become a Gold Star. Can not be created by any Tint/Flash re-coloring. 
+    A horizontal Three of Gold Stars will Score everything in the Playfield, and add the previous total score, 
+    then multiply by the current Level, then add that number to the score.
 - Heart: Three Hearts can score a Three (with zero points).
 - Stone: No interactions/effects. Can not score a Three or Combine a vertical Five.
 
@@ -89,7 +97,10 @@ Ideas (Special Balls):
 - The big Destabilizer: All Colored_Balls have their weight set to zero, except the top one per column.
 
 Ideas (others):
-- ThrownBalls could have an actual trajectory like a thrown ball. It ends in the top place of the correct row and then becomes a FallingBall.
-- unique permanent bonuses for 3 stars and 3 gold-stars. Like slower movement, global score factor, throw preview, higher rate of Special Balls
-- VS mode. Throw balls to opponent, give them special negative effects (inverted Crane movement, auto-drop every few seconds, weight-changes, ...)
+- ThrownBalls could have an actual trajectory like a thrown ball. It ends in the top place of the correct row
+    and then becomes a FallingBall.
+- unique permanent bonuses for 3 stars and 3 gold-stars. Like slower movement, global score factor, 
+    throw preview, higher rate of Special Balls
+- VS mode. Throw balls to opponent, give them special negative effects (inverted Crane movement, 
+    auto-drop every few seconds, weight-changes, ...)
 - auto-drop could be generally a good challenge. 
