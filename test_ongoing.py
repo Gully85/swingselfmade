@@ -76,14 +76,14 @@ class TestOngoing(unittest.TestCase):
         game.reset()
         # drop a ball of weight 1 to the leftmost column. Wait until eventQueue is empty.
         ball1 = balls.Colored_Ball(1, 1)
-        game.playfield.land_ball(ball1, (0,1))
+        game.playfield.land_ball_in_column(ball1, 0)
         while 0 != game.ongoing.get_number_of_events():
             game.tick()
         
         # Then a ball of weight 3 to the second-to-left. This should start a SeesawTilting 
         # and a ThrownBall, 2 to the right
         ball3 = balls.Colored_Ball(1, 3)
-        game.playfield.land_ball(ball3, (1,2))
+        game.playfield.land_ball_in_column(ball3, 1)
         self.assertEqual(game.ongoing.get_number_of_events(), 2)
         the_throwing_event = game.ongoing.get_newest_event()
         self.assertIsInstance(the_throwing_event, game.ongoing.ThrownBall)

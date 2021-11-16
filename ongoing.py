@@ -94,10 +94,10 @@ class ThrownBall(Ongoing):
     """A ball that was thrown by a seesaw. Follows a certain trajectory 
         (see comment in tick() for details), then becomes a FallingBall. Vars:
         ball (Colored_Ball or Special_Ball).
-        destination (int), allowed range 0 <= destination <= 9. Values 1..8 indicate landing in that column,
-            Values 0 or 9 indicate flying out sideway. Destination height is always 8.2
-        origin (int,int tuple), x and y coordinate of the spot from where it was launched. 1 <= x <= 8. 
-            If it came in flying from the side, x = 0 or 9 and y = 7.
+        destination (int), allowed range -1..8. Values 0..7 indicate landing in that column,
+            Values -1 or 8 indicate flying out sideway. Destination height is always 8.2
+        origin (int,int tuple), x and y coordinate of the spot from where it was launched. x=0..7, or
+            -1 resp 8 if flying in from the side. 
         x (float, not int), allowed range 1.0 <= column <= 8.0. Current position.
         y (float), allowed range 1.0 <= height <= 9.0. Current position.
         remaining_range (int), all values possible. Value is 0 except when it will be thrown out sideway, 
@@ -124,7 +124,7 @@ class ThrownBall(Ongoing):
         # calculate destination. Three possible cases: Flying out left, landing in-bound, flying out right.
         destination_raw = coords[0] + throwing_range
         if destination_raw < 1: # fly out left
-            self.destination = 0
+            self.destination = -1
             self.remaining_range = destination_raw
         elif destination_raw > 8: # fly out right
             self.destination = 9
@@ -146,7 +146,7 @@ class ThrownBall(Ongoing):
     def getdestination(self):
         """Returns the destination of this ball-throwing event. Only x-coordinate. 
         Possible values are -1 .. 8. -1 for fly-out left, 0..7 for landing, 8 for fly-out right"""
-        return self.destination-1
+        return self.destination
 
     def getball(self):
         """Returns the ball thrown"""
@@ -159,7 +159,7 @@ class ThrownBall(Ongoing):
         
     def draw(self, surf):
         # identical to FallingBall.draw() so far
-        x = playfield_ballcoord[0] + (self.x-1)*playfield_ballspacing[0]
+        x = playfield_ballcoord[0] + (self.x)*playfield_ballspacing[0]
         y = playfield_ballcoord[0] + (7. - self.y)*playfield_ballspacing[1]
         self.ball.draw(surf, (x,y))
         
