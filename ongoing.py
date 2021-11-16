@@ -86,6 +86,9 @@ class FallingBall(Ongoing):
 
     def getball(self):
         return self.ball
+    
+    def getcolumn(self):
+        return self.column
 
 def ball_falls(ball, column: int):
     eventQueue.append(FallingBall(ball, column))
@@ -123,18 +126,18 @@ class ThrownBall(Ongoing):
         
         # calculate destination. Three possible cases: Flying out left, landing in-bound, flying out right.
         destination_raw = coords[0] + throwing_range
-        if destination_raw < 1: # fly out left
+        if destination_raw < 0: # fly out left
             self.destination = -1
-            self.remaining_range = destination_raw
+            self.remaining_range = destination_raw + 1
         elif destination_raw > 8: # fly out right
-            self.destination = 9
+            self.destination = 8
             self.remaining_range = destination_raw - 8
         else: # stay in-bound
             self.destination = destination_raw
             self.remaining_range = 0
         
         # the trajectory is parametrized with t going from -1 to +1
-        self.t = -1
+        self.t = -1.0
         
         self.speedup_pastmax = (thrown_ball_maxheight - self.origin[1]) / (thrown_ball_maxheight - thrown_ball_dropheight)
         
@@ -176,8 +179,8 @@ class ThrownBall(Ongoing):
         
         # is the destination reached? If yes, it can become a FallingBall or it can fly out
         if self.t > 1.0:
-            if self.destination == 0 or self.destination == 9:
-                self.fly_out(self.destination == 0)
+            if self.destination == -1 or self.destination == 8:
+                self.fly_out(self.destination == -1)
             else:
                 eventQueue.append(FallingBall(self.ball, self.destination, starting_height=thrown_ball_dropheight-2.0))
                 eventQueue.remove(self)
@@ -208,22 +211,22 @@ class ThrownBall(Ongoing):
         self.t = -1.0
         self.y = thrown_ball_flyover_height
         if left:
-            self.x = 9.0
+            self.x = 8.0
         else:
-            self.x = 0.0
+            self.x = -1.0
         self.origin = (self.x, self.y)
         # calculate new destination. It can be another fly-out (if remaining_range is high enough) or a column.
         # Didn't find a way to make this shorter without losing readability...
         if left:
-            if self.remaining_range < -7:
-                self.destination = 0
+            if self.remaining_range < -8:
+                self.destination = -1
                 self.remaining_range += 8
-            else:
-                self.destination = 8 + self.remaining_range  # self.remaining is negative
+            else: # in-bound
+                self.destination = 7 + self.remaining_range  # self.remaining is negative
                 self.remaining_range = 0
         else:
             if self.remaining_range > 7:
-                self.destination = 9
+                self.destination = 8
                 self.remaining_range -= 8
             else:
                 self.destination = self.remaining_range

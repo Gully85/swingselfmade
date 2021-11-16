@@ -1,5 +1,6 @@
 # tests the ongoing module. Separate test_ method for each class in there
 
+from unittest.case import TestCase
 import game, balls, constants
 import unittest, random
 
@@ -41,7 +42,7 @@ class TestOngoing(unittest.TestCase):
         Testball = balls.generate_ball()
         chosen_column = random.randint(0,8)
         chosen_seesaw = chosen_column//2
-        game.playfield.land_ball(Testball, (chosen_column, 1))
+        game.playfield.land_ball_in_column(Testball, chosen_column)
         self.assertEqual(1, game.ongoing.get_number_of_events())
         the_tilting_event = game.ongoing.get_newest_event()
         self.assertIsInstance(the_tilting_event, game.ongoing.SeesawTilting)
@@ -94,33 +95,52 @@ class TestOngoing(unittest.TestCase):
             game.tick()
 
         # Drop a ball of weight 15 to the left. This should throw the weight-3-ball to the left,
-        # out-of-bounds. Fly-out ranges should be -10, -2, 0. Finally, it should be converted to 
-        # a FallingBall in the 2nd column from the right, index 6 (in the range 0..6)
+        # out-of-bounds. Total throwing range is 12 -> flying out twice,
+        # ultimately landing in column 5, third from the right.
+
         ball15 = balls.Colored_Ball(1, 15)
-        game.playfield.land_ball(ball15, (0,2))
+        game.playfield.land_ball_in_column(ball15, 0)
         the_throwing_event = game.ongoing.get_newest_event()
         self.assertIsInstance(the_throwing_event, game.ongoing.ThrownBall)
         self.assertIs(the_throwing_event.getball(), ball3)
         self.assertEqual(the_throwing_event.getdestination(), -1)
 
-        # TODO enable these once the off-by-one in playfield.content is resolved
-        if False:    
-            self.assertEqual(the_throwing_event.getremaining_range(), -10)
+        # Pass Test if the newest event is ball3 falling in column 5. Fail Test if the eventQueue
+        # is empty.
+        while True:
+            game.tick()
+            self.assertNotEqual(0, game.ongoing.get_number_of_events())
+            if isinstance(game.ongoing.get_newest_event(), game.ongoing.FallingBall):
+                the_falling_event = game.ongoing.get_newest_event()
+                self.assertIs(the_falling_event.getball(), ball3)
+                self.assertEqual(the_falling_event.getcolumn(), 5)
+                break
 
-            # wait until remaining_range changes
-            while -10 == the_throwing_event.getremaining_range():
-                game.tick()
-            
-            self.assertEqual(-1, the_throwing_event.getdestination())
-            self.assertEqual(-2, the_throwing_event.getremaining_range())
+        # same test for (multiple) fly-outs to the right. Clear playfield and eventQueue first
+        game.playfield.reset()
+        game.ongoing.reset()
 
-            while -2 == the_throwing_event.getremaining_range():
-                game.tick()
+        Testball = balls.generate_ball()
+        Testball.setweight(1)
+        game.playfield.land_ball_in_column(Testball, 6)
+        while 0 != game.ongoing.get_number_of_events():
+            game.tick()
+        Testball23 = balls.generate_ball()
+        Testball23.setweight(23)
+        game.playfield.land_ball_in_column(Testball23, 7)
+        # range is 22. Two complete rotations are 16, remainder is 6. One to rightmost, 
+        # five to go, land in column 4 since columns are zero-indexed
+        while True:
+            game.tick()
+            self.assertNotEqual(0, game.ongoing.get_number_of_events())
+            if isinstance(game.ongoing.get_newest_event(), game.ongoing.FallingBall):
+                the_falling_event = game.ongoing.get_newest_event()
+                self.assertIs(the_falling_event.getball(), Testball)
+                self.assertEqual(the_falling_event.getcolumn(), 4)
+                break
 
-            self.assertEqual(0, the_throwing_event.getremaining_range())
-            self.assertEqual(6, the_throwing_event.getdestination())
-
-
+    def test_combining():
+        pass
 
 if __name__ == '__main__':
     unittest.main()
