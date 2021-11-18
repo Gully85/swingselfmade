@@ -139,7 +139,7 @@ class TestOngoing(unittest.TestCase):
                 self.assertEqual(the_falling_event.getcolumn(), 4)
                 break
 
-    def test_combining():
+    def test_combining(self):
         pass
 
 if __name__ == '__main__':

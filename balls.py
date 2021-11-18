@@ -81,6 +81,12 @@ class Colored_Ball(Ball):
     def getweight(self):
         """gets weight of the ball"""
         return self.weight
+    
+    def setcolor(self, newcolor: int):
+        self.color = newcolor
+
+    def getcolor(self):
+        return self.color
 
 
 class Special_Ball(Ball):

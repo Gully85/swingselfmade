@@ -1,6 +1,6 @@
 # tests the playfield module
 
-import game
+import game, constants
 import unittest
 import balls
 
@@ -40,11 +40,102 @@ class TestPlayfield(unittest.TestCase):
         self.assertIs(the_playfield.get_ball_at((0,1)), Testball)
         self.assertIs(the_playfield.get_ball_at((1,1)), Testball2)
 
+        # Test get_weight_of_column
         the_playfield.update_weights()
         self.assertEqual(the_playfield.get_weight_of_column(0), Testball.getweight())
         self.assertEqual(the_playfield.get_weight_of_column(1), Testball.getweight())
 
+    
+    # Test all outcomes of refresh_status
+    def test_refresh_status(self):
+        game.reset()
+        the_playfield = game.playfield
 
+        # Tilting
+        # Drop a ball to the rightmost column, should start a SeesawTilting
+        Testball = balls.generate_ball()
+        Testball.setweight(20)
+        the_playfield.land_ball_in_column(Testball, 7)
+        the_tilting_event = game.ongoing.get_newest_event()
+        self.assertIsInstance(the_tilting_event, game.ongoing.SeesawTilting)
+        self.assertEqual(the_tilting_event.getsesa(), 3)
+
+        # Scoring
+        game.reset()
+        # Drop two heavy balls on the left side of each seesaw to create a flat ground
+        for sesa in range(4):
+            Testball = balls.generate_ball()
+            Testball.setweight(100)
+            the_playfield.land_ball_in_column(Testball, 2*sesa)
+            Testball = balls.generate_ball()
+            Testball.setweight(100)
+            Testball.setcolor(1)
+            the_playfield.land_ball_in_column(Testball, 2*sesa)
+        
+        self.assertTrue(wait_for_empty_eventQueue(10*constants.max_FPS))
+
+        # put balls in the three leftmost columns. This should start a Scoring.
+        for i in range(3):
+            Testball2 = balls.generate_ball()
+            Testball2.setcolor(2)
+            the_playfield.land_ball_in_column(Testball2, i)
+        game.tick()
+        self.assertIsInstance(game.ongoing.get_newest_event(), game.ongoing.Scoring)
+        self.assertTrue(wait_for_empty_eventQueue(4*constants.scoring_delay))
+
+        # same for the rightmost columns
+        for i in range(5,8):
+            Testball3 = balls.generate_ball()
+            Testball3.setcolor(3)
+            the_playfield.land_ball_in_column(Testball3, i)
+        game.tick()
+        self.assertIsInstance(game.ongoing.get_newest_event(), game.ongoing.Scoring)
+        self.assertTrue(wait_for_empty_eventQueue(4*constants.scoring_delay))
+
+        # Combining
+        # land 5 equal balls in column 4, they should combine
+        for i in range(5):
+            Testball4 = balls.generate_ball()
+            Testball4.setcolor(2)
+            Testball4.setweight(3)
+            the_playfield.land_ball_in_column(Testball4, 4)
+        game.tick()
+        self.assertIsInstance(game.ongoing.get_newest_event(), game.ongoing.Combining)
+        self.assertTrue(wait_for_empty_eventQueue(constants.combining_totaltime * constants.max_FPS))
+        # The resulting ball should be at position (4,2), color=2, weight=15
+        resulting_ball = the_playfield.get_ball_at((4,2))
+        self.assertIsInstance(resulting_ball, balls.Colored_Ball)
+        self.assertEqual(resulting_ball.getcolor(), 2)
+        self.assertEqual(resulting_ball.getweight(), 15)
+
+        # Hanging Balls
+        # drop two balls in column 6, remove the lower one, assert that the higher one starts to fall
+        Testball = balls.generate_ball()
+        the_playfield.land_ball_in_column(Testball, 6)
+        Testball2 = balls.generate_ball()
+        the_playfield.land_ball_in_column(Testball2, 6)
+        the_playfield.remove_ball((6,2))
+        the_playfield.refresh_status()
+        game.tick()
+
+        # both positions should be empty now, newest Event should be FallingBall Testball2
+        self.assertIsInstance(the_playfield.get_ball_at((6,2)), balls.NotABall)
+        self.assertIsInstance(the_playfield.get_ball_at((6,3)), balls.NotABall)
+        the_falling_event = game.ongoing.get_newest_event()
+        self.assertIsInstance(the_falling_event, game.ongoing.FallingBall)
+        self.assertEqual(the_falling_event.getcolumn(), 6)
+        self.assertIs(the_falling_event.getball(), Testball2)
+        
+
+def wait_for_empty_eventQueue(maxticks: int):
+    """Waits until the eventQueue is empty, up to specified number of ticks. Returns True
+    if the eventQueue got empty."""
+    maxticks = int(maxticks+1.0)
+    for i in range(maxticks):
+        game.tick()
+        if 0 == game.ongoing.get_number_of_events():
+            return True
+    return False
 
 
 if __name__ == '__main__':

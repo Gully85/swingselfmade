@@ -1,16 +1,19 @@
 Current TODO List:
 
-- fix drawing of thrown Balls
 - expand unittests, ongoings and playfield are incomplete atm
 - remove the off-by-one from playfield.content
-- object.changed logic into the class. Call draw() every frame, but dont do anything if 
+- move object.changed logic into the class. Call draw() every frame, but dont do anything if 
     nothing changed
+- rename NotABall / Blocked logic to be more intuitive. Parent class is PlayfieldSpace, can be 
+    BlockedBySeesaw or EmptySpace or Ball (which can be Colored or Special). Rename Colored_Ball 
+    to ColoredBall
+- force Abstract Base Classes to have their values/methods
 - maybe sort content of Constants into timings and pixel-counting stuff? 
     Make it two (or more) separate objects? Local dictionary of the Constants module?
 - placeholder graphics for moving seesaw
 - placeholder graphics for Combining
 - Special Balls. Start with Bomb or Cutter, that should be the easiest ones.
-- Ball generation. 
+- Ball generation, preview for upcoming Specials
 - "Logbook mode", write events to a log-file. Helpful if we let others look for bugs. 
     Have a tmp logfile, if a certain key is pressed, move it to a permanent file. Regular 
     updates (at each level?) for the full game state. Track all Ongoing_Events in there. 
@@ -20,7 +23,8 @@ Current TODO List:
     that no new colors were coming.
 - after Scoring, show the score added for a few frames. Can use an Ongoing Event for this.
 - draw seesaws in a way that shows which ones are connected
-- re-do ThrowingBall. If landing in-field, can just use the ascending half of a parabola
+- re-do ThrowingBall trajctory. If landing in-field, can just use the ascending half of a parabola
+- change Combining to be able to combine 6+ balls
 
 
 

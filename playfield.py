@@ -7,8 +7,9 @@ debugprints = False
 
 from typing import Tuple
 from pygame import Rect, Surface, font
-import balls
+import balls, game
 from balls import Blocked, NotABall, Colored_Ball, Special_Ball
+#from game import GameStateError
 
 import ongoing
 from constants import playfield_ballcoord, playfield_ballspacing, weightdisplay_coords, weightdisplay_x_per_column
@@ -272,7 +273,7 @@ class Playfield:
                 current = self.content[x][y]
                 if current.isBall:
                     ret = True
-                    ongoing.eventQueue.append(ongoing.FallingBall(current, x, starting_height=y))
+                    ongoing.eventQueue.append(ongoing.FallingBall(current, x-1, starting_height=y))
                     self.content[x][y] = NotABall()
                     #print("dropping hanging ball ", current, " from position", x, y)
 
@@ -298,7 +299,7 @@ class Playfield:
                 
                 # five balls are needed: y, y+1, ..., y+4. If this loop reaches y+5, do not check 
                 # the (y+5)-position, but Combine instead
-                for check_height in range(y, y+6):
+                for check_height in range(y+1, y+6):
                     if check_height == y+5:
                         ret = True
                         self.content[x][y] = Colored_Ball(this_color, total_weight)
@@ -352,3 +353,17 @@ class Playfield:
     
     def get_seesaw_state(self, column: int):
         return self.seesaws[column]
+    
+    def remove_ball(self, coords:Tuple[int]):
+        """remove a ball from specified position. If there is already no ball, do nothing. If the position
+        is Blocked, raises GameStateError"""
+        x,y = coords
+        if x<0 or x>7 or y<0 or y>8:
+            raise ValueError("Trying to remove ball from position "+coords+", that is out of bounds")
+
+        x += 1
+        ball_at_position = self.content[x][y]
+        if isinstance(ball_at_position, balls.Blocked):
+            raise game.GameStateError("Trying to remove ball from a Blocked position"+coords)
+
+        self.content[x][y] = balls.NotABall()
