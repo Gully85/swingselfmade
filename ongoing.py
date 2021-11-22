@@ -339,24 +339,25 @@ class Scoring(Ongoing):
         for coords in now:
             self.past.append(coords)
             x,y = coords
-            playfield.content[x][y] = balls.NotABall()
-            # removing a Ball may cause those on top to fall down. 
-            if playfield.content[x][y+1].isBall and playfield.content[x][y+1].color != color:
-                for ystack in range(y+1,8):
-                    eventQueue.append(FallingBall(playfield.content[x][ystack], x, starting_height=ystack))
-                    playfield.content[x][ystack] = balls.NotABall()
-                    if not playfield.content[x][ystack+1].isBall:
-                        break
+            #playfield.content[x][y] = balls.NotABall()
+            playfield.remove_ball((x,y))
+            # removing a Ball may cause those on top to fall down. OBSOLETE because once 
+            # a Scoring is finished, playfield.refresh_status() must be called
             
-            coords_to_check = [(x-1,y), (x+1,y), (x,y-1), (x,y+1)]
+            #coords_to_check = [(x-1,y), (x+1,y), (x,y-1), (x,y+1)]
+            if x == 0:
+                coords_to_check = [(x+1, y), (x, y-1), (x, y+1)]
+            elif x == 7:
+                coords_to_check = [(x-1, y), (x, y-1), (x, y+1)]
+            else:
+                coords_to_check = [(x-1, y), (x, y-1), (x, y+1), (x+1, y)]
+            
             for (x2,y2) in coords_to_check:
-                if playfield.content[x2][y2].color == color:
+                neighbor_ball = playfield.get_ball_at((x2,y2))
+                if neighbor_ball.getcolor() == color:
                     self.next.append([x2,y2])
-                    self.weight_so_far += playfield.content[x2][y2].weight
-                    playfield.content[x2][y2] = balls.NotABall()
-                    # removing a Ball may cause those on top to fall down
-                    # possible glitch: If a status update (Playfield.refresh_status()) is triggered, the "hanging" ball on 
-                    # top will drop instead of being scored
+                    self.weight_so_far += playfield.get_ball_at((x2,y2)).getweight()
+                    playfield.remove_ball((x2,y2))
 
         #print("more matching Balls found: next=",self.next)
         playfield.changed = True

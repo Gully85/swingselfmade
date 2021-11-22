@@ -39,6 +39,12 @@ class NotABall(Ball):
     def draw(self, surf: pygame.Surface, drawpos: Tuple[int,int]):
         pass
 
+    def getweight(self):
+        return 0
+    
+    def getcolor(self):
+        return -1
+
 
 class Blocked(Ball):
     """Dummy class for positions blocked by the seesaw state"""
@@ -53,6 +59,12 @@ class Blocked(Ball):
     def draw(self, surf: pygame.Surface, drawpos: Tuple[int]):
         # just a black rectangle for now
         pygame.draw.rect(surf, (0, 0, 0), pygame.Rect(drawpos, ball_size))
+    
+    def getweight(self):
+        return 0
+    
+    def getcolor(self):
+        return -1
 
 
 class Colored_Ball(Ball):
