@@ -344,13 +344,11 @@ class Scoring(Ongoing):
             # removing a Ball may cause those on top to fall down. OBSOLETE because once 
             # a Scoring is finished, playfield.refresh_status() must be called
             
-            #coords_to_check = [(x-1,y), (x+1,y), (x,y-1), (x,y+1)]
-            if x == 0:
-                coords_to_check = [(x+1, y), (x, y-1), (x, y+1)]
-            elif x == 7:
-                coords_to_check = [(x-1, y), (x, y-1), (x, y+1)]
-            else:
-                coords_to_check = [(x-1, y), (x, y-1), (x, y+1), (x+1, y)]
+            coords_to_check = [(x-1,y), (x+1,y), (x,y-1), (x,y+1)]
+            # remove out-of-bounds
+            for (x,y) in coords_to_check:
+                if x<0 or x>7 or y<0 or y>8:
+                    coords_to_check.remove((x,y))
             
             for (x2,y2) in coords_to_check:
                 neighbor_ball = playfield.get_ball_at((x2,y2))
