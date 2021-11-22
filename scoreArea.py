@@ -27,7 +27,7 @@ class ScoreArea:
         self.surf = Surface(size)
         self.size = size
         self.changed = True
-        self.levelball = balls.Colored_Ball(4, 4)
+        self.levelball = balls.ColoredBall(4, 4)
     
     def draw(self):
         from game import level, balls_dropped, score
@@ -60,5 +60,5 @@ class ScoreArea:
     
     def update_level(self):
         from game import level
-        self.levelball = balls.Colored_Ball(level, level)
+        self.levelball = balls.ColoredBall(level, level)
         

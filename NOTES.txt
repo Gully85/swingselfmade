@@ -4,7 +4,7 @@ Current TODO List:
     make sure exactly all connected equal-colored balls are scored
 - move object.changed logic into the class. Call draw() every frame, but dont do anything if 
     nothing changed
-- rename NotABall / Blocked logic to be more intuitive. Parent class is PlayfieldSpace, can be 
+- rename EmptySpace / Blocked logic to be more intuitive. Parent class is PlayfieldSpace, can be 
     BlockedBySeesaw or EmptySpace or Ball (which can be Colored or Special). Rename Colored_Ball 
     to ColoredBall
 - force Abstract Base Classes to have their values/methods

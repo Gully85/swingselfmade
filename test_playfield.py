@@ -11,10 +11,10 @@ class TestPlayfield(unittest.TestCase):
         the_playfield = game.playfield
 
         # at the beginning: The bottom row should be Blocked, the row 
-        # above that should be NotABall, and check_hanging_balls() == False
+        # above that should be EmptySpace, and check_hanging_balls() == False
         for i in range(8):
-            self.assertIsInstance(the_playfield.get_ball_at((i,0)), balls.Blocked)
-            self.assertIsInstance(the_playfield.get_ball_at((i,1)), balls.NotABall)
+            self.assertIsInstance(the_playfield.get_ball_at((i,0)), balls.BlockedSpace)
+            self.assertIsInstance(the_playfield.get_ball_at((i,1)), balls.EmptySpace)
         self.assertFalse(the_playfield.check_hanging_balls())
 
         # generate random ball, land it to the very left, wait until eventQueue is empty.
@@ -26,8 +26,8 @@ class TestPlayfield(unittest.TestCase):
             game.tick()
         self.assertEqual(the_playfield.get_seesaw_state(0), -1)
         self.assertIs(the_playfield.get_ball_at((0,0)), Testball)
-        self.assertIsInstance(the_playfield.get_ball_at((1,0)), balls.Blocked)
-        self.assertIsInstance(the_playfield.get_ball_at((1,1)), balls.Blocked)
+        self.assertIsInstance(the_playfield.get_ball_at((1,0)), balls.BlockedSpace)
+        self.assertIsInstance(the_playfield.get_ball_at((1,1)), balls.BlockedSpace)
 
         # land a ball of equal weight in the neighboring column, wait for empty EventQueue,
         # should lead to balanced seesaws. Check that both balls are in the correct positions.
@@ -104,7 +104,7 @@ class TestPlayfield(unittest.TestCase):
         self.assertTrue(wait_for_empty_eventQueue(constants.combining_totaltime * constants.max_FPS))
         # The resulting ball should be at position (4,2), color=2, weight=15
         resulting_ball = the_playfield.get_ball_at((4,2))
-        self.assertIsInstance(resulting_ball, balls.Colored_Ball)
+        self.assertIsInstance(resulting_ball, balls.ColoredBall)
         self.assertEqual(resulting_ball.getcolor(), 2)
         self.assertEqual(resulting_ball.getweight(), 15)
 
@@ -119,8 +119,8 @@ class TestPlayfield(unittest.TestCase):
         game.tick()
 
         # both positions should be empty now, newest Event should be FallingBall Testball2
-        self.assertIsInstance(the_playfield.get_ball_at((6,2)), balls.NotABall)
-        self.assertIsInstance(the_playfield.get_ball_at((6,3)), balls.NotABall)
+        self.assertIsInstance(the_playfield.get_ball_at((6,2)), balls.EmptySpace)
+        self.assertIsInstance(the_playfield.get_ball_at((6,3)), balls.EmptySpace)
         the_falling_event = game.ongoing.get_newest_event()
         self.assertIsInstance(the_falling_event, game.ongoing.FallingBall)
         self.assertEqual(the_falling_event.getcolumn(), 6)

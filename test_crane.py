@@ -31,7 +31,7 @@ class TestTheCrane(unittest.TestCase):
 
         # make sure the Ball in it (at start) is a ColoredBall
         currentBall = the_crane.getball()
-        self.assertIsInstance(currentBall, balls.Colored_Ball)
+        self.assertIsInstance(currentBall, balls.ColoredBall)
 
         # after dropping a ball, the newest item in the eventQueue must be a FallingBall
         the_crane.drop_ball()

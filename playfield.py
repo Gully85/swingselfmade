@@ -8,7 +8,7 @@ debugprints = False
 from typing import Tuple
 from pygame import Rect, Surface, font
 import balls, game
-from balls import Blocked, NotABall, Colored_Ball, Special_Ball
+from balls import BlockedSpace, EmptySpace, ColoredBall, SpecialBall
 #from game import GameStateError
 
 import ongoing
@@ -19,8 +19,8 @@ weightdisplayfont = font.SysFont("Arial", 12)
 
 class Playfield:
     """Information about the current Playfield. Variables:
-        content (8x9 array of either NotABall or Blocked or Balls). First index is column, second index height (bottom-up).
-            At y=8 there should always be NotABall, else the player is about to lose the game.
+        content (8x9 array of either EmptySpace or Blocked or Balls). First index is column, second index height (bottom-up).
+            At y=8 there should always be EmptySpace, else the player is about to lose the game.
         weights (8 ints, left to right). 
         seesaws (4 ints, left to right). 0 indicates equal 
             weights, -1 for heavier left, +1 for heavier right).
@@ -32,7 +32,7 @@ class Playfield:
     def __init__(self, size: Tuple[int]):
         self.content = []
         for i in range(8):
-            self.content.append([ Blocked(),NotABall(),NotABall(),NotABall(), NotABall(),NotABall(),NotABall(),NotABall(),NotABall() ])
+            self.content.append([ BlockedSpace(),EmptySpace(),EmptySpace(),EmptySpace(), EmptySpace(),EmptySpace(),EmptySpace(),EmptySpace(),EmptySpace() ])
         
         self.weights = [0,0,0,0, 0,0,0,0]
         self.seesaws = [0,  0,   0,  0]
@@ -47,12 +47,12 @@ class Playfield:
         self.seesaws = [0,  0,   0,  0]
         self.content = []
         for i in range(8):
-            self.content.append([ Blocked(),NotABall(),NotABall(),NotABall(), NotABall(),NotABall(),NotABall(),NotABall(),NotABall() ])
+            self.content.append([ BlockedSpace(),EmptySpace(),EmptySpace(),EmptySpace(), EmptySpace(),EmptySpace(),EmptySpace(),EmptySpace(),EmptySpace() ])
         self.changed = True
         self.alive = True
     
     def get_ball_at(self, coords: Tuple[int]):
-        """Returns ball at position, or NotABall/Blocked if there is no ball at that position. Coords must 
+        """Returns ball at position, or EmptySpace/Blocked if there is no ball at that position. Coords must 
         be (x,y) with x=0..7 and y=0..7
         Blocked is returned if that position is blocked by the seesaw state, only possible for y=0 or y=1"""
         x,y = coords
@@ -68,16 +68,16 @@ class Playfield:
         return self.weights[column]
 
     def check_alive(self):
-        """True if all topmost positions in self.content are NotABall. Player loses if any stack gets too high"""
+        """True if all topmost positions in self.content are EmptySpace. Player loses if any stack gets too high"""
         for x in range(8):
-            if not isinstance(self.content[x][8], NotABall):
+            if not isinstance(self.content[x][8], EmptySpace):
                 return False
         return True
     
     def land_ball(self, ball: balls.Ball, coords: Tuple[int]):
         """Land a ball at coords. Triggers a status update. x=0..7"""
         x,y = coords
-        if isinstance(ball, Colored_Ball):
+        if isinstance(ball, ColoredBall):
             self.content[x][y] = ball
             self.refresh_status()
         else:
@@ -92,7 +92,7 @@ class Playfield:
         
         # find lowest empty position, land ball there
         for y in range(8):
-            if isinstance(self.get_ball_at((x,y)), balls.NotABall):
+            if isinstance(self.get_ball_at((x,y)), balls.EmptySpace):
                 self.land_ball(ball, (x, y))
                 return
         
@@ -133,9 +133,9 @@ class Playfield:
         """move all balls in a stack (dy) places down."""
         for height in range(0, 9-dy):
             self.content[x][height] = self.content[x][height + dy]
-        # This will "duplicate" the NotABall on top of a stack. Is that a problem when 
+        # This will "duplicate" the EmptySpace on top of a stack. Is that a problem when 
         # it is later filled with an actual ball? I think not, but not 100% sure. A fix would be 
-        # to create a new NotABall for y=8.
+        # to create a new EmptySpace for y=8.
 
     def raise_column(self, x: int, dy: int):
         """moves all balls in a stack (dy) places up."""
@@ -143,14 +143,15 @@ class Playfield:
             self.content[x][height] = self.content[x][height - dy]
 
         for height in range(dy):
-            self.content[x][height] = Blocked()
+            self.content[x][height] = BlockedSpace()
 
     def update_weights(self):
         """calculate all weights, saves results in self.weights"""
         for x in range(8):
             sum = 0
             for y in range(8):
-                sum += self.content[x][y].weight
+                #sum += self.content[x][y].weight
+                sum += self.get_ball_at((x,y)).getweight()
             self.weights[x]=sum
     
     def gravity_moves(self):
@@ -204,20 +205,20 @@ class Playfield:
         # throwing can only happen if the column is already the high side of a seesaw. Can safely 
         # assume that y=0 and y=1 are Blocked. Remove this sanity check once tests look good.
         from game import GameStateError
-        if not isinstance(self.content[column][0], Blocked) or not isinstance(self.content[column][1], Blocked):
+        if not isinstance(self.content[column][0], BlockedSpace) or not isinstance(self.content[column][1], BlockedSpace):
             raise GameStateError("Trying to throw from a non-lifted seesaw side, x=", column)
         lastball = self.content[column][2]
-        if isinstance(lastball, NotABall):
+        if isinstance(lastball, EmptySpace):
             return
         
         for y in range(3, 8):
             ball = self.content[column][y]
-            if isinstance(ball, Blocked):
+            if isinstance(ball, BlockedSpace):
                 raise GameStateError("A Blocked should never be this high. Blocked found at ({},{})".format(column, y))
-            elif isinstance(ball, NotABall):
+            elif isinstance(ball, EmptySpace):
                 ongoing.throw_ball(lastball, (column, y-1), throwing_range)
-                self.content[column][y-1] = NotABall()
-                self.weights[column] -= self.content[column][y-1].weight
+                self.content[column][y-1] = EmptySpace()
+                self.weights[column] -= self.content[column][y-1].getweight()
                 return
             else:
                 lastball = ball
@@ -234,14 +235,15 @@ class Playfield:
         # Ball in a horizontal Three, so the x loop runs 1..6
         for y in range(1,8):
             for x in range(6):
-                color = self.content[x][y].color
+                the_ball = self.content[x][y]
+                color = the_ball.getcolor()
                 if color == -1:
                     continue
                 #print("non-empty color at (", x, ",", y, ")")
-                if self.content[x+1][y].color != color:
+                if self.content[x+1][y].getcolor() != color:
                     continue
                 #print("matching right neighbor (", x+1, ",", y, ")")
-                if self.content[x+2][y].color == color:
+                if self.content[x+2][y].getcolor() == color:
                     print("Found Scoring")
                     ongoing.eventQueue.append(ongoing.Scoring((x,y), self.content[x][y]))
                     return True
@@ -256,9 +258,9 @@ class Playfield:
             # search highest position that can support a ball
             for y in range(0,9):
                 current = self.content[x][y]
-                if current.isBall or isinstance(current, Blocked):
+                if isinstance(current, balls.Ball) or isinstance(current, balls.BlockedSpace):
                     continue
-                elif isinstance(current, NotABall):
+                elif isinstance(current, EmptySpace):
                     break
                 else:
                     raise TypeError("in hanging-Balls check: Unexpected ball type ", current, "  at position ", x, y)
@@ -266,10 +268,10 @@ class Playfield:
             #print("in hanging-check: air-height=", air_height)
             for y in range(air_height, 8):
                 current = self.content[x][y]
-                if current.isBall:
+                if isinstance(current, balls.Ball):
                     ret = True
                     ongoing.eventQueue.append(ongoing.FallingBall(current, x, starting_height=y))
-                    self.content[x][y] = NotABall()
+                    self.content[x][y] = EmptySpace()
                     #print("dropping hanging ball ", current, " from position", x, y)
 
         
@@ -285,30 +287,30 @@ class Playfield:
         #print("Entering full Combining check")
         for x in range(8):
             for y in range(0, 4):
-                this_color = self.content[x][y].color
+                this_color = self.content[x][y].getcolor()
                 if this_color == -1:
                     continue
                 # if this point is reached, the current ball is a Colored_Ball. All others have the 
                 # attribute color==-1
-                total_weight = self.content[x][y].weight
+                total_weight = self.content[x][y].getweight()
                 
                 # five balls are needed: y, y+1, ..., y+4. If this loop reaches y+5, do not check 
                 # the (y+5)-position, but Combine instead
                 for check_height in range(y+1, y+6):
                     if check_height == y+5:
                         ret = True
-                        self.content[x][y] = Colored_Ball(this_color, total_weight)
+                        self.content[x][y] = ColoredBall(this_color, total_weight)
                         ongoing.eventQueue.append(ongoing.Combining((x,y), this_color, total_weight))
-                        self.content[x][y+1] = NotABall()
-                        self.content[x][y+2] = NotABall()
-                        self.content[x][y+3] = NotABall()
-                        self.content[x][y+4] = NotABall()
+                        self.content[x][y+1] = EmptySpace()
+                        self.content[x][y+2] = EmptySpace()
+                        self.content[x][y+3] = EmptySpace()
+                        self.content[x][y+4] = EmptySpace()
                         break
                     
-                    if self.content[x][check_height].color != this_color:
+                    if self.content[x][check_height].getcolor() != this_color:
                         break 
                     
-                    total_weight += self.content[x][check_height].weight
+                    total_weight += self.content[x][check_height].getweight()
         
         if (ret):
             self.check_hanging_balls()
@@ -325,14 +327,14 @@ class Playfield:
             for y in range(8):
                 ycoord = playfield_ballcoord[1] + (7-y)*(playfield_ballspacing[1])
                 if debugprints:
-                    if isinstance(self.content[x][y], Blocked):
+                    if isinstance(self.content[x][y], BlockedSpace):
                         print("Blocked at pos {},{}".format(x,y))
-                    elif isinstance(self.content[x][y], NotABall):
+                    elif isinstance(self.content[x][y], EmptySpace):
                         print("No Ball at pos {},{}".format(x,y))
-                    elif isinstance(self.content[x][y], Colored_Ball):
+                    elif isinstance(self.content[x][y], ColoredBall):
                         print("Ball at pos {},{}".format(x,y))
                     else:
-                        raise TypeError("In playfield at pos {},{} should be a Colored_Ball or NotABall or Blocked, instead there was {}.".format(x,y,self.content[x][y]))
+                        raise TypeError("In playfield at pos {},{} should be a Colored_Ball or EmptySpace or Blocked, instead there was {}.".format(x,y,self.content[x][y]))
                 self.content[x][y].draw(self.surf, (xcoord, ycoord))
         # draw weightdisplay
         for x in range(8):
@@ -354,7 +356,7 @@ class Playfield:
             raise ValueError("Trying to remove ball from position "+coords+", that is out of bounds")
 
         ball_at_position = self.content[x][y]
-        if isinstance(ball_at_position, balls.Blocked):
+        if isinstance(ball_at_position, balls.BlockedSpace):
             raise game.GameStateError("Trying to remove ball from a Blocked position"+coords)
 
-        self.content[x][y] = balls.NotABall()
+        self.content[x][y] = balls.EmptySpace()

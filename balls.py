@@ -1,17 +1,20 @@
 # provides the Balls classes
 
-# A Ball can either be Colored (has weight, 3 horizontal can Score, 5 vertical can Combine). Parent class is Ball.
-# or Special (weight=0, has effect when landing or ongoing effect while in Playfield). 
+# "Grandparent" class is PlayfieldSpace. This can be an EmptySpace
+# or a Ball. 
+# Ball is an abstract Parent class, can be ColoredBall or SpecialBall
+# 
+# EmptySpace is not abstract, but BlockedSpace inherits from it. BlockedSpace
+# is a position blocked by the seesaw state, can only be in the lowest two 
+# positions of the playfield.
 
-# Balls have a draw() method. Balls have a color attribute, for Scoring. color=-1 means colorless, never Scoring. The
-# attribute isBall is True for ColoredBall and SpecialBall, and False for the placeholder-Dummys NotABall and
-# Blocked.
 
 from typing import Tuple
 import colorschemes
 import pygame
 import random
 from constants import ball_size
+from abc import ABC, abstractmethod
 
 pygame.font.init()
 ball_colors = colorschemes.simple_standard_ball_colors
@@ -19,19 +22,25 @@ text_colors = colorschemes.simple_standard_text_colors
 ballfont = pygame.font.SysFont("monospace", 24)
 
 
-# size of Balls in pixels. Is fix for now
+class PlayfieldSpace(ABC):
+    """Abstract Base Class for a position in the playfield. It can either be a ball 
+    (whatever kind) or an EmptySpace. Must have draw(), getweight() and getcolor() methods."""
+    @abstractmethod
+    def draw(self, surf: pygame.Surface, drawpos: Tuple[int]):
+        """draw yourself on given surf to given pixel position"""
+        pass
 
-class Ball:
-    """Parent class for Colored and Special Balls. Abstract class, should not be instanciated."""
-    pass
+    @abstractmethod
+    def getweight(self):
+        pass
 
+    @abstractmethod
+    def getcolor(self): 
+        pass
 
-class NotABall(Ball):
+class EmptySpace(PlayfieldSpace):
     """Dummy class for places where there is no Ball. Empty Constructor."""
-    # never change these globals, static vars for all NotABalls
-    weight = 0
-    color = -1
-    isBall = False
+    # never change these globals, static vars for all s
 
     def __init__(self):
         pass
@@ -45,13 +54,8 @@ class NotABall(Ball):
     def getcolor(self):
         return -1
 
-
-class Blocked(Ball):
+class BlockedSpace(PlayfieldSpace):
     """Dummy class for positions blocked by the seesaw state"""
-    # never change these globals, static var for all Blockeds
-    weight = 0
-    color = -1
-    isBall = False
 
     def __init__(self):
         pass
@@ -66,11 +70,27 @@ class Blocked(Ball):
     def getcolor(self):
         return -1
 
+class Ball(PlayfieldSpace):
+    """Abstract class indicating that in this space is a ball. Can be either a ColoredBall 
+    or a SpecialBall."""
 
-class Colored_Ball(Ball):
-    """Child-class of Ball. Has a color (int, 1 <= color <= maxcolors) and a weight (int, 0 <= weight <= INT_MAX). Constructor is Colored_Ball(color, weight)."""
-    # never change these globals, static var for all ColoredBalls
-    isBall = True
+    @abstractmethod
+    def draw(self, surf: pygame.Surface, drawpos: Tuple[int]):
+        pass
+    
+    @property
+    @abstractmethod
+    def getweight(self):
+        pass
+
+    @property
+    @abstractmethod
+    def getcolor(self):
+        pass
+
+class ColoredBall(Ball):
+    """Child-class of Ball. Has a color (int, 1 <= color <= maxcolors)
+    and a weight (int, 0 or greater). Constructor is Colored_Ball(color, weight)."""
 
     def __init__(self, color: int, weight: int):
         self.color = color
@@ -100,8 +120,7 @@ class Colored_Ball(Ball):
     def getcolor(self):
         return self.color
 
-
-class Special_Ball(Ball):
+class SpecialBall(Ball):
     """Child-class of Ball. Has weight=0 and type (int, 0 < type <= 1, this will grow as more types are added).
 	Types are (for now):
 	0: Joker. Counts as any color for the purpose of Scoring a horizontal.
@@ -127,9 +146,9 @@ def generate_ball():
 	else:
 		color = random.randint(1, game.level)
 	weight = random.randint(1, game.level)
-	return Colored_Ball(color, weight)
+	return ColoredBall(color, weight)
 
 def generate_starting_ball():
 	color = random.randint(1, 4)
 	weight = random.randint(1,4)
-	return Colored_Ball(color, weight)
+	return ColoredBall(color, weight)

@@ -16,9 +16,9 @@ class TestOngoing(unittest.TestCase):
         game.ongoing.ball_falls(Testball, chosen_column)
         self.assertEqual(1, game.ongoing.get_number_of_events())
         the_falling_event = game.ongoing.get_newest_event()
-
-        # make sure it loses height over time
         self.assertIsInstance(the_falling_event, game.ongoing.FallingBall)
+        
+        # make sure it loses height over time
         self.assertIsInstance(the_falling_event.getball(), balls.Ball)
         starting_height = the_falling_event.getheight()
         game.tick()
@@ -76,14 +76,14 @@ class TestOngoing(unittest.TestCase):
     def test_throwing(self):
         game.reset()
         # drop a ball of weight 1 to the leftmost column. Wait until eventQueue is empty.
-        ball1 = balls.Colored_Ball(1, 1)
+        ball1 = balls.ColoredBall(1, 1)
         game.playfield.land_ball_in_column(ball1, 0)
         while 0 != game.ongoing.get_number_of_events():
             game.tick()
         
         # Then a ball of weight 3 to the second-to-left. This should start a SeesawTilting 
         # and a ThrownBall, 2 to the right
-        ball3 = balls.Colored_Ball(1, 3)
+        ball3 = balls.ColoredBall(1, 3)
         game.playfield.land_ball_in_column(ball3, 1)
         self.assertEqual(game.ongoing.get_number_of_events(), 2)
         the_throwing_event = game.ongoing.get_newest_event()
@@ -98,7 +98,7 @@ class TestOngoing(unittest.TestCase):
         # out-of-bounds. Total throwing range is 12 -> flying out twice,
         # ultimately landing in column 5, third from the right.
 
-        ball15 = balls.Colored_Ball(1, 15)
+        ball15 = balls.ColoredBall(1, 15)
         game.playfield.land_ball_in_column(ball15, 0)
         the_throwing_event = game.ongoing.get_newest_event()
         self.assertIsInstance(the_throwing_event, game.ongoing.ThrownBall)
@@ -178,7 +178,7 @@ class TestOngoing(unittest.TestCase):
             game.tick()
         
         resulting_ball = game.playfield.get_ball_at((0,1))
-        self.assertIsInstance(resulting_ball, balls.Colored_Ball)
+        self.assertIsInstance(resulting_ball, balls.ColoredBall)
         self.assertEqual(totalweight, resulting_ball.getweight())
 
 if __name__ == '__main__':

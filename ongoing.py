@@ -73,7 +73,7 @@ class FallingBall(Ongoing):
         playfield.changed = True
         if new_height > 7: #still higher in the air than where any playfield-Ball could be
             self.height -= falling_per_tick
-        elif isinstance(playfield.get_ball_at((self.column, new_height)), balls.NotABall):
+        elif isinstance(playfield.get_ball_at((self.column, new_height)), balls.EmptySpace):
             self.height -= falling_per_tick
         else:
             x = self.column
@@ -339,7 +339,7 @@ class Scoring(Ongoing):
         for coords in now:
             self.past.append(coords)
             x,y = coords
-            #playfield.content[x][y] = balls.NotABall()
+            #playfield.content[x][y] = balls.EmptySpace()
             playfield.remove_ball((x,y))
             # removing a Ball may cause those on top to fall down. OBSOLETE because once 
             # a Scoring is finished, playfield.refresh_status() must be called
