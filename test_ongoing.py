@@ -140,7 +140,46 @@ class TestOngoing(unittest.TestCase):
                 break
 
     def test_combining(self):
-        pass
+        game.reset()
+        the_playfield = game.playfield
+
+        # make solid ground: 50 weight to the leftmost column
+        Testball = balls.generate_ball()
+        Testball.setweight(50)
+        Testball.setcolor(1)
+        the_playfield.land_ball_in_column(Testball, 0)
+        # wait until eventQueue is empty
+        while 0 != game.ongoing.get_number_of_events():
+            game.tick()
+        
+        # drop four balls, color=2, weights random, keep track of total weight
+        totalweight = 0
+        for i in range(4):
+            nextball = balls.generate_starting_ball()
+            nextball.setcolor(2)
+            totalweight += nextball.getweight()
+            the_playfield.land_ball_in_column(nextball, 0)
+        # the eventQueue should be empty at this point
+        self.assertEqual(0, game.ongoing.get_number_of_events())
+        # the fifth ball should trigger the Combining
+        triggerball = balls.generate_starting_ball()
+        triggerball.setcolor(2)
+        totalweight += triggerball.getweight()
+        the_playfield.land_ball_in_column(triggerball, 0)
+
+        # there should be a Combining now, at position (0,1). 
+        self.assertGreater(game.ongoing.get_number_of_events(), 0)
+        the_combining_event = game.ongoing.get_newest_event()
+        self.assertIsInstance(the_combining_event, game.ongoing.Combining)
+        self.assertEquals((0,1), the_combining_event.getposition())
+
+        # After finishing eQ, check the resulting ball
+        while 0 != game.ongoing.get_number_of_events():
+            game.tick()
+        
+        resulting_ball = game.playfield.get_ball_at((0,1))
+        self.assertIsInstance(resulting_ball, balls.Colored_Ball)
+        self.assertEqual(totalweight, resulting_ball.getweight())
 
 if __name__ == '__main__':
     unittest.main()

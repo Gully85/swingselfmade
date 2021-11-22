@@ -1,7 +1,7 @@
 Current TODO List:
 
-- expand unittests, ongoings and playfield are incomplete atm
-- remove the off-by-one from playfield.content
+- expand unittests. Ongoing.Scoring, make sure playfield.refresh_status() is called after finishing one,
+    make sure exactly all connected equal-colored balls are scored
 - move object.changed logic into the class. Call draw() every frame, but dont do anything if 
     nothing changed
 - rename NotABall / Blocked logic to be more intuitive. Parent class is PlayfieldSpace, can be 

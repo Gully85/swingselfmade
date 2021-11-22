@@ -395,3 +395,7 @@ class Combining(Ongoing):
     
     def draw(self, surf):
         pass
+
+    def getposition(self):
+        """Position of the combining balls, where the resulting ball will be. Returned as a tuple (x,y)"""
+        return self.coords
