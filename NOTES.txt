@@ -35,6 +35,9 @@ Suspected possible bugs:
 Known bugs, need to find exact conditions to reproduce
 - A Scoring can remove a Blocked if a seesaw tilts while the Scoring expands. 
 - Scoring seems to remove wrong-colored Balls sometimes
+- if a Scoring removes the ball in height 0 but not the one above it (b/c it expanded sideways),
+    the one above falls through the bottom and triggers a crash. This requires a changed in
+    the FallingBall landing logic. Have the playfield supply a landing-height.
 
 
 

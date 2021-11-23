@@ -6,16 +6,19 @@
 debugprints = False
 
 from typing import Tuple
-from pygame import Rect, Surface, font
+#from pygame import Rect, Surface, font
+import pygame
 import balls, game
 from balls import BlockedSpace, EmptySpace, ColoredBall, SpecialBall
 #from game import GameStateError
 
 import ongoing
-from constants import playfield_ballcoord, playfield_ballspacing, weightdisplay_coords, weightdisplay_x_per_column
+from constants import playfield_ballcoord, playfield_ballspacing 
+from constants import weightdisplay_coords, weightdisplay_x_per_column
+from constants import playfield_position
 
 
-weightdisplayfont = font.SysFont("Arial", 12)
+weightdisplayfont = pygame.font.SysFont("Arial", 12)
 
 class Playfield:
     """Information about the current Playfield. Variables:
@@ -37,8 +40,8 @@ class Playfield:
         self.weights = [0,0,0,0, 0,0,0,0]
         self.seesaws = [0,  0,   0,  0]
         self.size = size
-        self.surf = Surface(size)
-        self.changed = True # if anything changed since the last tick. Starts True so the initial gamestate is drawn.
+        self.surf = pygame.Surface(size)
+        self.redraw_needed = True
         self.alive = True
     
     def reset(self):
@@ -48,9 +51,52 @@ class Playfield:
         self.content = []
         for i in range(8):
             self.content.append([ BlockedSpace(),EmptySpace(),EmptySpace(),EmptySpace(), EmptySpace(),EmptySpace(),EmptySpace(),EmptySpace(),EmptySpace() ])
-        self.changed = True
+        self.changed()
         self.alive = True
     
+    def changed(self):
+        """trigger a redraw"""
+        self.redraw_needed = True
+    
+    def draw_if_changed(self, screen: pygame.Surface):
+        """draws Playfield if it changed or if any event is ongoing"""
+        if not self.redraw_needed and game.ongoing.get_number_of_events() == 0:
+            return
+        else:
+            drawn_playfield = self.draw()
+            for event in game.ongoing.eventQueue:
+                event.draw(drawn_playfield)
+            screen.blit(drawn_playfield, playfield_position)
+            self.redraw_needed = False
+
+    def draw(self):
+        """draws the Playfield including all Balls. Returns surface."""
+        self.surf.fill((127,127,127))
+        
+        # draw all the Balls (and Blocked Positions), iterate over self.content
+        for x in range(8):
+            xcoord = playfield_ballcoord[0] + x*(playfield_ballspacing[0])
+            for y in range(8):
+                ycoord = playfield_ballcoord[1] + (7-y)*(playfield_ballspacing[1])
+                if debugprints:
+                    if isinstance(self.content[x][y], BlockedSpace):
+                        print("Blocked at pos {},{}".format(x,y))
+                    elif isinstance(self.content[x][y], EmptySpace):
+                        print("No Ball at pos {},{}".format(x,y))
+                    elif isinstance(self.content[x][y], ColoredBall):
+                        print("Ball at pos {},{}".format(x,y))
+                    else:
+                        raise TypeError("In playfield at pos {},{} should be a Colored_Ball or EmptySpace or Blocked, instead there was {}.".format(x,y,self.content[x][y]))
+                self.content[x][y].draw(self.surf, (xcoord, ycoord))
+        # draw weightdisplay
+        for x in range(8):
+            weighttext = weightdisplayfont.render(str(self.weights[x]), True, (0,0,0))
+            weightdisplay_x = weightdisplay_coords[0]
+            weightdisplay_y = weightdisplay_coords[1]
+            self.surf.blit(weighttext, (weightdisplay_x + x * weightdisplay_x_per_column, weightdisplay_y))
+            
+        return self.surf
+
     def get_ball_at(self, coords: Tuple[int]):
         """Returns ball at position, or EmptySpace/Blocked if there is no ball at that position. Coords must 
         be (x,y) with x=0..7 and y=0..7
@@ -128,6 +174,7 @@ class Playfield:
         neighbor = x-1 + 2*(x%2 == 0)
         self.raise_column(neighbor, dy)
         self.lower_column(x, dy)
+        self.changed()
 
     def lower_column(self, x: int, dy: int):
         """move all balls in a stack (dy) places down."""
@@ -198,6 +245,8 @@ class Playfield:
                 self.throw_top_ball(left, self.weights[right] - self.weights[left])
             
         # when this point is reached, all seesaws have been checked and updated
+        if ret:
+            self.changed()
         return ret
     
     def throw_top_ball(self, column: int, throwing_range: int):
@@ -222,6 +271,7 @@ class Playfield:
                 return
             else:
                 lastball = ball
+        self.changed()
 
     def check_Scoring_full(self):
         """checks the full content for any horizontal-threes of the same color. 
@@ -274,7 +324,8 @@ class Playfield:
                     self.content[x][y] = EmptySpace()
                     #print("dropping hanging ball ", current, " from position", x, y)
 
-        
+        if ret:
+            self.changed()
         return ret
 
     def check_combining(self):
@@ -312,38 +363,11 @@ class Playfield:
                     
                     total_weight += self.content[x][check_height].getweight()
         
-        if (ret):
+        if ret:
             self.check_hanging_balls()
+            self.changed()
         
         return ret
-        
-    def draw(self):
-        """draws the Playfield including all Balls. Returns surface."""
-        self.surf.fill((127,127,127))
-        
-        # draw all the Balls (and Blocked Positions), iterate over self.content
-        for x in range(8):
-            xcoord = playfield_ballcoord[0] + x*(playfield_ballspacing[0])
-            for y in range(8):
-                ycoord = playfield_ballcoord[1] + (7-y)*(playfield_ballspacing[1])
-                if debugprints:
-                    if isinstance(self.content[x][y], BlockedSpace):
-                        print("Blocked at pos {},{}".format(x,y))
-                    elif isinstance(self.content[x][y], EmptySpace):
-                        print("No Ball at pos {},{}".format(x,y))
-                    elif isinstance(self.content[x][y], ColoredBall):
-                        print("Ball at pos {},{}".format(x,y))
-                    else:
-                        raise TypeError("In playfield at pos {},{} should be a Colored_Ball or EmptySpace or Blocked, instead there was {}.".format(x,y,self.content[x][y]))
-                self.content[x][y].draw(self.surf, (xcoord, ycoord))
-        # draw weightdisplay
-        for x in range(8):
-            weighttext = weightdisplayfont.render(str(self.weights[x]), True, (0,0,0))
-            weightdisplay_x = weightdisplay_coords[0]
-            weightdisplay_y = weightdisplay_coords[1]
-            self.surf.blit(weighttext, (weightdisplay_x + x * weightdisplay_x_per_column, weightdisplay_y))
-            
-        return self.surf
     
     def get_number_of_balls(self):
         """Returns the number of balls currently lying in the playfield. Not counting FallingBalls
@@ -370,3 +394,4 @@ class Playfield:
             raise game.GameStateError("Trying to remove ball from a Blocked position"+coords)
 
         self.content[x][y] = balls.EmptySpace()
+        self.changed()

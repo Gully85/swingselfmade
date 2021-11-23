@@ -65,28 +65,21 @@ def main():
             exit()
         
         ### Step 3, update screen where necessary
-        if game.depot.changed:
-            drawn_depot = game.depot.draw()
-            screen.blit(drawn_depot, depot_position)
-            game.depot.changed = False
+        game.depot.draw_if_changed(screen)
         
-        if game.crane.changed:
-            drawn_crane = game.crane.draw()
-            screen.blit(drawn_crane, cranearea_position)
-            game.crane.changed = False
+        game.crane.draw_if_changed(screen)
+
+        game.playfield.draw_if_changed(screen)
         
-        if game.playfield.changed:
-            game.playfield.update_weights()
-            drawn_playfield = game.playfield.draw()
-            for event in ongoing.eventQueue:
-                event.draw(drawn_playfield)
-            screen.blit(drawn_playfield, playfield_position)
-            game.playfield.changed = False
+        #if game.playfield.changed:
+        #    game.playfield.update_weights()
+        #    drawn_playfield = game.playfield.draw()
+        #    for event in ongoing.eventQueue:
+        #        event.draw(drawn_playfield)
+        #    screen.blit(drawn_playfield, playfield_position)
+        #    game.playfield.changed()
         
-        if game.score_area.changed:
-            drawn_score_area = game.score_area.draw()
-            screen.blit(drawn_score_area, scoredisplayarea_position)
-            game.score_area.changed = False
+        game.score_area.draw_if_changed(screen)
         
         pygame.display.flip()
         

@@ -70,7 +70,7 @@ class FallingBall(Ongoing):
 
     def tick(self, playfield: playfield.Playfield):
         new_height = int(self.height - falling_per_tick)
-        playfield.changed = True
+        playfield.changed()
         if new_height > 7: #still higher in the air than where any playfield-Ball could be
             self.height -= falling_per_tick
         elif isinstance(playfield.get_ball_at((self.column, new_height)), balls.EmptySpace):
@@ -175,7 +175,7 @@ class ThrownBall(Ongoing):
             self.t += thrown_ball_dt
         else:
             self.t += thrown_ball_dt * self.speedup_pastmax
-        playfield.changed=True
+        playfield.changed()
         
         # is the destination reached? If yes, it can become a FallingBall or it can fly out
         if self.t > 1.0:
@@ -267,7 +267,7 @@ class SeesawTilting(Ongoing):
 
     def tick(self, playfield):
         self.progress += tilting_per_tick
-        playfield.changed = True
+        playfield.changed()
         if self.progress >= 1.0:
             eventQueue.remove(self)
             playfield.refresh_status()
@@ -322,7 +322,7 @@ class Scoring(Ongoing):
                 print("Score from this: ", self.weight_so_far * len(self.past) * game.level)
                 game.score += self.weight_so_far * len(self.past) * game.level
                 print("Total score: ", game.score)
-                game.score_area.changed = True
+                game.score_area.changed()
                 eventQueue.remove(self)
                 playfield.refresh_status()
                 # TODO score and display
@@ -358,15 +358,9 @@ class Scoring(Ongoing):
                     playfield.remove_ball((x2,y2))
 
         #print("more matching Balls found: next=",self.next)
-        playfield.changed = True
+        playfield.changed()
         return len(self.next) > 0
-        #if len(self.next) > 0:
-        #	playfield.changed = True
-        #	return True
-        #else:
-        #	#score = len(self.past) * self.weight_so_far
-        #	#print("Score from this: ",score)
-        #	return False
+        
 
 class Combining(Ongoing):
     """Balls from a vertical Five that combine into one ball with the total weight. 

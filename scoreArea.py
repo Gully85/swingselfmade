@@ -1,12 +1,12 @@
 # Scoring area, where the current level, number of dropped balls and Score is shown
 
 from typing import Tuple
-from pygame import Surface, font
+import pygame
 import balls
-from constants import ball_size
+from constants import ball_size, scoredisplayarea_position
 
-ballsdropped_font = font.SysFont("Arial", 16)
-score_font = font.SysFont("Arial", 16)
+ballsdropped_font = pygame.font.SysFont("Arial", 16)
+score_font = pygame.font.SysFont("Arial", 16)
 
 class ScoreArea:
     """Information about the score display area. Stores a local pygame.Surface. 
@@ -24,10 +24,20 @@ class ScoreArea:
     
     
     def __init__(self, size: Tuple[int]):
-        self.surf = Surface(size)
+        self.surf = pygame.Surface(size)
         self.size = size
-        self.changed = True
+        self.redraw_needed = True
         self.levelball = balls.ColoredBall(4, 4)
+    
+    def changed(self):
+        self.redraw_needed = True
+    
+    def draw_if_changed(self, screen: pygame.Surface):
+        if not self.redraw_needed:
+            return
+        else:
+            drawn_scorearea = self.draw()
+            screen.blit(drawn_scorearea, scoredisplayarea_position)
     
     def draw(self):
         from game import level, balls_dropped, score

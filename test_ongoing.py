@@ -171,7 +171,7 @@ class TestOngoing(unittest.TestCase):
         self.assertGreater(game.ongoing.get_number_of_events(), 0)
         the_combining_event = game.ongoing.get_newest_event()
         self.assertIsInstance(the_combining_event, game.ongoing.Combining)
-        self.assertEquals((0,1), the_combining_event.getposition())
+        self.assertEqual((0,1), the_combining_event.getposition())
 
         # After finishing eQ, check the resulting ball
         while 0 != game.ongoing.get_number_of_events():

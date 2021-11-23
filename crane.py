@@ -4,7 +4,7 @@
 from typing import Tuple
 import pygame
 from pygame import Rect, Surface
-from constants import cranearea_ballcoord, cranearea_x_perCol, ball_size
+from constants import cranearea_position, cranearea_ballcoord, cranearea_x_perCol, ball_size
 import balls, depot, ongoing, game
 
 class Crane:
@@ -24,13 +24,26 @@ class Crane:
         self.current_Ball = balls.generate_starting_ball()
         self.size = size
         self.surf = Surface(size)
-        self.changed = True # True if redraw needed. If the Crane changed since the last tick.
+        self.redraw_needed = True
+    
+    def changed(self):
+        """trigger a redraw"""
+        self.redraw_needed = True
     
     def reset(self):
         """puts the crane into the state of game start"""
         self.x = 0
         self.current_Ball = balls.generate_starting_ball()
-        self.changed = True
+        self.changed()
+    
+    def draw_if_changed(self, screen: pygame.Surface):
+        if not self.redraw_needed:
+            return
+        else:
+            drawn_crane = self.draw()
+            screen.blit(drawn_crane, cranearea_position)
+            self.redraw_needed = False
+
         
     def draw(self):
         """draws the Crane and its current_Ball to surface at position, returns surface"""
@@ -49,7 +62,7 @@ class Crane:
         self.x -= 1
         if self.x < 0:
             self.x = 0
-        self.changed = True
+        self.changed()
         
     
     def move_right(self):
@@ -57,7 +70,7 @@ class Crane:
         self.x += 1
         if self.x > 7:
             self.x = 7
-        self.changed = True
+        self.changed()
     
     def getx(self): 
         """position of the crane. Always returns an int, possible values are 0..7"""
@@ -70,5 +83,5 @@ class Crane:
     def drop_ball(self):
         """drops ball at the current position, gets a new one from the depot"""
         ongoing.ball_falls(self.current_Ball, self.x)
-        self.changed = True
         self.current_Ball = game.depot.next_ball(self.x)
+        self.changed()

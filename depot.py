@@ -3,8 +3,9 @@
 from typing import Tuple
 
 import balls
-from pygame import Surface 
-from constants import depot_ballcoord, depot_ballspacing
+#from pygame import Surface 
+import pygame
+from constants import depot_position, depot_ballcoord, depot_ballspacing
 
 class Depot:
     """Information about the Depot state. Balls stored here, and drawing procedure. 
@@ -21,9 +22,9 @@ class Depot:
     def __init__(self, size: Tuple[int]):
         self.size_x = size[0]
         self.size_y = size[1]
-        self.surf = Surface(size)
-        self.changed = True # True if redraw needed. If anything in the Depot changed since the last tick.
-        
+        self.surf = pygame.Surface(size)
+        self.redraw_needed = True
+
         # init empty to set array size to 8x2
         self.content = [[None,None], [None,None], [None,None], [None,None],
                         [None,None], [None,None], [None,None], [None,None]]
@@ -35,12 +36,24 @@ class Depot:
             self.content[i][0] = balls.generate_starting_ball()
             self.content[i][1] = balls.generate_starting_ball()
     
+    def changed(self):
+        """trigger a redraw"""
+        self.redraw_needed = True
+    
     def reset(self):
         """puts the depot into the state of game start"""
         for i in range(8):
             self.content[i][0] = balls.generate_starting_ball()
             self.content[i][1] = balls.generate_starting_ball()
-        self.changed = True
+        self.changed()
+    
+    def draw_if_changed(self, screen: pygame.Surface):
+        if not self.redraw_needed:
+            return
+        else:
+            drawn_depot = self.draw()
+            screen.blit(drawn_depot, depot_position)
+            self.redraw_needed = False
 
     def draw(self):
         """draws full Depot, calls draw() methods of the Balls in the Depot. Returns self.surf"""
@@ -57,5 +70,5 @@ class Depot:
         ret = self.content[column][1]
         self.content[column][1] = self.content[column][0]
         self.content[column][0] = balls.generate_ball()
-        self.changed = True
+        self.changed()
         return ret

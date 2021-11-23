@@ -34,7 +34,7 @@ def drop_ball():
     if balls_dropped % 50 == 0:
         level += 1
         score_area.update_level()
-    score_area.changed = True
+    score_area.changed()
 
 def tick():
     """performs update of the game state, called periodically as time passes."""
