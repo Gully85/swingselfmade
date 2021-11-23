@@ -1,13 +1,8 @@
 Current TODO List:
 
-- expand unittests. Ongoing.Scoring, make sure playfield.refresh_status() is called after finishing one,
-    make sure exactly all connected equal-colored balls are scored
 - move object.changed logic into the class. Call draw() every frame, but dont do anything if 
     nothing changed
-- rename EmptySpace / Blocked logic to be more intuitive. Parent class is PlayfieldSpace, can be 
-    BlockedBySeesaw or EmptySpace or Ball (which can be Colored or Special). Rename Colored_Ball 
-    to ColoredBall
-- force Abstract Base Classes to have their values/methods
+- test around Abstract Base Classes. What happens if they dont have their values/methods?
 - maybe sort content of Constants into timings and pixel-counting stuff? 
     Make it two (or more) separate objects? Local dictionary of the Constants module?
 - placeholder graphics for moving seesaw

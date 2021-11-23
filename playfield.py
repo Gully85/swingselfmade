@@ -345,6 +345,16 @@ class Playfield:
             
         return self.surf
     
+    def get_number_of_balls(self):
+        """Returns the number of balls currently lying in the playfield. Not counting FallingBalls
+        or ThrownBalls."""
+        ret = 0
+        for x in range(8):
+            for y in range(8):
+                if isinstance(self.get_ball_at((x,y)), balls.Ball):
+                    ret += 1
+        return ret
+    
     def get_seesaw_state(self, column: int):
         return self.seesaws[column]
     

@@ -40,6 +40,12 @@ def tick():
     """performs update of the game state, called periodically as time passes."""
     for event in ongoing.eventQueue:
         event.tick(playfield)
+    
+def getscore():
+    return score
+
+def getlevel():
+    return level
 
 class GameStateError():
     pass

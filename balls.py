@@ -24,7 +24,9 @@ ballfont = pygame.font.SysFont("monospace", 24)
 
 class PlayfieldSpace(ABC):
     """Abstract Base Class for a position in the playfield. It can either be a ball 
-    (whatever kind) or an EmptySpace. Must have draw(), getweight() and getcolor() methods."""
+    (whatever kind) or an EmptySpace or BlockedSpace. (BlockedSpace means, blocked by 
+    seesaw). Must have draw(), getweight() and getcolor() methods."""
+    
     @abstractmethod
     def draw(self, surf: pygame.Surface, drawpos: Tuple[int]):
         """draw yourself on given surf to given pixel position"""
@@ -40,7 +42,6 @@ class PlayfieldSpace(ABC):
 
 class EmptySpace(PlayfieldSpace):
     """Dummy class for places where there is no Ball. Empty Constructor."""
-    # never change these globals, static vars for all s
 
     def __init__(self):
         pass

@@ -181,5 +181,79 @@ class TestOngoing(unittest.TestCase):
         self.assertIsInstance(resulting_ball, balls.ColoredBall)
         self.assertEqual(totalweight, resulting_ball.getweight())
 
+    def test_scoring(self):
+        game.reset()
+        the_playfield = game.playfield
+
+        # make solid ground: 2x 50 weight, color=1 to every left-side of a seesaw
+        for sesa in range(4):
+            column = 2*sesa
+            for _ in range(2):
+                nextball = balls.generate_ball()
+                nextball.setcolor(1)
+                nextball.setweight(50)
+                the_playfield.land_ball_in_column(nextball, column)
+            while 0 != game.ongoing.get_number_of_events():
+                game.tick()
+            self.assertEqual(the_playfield.get_seesaw_state(sesa), -1)
+        
+        # drop ball colors like this:
+        #
+        # 2 3
+        # 3 3 3
+        # all the 3's should score (keep track of total weight), the 2 should become a FallingBall
+        nextball = balls.generate_ball()
+        nextball.setcolor(3)
+        total_weight = nextball.getweight()
+        the_playfield.land_ball_in_column(nextball, 0)
+
+        other_colored_ball = balls.generate_ball()
+        other_colored_ball.setcolor(2)
+        the_playfield.land_ball_in_column(other_colored_ball, 0)
+
+        for _ in range(2):
+            nextball = balls.generate_ball()
+            nextball.setcolor(3)
+            total_weight += nextball.getweight()
+            the_playfield.land_ball_in_column(nextball, 1)
+        
+        self.assertEqual(0, game.getscore())
+        self.assertEqual(4, game.getlevel())
+        
+        # this ball should start the scoring
+        nextball = balls.generate_ball()
+        nextball.setcolor(3)
+        total_weight += nextball.getweight()
+        the_playfield.land_ball_in_column(nextball, 2)
+        game.tick()
+        self.assertIsInstance(game.ongoing.get_newest_event(), game.ongoing.Scoring)
+
+        # after some ticks, the other_colored_ball should start dropping
+        while isinstance(game.ongoing.get_newest_event(), game.ongoing.Scoring):
+            game.tick()
+        
+        # at this point, the newest event should be the dropped ball of other color
+        the_falling_event = game.ongoing.get_newest_event()
+        self.assertIsInstance(the_falling_event, game.ongoing.FallingBall)
+        self.assertIs(the_falling_event.getball(), other_colored_ball)
+        self.assertEqual(the_falling_event.getcolumn(), 0)
+
+        # wait until eventQueue is empty again. Check that the dropped ball is in correct
+        # position (column=0, height=2) and the score. 
+        # The score should be 4 * 4 * total_weight, 
+        # the formula is level*number of balls * totalweight
+        while 0 != game.ongoing.get_number_of_events():
+            game.tick()
+        
+        the_landed_ball = game.playfield.get_ball_at((0,2))
+        self.assertIs(the_landed_ball, other_colored_ball)
+        self.assertEqual(game.getscore(), 16*total_weight)
+        
+        # there should be the 8 weight-50 balls that create a solid ground,
+        # and the other_colored_ball. Make sure no other balls are there.
+        self.assertEqual(the_playfield.get_number_of_balls(), 9)
+        
+
+
 if __name__ == '__main__':
     unittest.main()
