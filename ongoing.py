@@ -362,8 +362,21 @@ class Scoring(Ongoing):
         self.weight_so_far = ball.weight
         
     def draw(self, surf):
-        # TODO put a placeholder for each removed Ball. Maybe a different one for past and present
-        pass
+        # placeholder: Rectangles. Green (65,174,118) for past and slightly
+        # brighter green (102,194,164) for next
+        pastcolor = (65,174,118)
+        nextcolor = (102,194,164)
+
+        for (x,y) in self.past:
+            xcoord = playfield_ballcoord[0] + x*playfield_ballspacing[0]
+            ycoord = playfield_ballcoord[1] + (7-y)*playfield_ballspacing[1]
+            pygame.draw.rect(surf, pastcolor, pygame.Rect((xcoord,ycoord), ball_size), width=3)
+        
+        for(x,y) in self.next:
+            xcoord = playfield_ballcoord[0] + x*playfield_ballspacing[0]
+            ycoord = playfield_ballcoord[1] + (7-y)*playfield_ballspacing[1]
+            pygame.draw.rect(surf, nextcolor, pygame.Rect((xcoord,ycoord), ball_size), width=3)
+
 
     def tick(self, playfield):
         """called once per tick. Counts down delay, expands if zero was reached, and reset delay. 
