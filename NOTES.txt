@@ -1,11 +1,7 @@
 Current TODO List:
 
-- move object.changed logic into the class. Call draw() every frame, but dont do anything if 
-    nothing changed
 - test around Abstract Base Classes. What happens if they dont have their values/methods?
-- maybe sort content of Constants into timings and pixel-counting stuff? 
-    Make it two (or more) separate objects? Local dictionary of the Constants module?
-- placeholder graphics for moving seesaw
+- fix placeholder graphics for moving seesaw
 - placeholder graphics for Combining
 - Special Balls. Start with Bomb or Cutter, that should be the easiest ones.
 - Ball generation, preview for upcoming Specials
@@ -20,7 +16,15 @@ Current TODO List:
 - draw seesaws in a way that shows which ones are connected
 - re-do ThrowingBall trajctory. If landing in-field, can just use the ascending half of a parabola
 - change Combining to be able to combine 6+ balls
-
+- maybe sort content of Constants into timings and pixel-counting stuff? 
+    Make it two (or more) separate objects? Local dictionary of the Constants module?
+- split ongoing EventQueue into multiple, for the different types. SeesawTiltings should always
+    be drawn earlier than ThrownBalls. Or introduce a drawing-priority.
+- Refactor Playfield / Seesaw Code. Playfield should be 4 Seesaw objects, Seesaw has a method 
+    "does the left/right ball at height y match color X", if moving, the answer is always No 
+    (but end of moving triggers a status-update). This also works the SpecialBall Joker logic.
+    And Seesaw can, say, explode_in_height y when a Bomb explodes nearby, where moving Balls 
+    are destroyed also.
 
 
 Recent changes:
@@ -36,7 +40,7 @@ Known bugs, need to find exact conditions to reproduce
 - A Scoring can remove a Blocked if a seesaw tilts while the Scoring expands. 
 - Scoring seems to remove wrong-colored Balls sometimes
 - if a Scoring removes the ball in height 0 but not the one above it (b/c it expanded sideways),
-    the one above falls through the bottom and triggers a crash. This requires a changed in
+    the one above falls through the bottom and triggers a crash. This requires a change in
     the FallingBall landing logic. Have the playfield supply a landing-height.
 
 
@@ -99,10 +103,9 @@ Ideas (Special Balls):
 - The big Destabilizer: All Colored_Balls have their weight set to zero, except the top one per column.
 
 Ideas (others):
-- ThrownBalls could have an actual trajectory like a thrown ball. It ends in the top place of the correct row
-    and then becomes a FallingBall.
 - unique permanent bonuses for 3 stars and 3 gold-stars. Like slower movement, global score factor, 
-    throw preview, higher rate of Special Balls
+    throw preview, higher rate of Special Balls. Higher or wider playfield.
 - VS mode. Throw balls to opponent, give them special negative effects (inverted Crane movement, 
     auto-drop every few seconds, weight-changes, ...)
 - auto-drop could be generally a good challenge. 
+- 

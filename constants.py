@@ -20,16 +20,6 @@ tilting_speed = 2.0
 # same in tilts/tick
 tilting_per_tick = tilting_speed / max_FPS
 
-## speed of rising ThrownBalls, in tiles/sec
-#rising_speed = 2*tilting_speed
-#rising_per_tick = rising_speed / max_FPS
-#
-## speed of sideway-moving ThrownBalls, in tiles/sec
-#sideway_speed = rising_speed
-#sideway_per_tick = sideway_speed / max_FPS
-#
-## how high do thrown balls rise before moving sideway
-#throwing_height = 8.5
 
 # total time it takes for a thrown Ball to travel, in seconds
 # (in case of [multiple times?] sideway fly-out, this is for each round)
@@ -55,8 +45,8 @@ combining_totaltime = 1.0
 combining_dt = 1./ (max_FPS * combining_totaltime)
 
 # size of the canvas
-screensize = (1024, 768)
 screen_width, screen_height = (1024, 768)
+screensize = (screen_width, screen_height)
 
 # this many px blank at the edge, to have a margin
 global_xmargin = 10
@@ -157,7 +147,7 @@ playfield_ballcoord = [playfield_ballcoord_x, playfield_ballcoord_y]
 playfield_ballspacing = [playfield_ballcoord_perCol, playfield_ballcoord_perRow]
 
 # px position of weightdisplay
-weightdisplay_y = playfield_ballcoord_y + 8 * ball_size[1] + 7 * rowspacing
+weightdisplay_y = playfield_ballcoord_y + 8 * ball_size[1] + 8 * rowspacing
 weightdisplay_x = playfield_ballcoord_x + int(0.4 * ball_size[0])
 weightdisplay_x_per_column = ball_size[0] + column_spacing
 weightdisplay_coords = [weightdisplay_x, weightdisplay_y]

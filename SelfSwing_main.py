@@ -64,23 +64,13 @@ def main():
             print("Final score: ", game.score)
             exit()
         
-        ### Step 3, update screen where necessary
+        ### Step 3, update screen where necessary. TODO make this only one call, game.draw()
         game.depot.draw_if_changed(screen)
-        
         game.crane.draw_if_changed(screen)
-
         game.playfield.draw_if_changed(screen)
-        
-        #if game.playfield.changed:
-        #    game.playfield.update_weights()
-        #    drawn_playfield = game.playfield.draw()
-        #    for event in ongoing.eventQueue:
-        #        event.draw(drawn_playfield)
-        #    screen.blit(drawn_playfield, playfield_position)
-        #    game.playfield.changed()
-        
         game.score_area.draw_if_changed(screen)
         
+        # reveal new-drawn frame
         pygame.display.flip()
         
         

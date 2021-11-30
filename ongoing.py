@@ -13,7 +13,8 @@
 
 from typing import Tuple
 import balls
-from pygame import Surface
+
+import pygame
 import game, playfield
 
 from constants import ball_size, playfield_ballcoord, playfield_ballspacing
@@ -63,7 +64,7 @@ class FallingBall(Ongoing):
         self.column = column
         self.height = starting_height
         
-    def draw(self, surf):
+    def draw(self, surf:pygame.Surface):
         x = playfield_ballcoord[0] + (self.column) * playfield_ballspacing[0]
         y = playfield_ballcoord[1] + (7.-self.height)*playfield_ballspacing[1]
         self.ball.draw(surf, (x,y))
@@ -261,9 +262,66 @@ class SeesawTilting(Ongoing):
             raise ValueError("can not tilt seesaw ",sesa," from position ", before," to the same one.")
         
     def draw(self, surf):
-        # TODO. Draw blocked areas partially, according to self.progress. 
-        # Draw both stacks in current (moving) position over the already drawn stacks on surf. 
-        pass
+        """re-draws both stacks in the current (moving) position"""
+        current = self.before + self.progress*(self.after-self.before)
+
+        # pixel-coord of the left stack
+        x = playfield_ballcoord[0] + 2*self.sesa*playfield_ballspacing[0]
+        y = playfield_ballcoord[1] + playfield_ballspacing[1]
+
+        # overdraw left and right stack with the background-color
+        bgcolor = (127,127,127)
+        rectsize_x = 2*playfield_ballspacing[0]
+        rectsize_y = 7*playfield_ballspacing[1]
+        rectsize = (rectsize_x, rectsize_y)
+        pygame.draw.rect(surf, bgcolor, pygame.Rect((x,y), rectsize))
+        
+        # if current<0.0, the left side should draw more then one full Blocked
+
+        # number of Blocked in playfield.content[][.]: 1 - self.after (0..2 possible)
+        # (this might be wrong if more than one SeesawTilting is in effect.
+        # But in this case, the later-added will overdraw this anyway)
+        # number of Blocked that should be drawn : 1 - current (0.0 .. 2.0 possible)
+
+        # draw bottom-up. y-coords of pixels count top-down. Balls in the highest row have
+        # y=playfield_ballcoord[1], the one below that is y=.. + playfield_ballspacing[1],
+        # the one below that is y=.. + 2*playfield_ballspacing[1] and so on.
+        # The lowest (partially drawn) block has either 
+        # y =  playfield_ballcoord[1] + (6 + current)*playfield_ballspacing (if )
+
+        # draw bottom-up. Remember that pixels in y-direction increase downwards
+        groundlevel = playfield_ballcoord[1] + 7*playfield_ballspacing[1] + ball_size[1]
+
+        # draw the correct size Blocked. As one rectangle, this is only a placeholder anyway.
+        blockedcolor = (0, 0, 0)
+        blockedsize_left = (1+current)*playfield_ballspacing[1]
+
+        pygame.draw.rect(surf, blockedcolor, pygame.Rect(
+            (x, groundlevel-blockedsize_left), (ball_size[0], blockedsize_left)
+            ))
+        # draw left stack
+        # in Playfield.get_ball_at() the bottom (1+self.after) entries are Blocked and already
+        # drawn.
+        for height in range(1+self.after, 8):
+            ycoord = playfield_ballcoord[1] + (6-height-current)*playfield_ballspacing[1]
+            the_ball = game.playfield.get_ball_at((2*self.sesa, height))
+            the_ball.draw(surf, (x, ycoord))
+
+        # right side
+        x += playfield_ballspacing[0]
+        blockedsize_right = (1-current)*playfield_ballspacing[1]
+
+        pygame.draw.rect(surf, blockedcolor, pygame.Rect(
+            (x, groundlevel-blockedsize_right), (ball_size[0], blockedsize_right)
+        ))
+        # draw right stack
+        for height in range(1-self.after, 8):
+            ycoord = playfield_ballcoord[1] + (6-height+current)*playfield_ballspacing[1]
+            the_ball = game.playfield.get_ball_at((2*self.sesa+1, height))
+            the_ball.draw(surf, (x, ycoord))
+
+
+
 
     def tick(self, playfield):
         self.progress += tilting_per_tick
@@ -273,7 +331,7 @@ class SeesawTilting(Ongoing):
             playfield.refresh_status()
     
     def getsesa(self):
-        """Returns the seesaw, 0..3"""
+        """Returns which seesaw is moving, 0..3"""
         return self.sesa
 
     def getprogress(self):
