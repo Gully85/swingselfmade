@@ -17,7 +17,7 @@ import balls
 import pygame
 import game, playfield
 
-from constants import ball_size, playfield_ballcoord, playfield_ballspacing
+from constants import ball_size, playfield_ballcoord, playfield_ballspacing, rowspacing
 from constants import falling_per_tick, tilting_per_tick, scoring_delay
 from constants import thrown_ball_dropheight
 
@@ -422,8 +422,8 @@ class Scoring(Ongoing):
 
 class Combining(Ongoing):
     """Balls from a vertical Five that combine into one ball with the total weight. 
-    Once an animation is added to this, this class will make sense. For now, it only serves as a placeholder. Counts down
-    for a few ticks, then dies. Drawing is just 'do nothing'. Vars:
+    Once an animation is added to this, this class will make sense. For now, it only serves
+    as a placeholder. Counts down for a few ticks, then dies. Drawing is just 'do nothing'. Vars:
         coords (tuple int,int), bottom coordinate where the resulting ball is placed.
         t (float), parameter that counts up from 0.0 to 1.0, tracks progress of the animation
         color (int), color of the resulting ball, as defined in the Colorscheme
@@ -442,9 +442,23 @@ class Combining(Ongoing):
         self.t += combining_dt
         if self.t > 1.0:
             eventQueue.remove(self)
+            game.playfield.changed()
     
     def draw(self, surf):
-        pass
+        # draw an ellipse that contracts in y-direction over time
+        from colorschemes import simple_standard_ball_colors
+        the_color = simple_standard_ball_colors[self.color]
+        starting_ysize = 5*ball_size[1] + 4*rowspacing
+        final_ysize = ball_size[1]
+        current_ysize = starting_ysize + self.t*(final_ysize-starting_ysize)
+        xcoord = playfield_ballcoord[0] + self.coords[0]*playfield_ballspacing[0]
+        ycoord_final = playfield_ballcoord[1] + (7-self.coords[1])*playfield_ballspacing[1]
+        ycoord_start = playfield_ballcoord[1] + (7-self.coords[1]-4)*playfield_ballspacing[1]
+        ycoord_now = ycoord_start + self.t*(ycoord_final-ycoord_start)
+
+        px_coords = (xcoord, ycoord_now)
+        pygame.draw.ellipse(surf, the_color, pygame.Rect(px_coords, (ball_size[0], current_ysize)))
+
 
     def getposition(self):
         """Position of the combining balls, where the resulting ball will be. Returned as a tuple (x,y)"""

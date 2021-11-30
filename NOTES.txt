@@ -3,6 +3,7 @@ Current TODO List:
 - test around Abstract Base Classes. What happens if they dont have their values/methods?
 - fix placeholder graphics for moving seesaw
 - placeholder graphics for Combining
+- placeholder graphics for Scoring
 - Special Balls. Start with Bomb or Cutter, that should be the easiest ones.
 - Ball generation, preview for upcoming Specials
 - "Logbook mode", write events to a log-file. Helpful if we let others look for bugs. 
