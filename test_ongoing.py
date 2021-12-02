@@ -39,7 +39,7 @@ class TestOngoing(unittest.TestCase):
         game.reset()
 
         # create a ball, land it
-        Testball = balls.generate_ball()
+        Testball = balls.generate_starting_ball()
         chosen_column = random.randint(0,7)
         chosen_seesaw = chosen_column//2
         game.playfield.land_ball_in_column(Testball, chosen_column)
