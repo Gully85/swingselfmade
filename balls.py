@@ -151,7 +151,7 @@ class Bomb(SpecialBall):
     just lies around, but explodes once any Ball lands on it or a neighboring Bomb explodes."""
 
     def __init__(self):
-        self.image = pygame.image.load("specials/bomb-resized.png")
+        self.image = pygame.image.load("specials/bombe-selbstgemalt.png")
 
 
     def draw(self, surf: pygame.Surface, drawpos: Tuple[int]):

@@ -3,6 +3,8 @@ Current TODO List:
 
 - Special Balls. Start with Bomb or Cutter, that should be the easiest ones.
 - Ball generation, preview for upcoming Specials
+- draw own pictograms for SpecialBalls and Explosion
+- sound for Explosion and Scoring
 - "Logbook mode", write events to a log-file. Helpful if we let others look for bugs. 
     Have a tmp logfile, if a certain key is pressed, move it to a permanent file. Regular 
     updates (at each level?) for the full game state. Track all Ongoing_Events in there. 
