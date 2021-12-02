@@ -31,7 +31,7 @@ class TestPlayfield(unittest.TestCase):
 
         # land a ball of equal weight in the neighboring column, wait for empty EventQueue,
         # should lead to balanced seesaws. Check that both balls are in the correct positions.
-        Testball2 = balls.generate_ball()
+        Testball2 = balls.generate_starting_ball()
         Testball2.setweight(Testball.getweight())
         the_playfield.land_ball_in_column(Testball2, 1)
         while game.ongoing.get_number_of_events() != 0:
@@ -64,10 +64,10 @@ class TestPlayfield(unittest.TestCase):
         game.reset()
         # Drop two heavy balls on the left side of each seesaw to create a flat ground
         for sesa in range(4):
-            Testball = balls.generate_ball()
+            Testball = balls.generate_starting_ball()
             Testball.setweight(100)
             the_playfield.land_ball_in_column(Testball, 2*sesa)
-            Testball = balls.generate_ball()
+            Testball = balls.generate_starting_ball()
             Testball.setweight(100)
             Testball.setcolor(1)
             the_playfield.land_ball_in_column(Testball, 2*sesa)
@@ -76,7 +76,7 @@ class TestPlayfield(unittest.TestCase):
 
         # put balls in the three leftmost columns. This should start a Scoring.
         for i in range(3):
-            Testball2 = balls.generate_ball()
+            Testball2 = balls.generate_starting_ball()
             Testball2.setcolor(2)
             the_playfield.land_ball_in_column(Testball2, i)
         game.tick()
@@ -85,7 +85,7 @@ class TestPlayfield(unittest.TestCase):
 
         # same for the rightmost columns
         for i in range(5,8):
-            Testball3 = balls.generate_ball()
+            Testball3 = balls.generate_starting_ball()
             Testball3.setcolor(3)
             the_playfield.land_ball_in_column(Testball3, i)
         game.tick()
@@ -95,7 +95,7 @@ class TestPlayfield(unittest.TestCase):
         # Combining
         # land 5 equal balls in column 4, they should combine
         for i in range(5):
-            Testball4 = balls.generate_ball()
+            Testball4 = balls.generate_starting_ball()
             Testball4.setcolor(2)
             Testball4.setweight(3)
             the_playfield.land_ball_in_column(Testball4, 4)
@@ -110,9 +110,9 @@ class TestPlayfield(unittest.TestCase):
 
         # Hanging Balls
         # drop two balls in column 6, remove the lower one, assert that the higher one starts to fall
-        Testball = balls.generate_ball()
+        Testball = balls.generate_starting_ball()
         the_playfield.land_ball_in_column(Testball, 6)
-        Testball2 = balls.generate_ball()
+        Testball2 = balls.generate_starting_ball()
         the_playfield.land_ball_in_column(Testball2, 6)
         the_playfield.remove_ball((6,2))
         the_playfield.refresh_status()

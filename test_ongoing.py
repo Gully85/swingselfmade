@@ -11,7 +11,7 @@ class TestOngoing(unittest.TestCase):
         game.reset()
 
         # create a random ball, drop it in a random column
-        Testball = balls.generate_ball()
+        Testball = balls.generate_starting_ball()
         chosen_column = random.randint(0,7)
         game.ongoing.ball_falls(Testball, chosen_column)
         self.assertEqual(1, game.ongoing.get_number_of_events())
@@ -120,12 +120,12 @@ class TestOngoing(unittest.TestCase):
         game.playfield.reset()
         game.ongoing.reset()
 
-        Testball = balls.generate_ball()
+        Testball = balls.generate_starting_ball()
         Testball.setweight(1)
         game.playfield.land_ball_in_column(Testball, 6)
         while 0 != game.ongoing.get_number_of_events():
             game.tick()
-        Testball23 = balls.generate_ball()
+        Testball23 = balls.generate_starting_ball()
         Testball23.setweight(23)
         game.playfield.land_ball_in_column(Testball23, 7)
         # range is 22. Two complete rotations are 16, remainder is 6. One to rightmost, 
@@ -144,7 +144,7 @@ class TestOngoing(unittest.TestCase):
         the_playfield = game.playfield
 
         # make solid ground: 50 weight to the leftmost column
-        Testball = balls.generate_ball()
+        Testball = balls.generate_starting_ball()
         Testball.setweight(50)
         Testball.setcolor(1)
         the_playfield.land_ball_in_column(Testball, 0)
@@ -189,7 +189,7 @@ class TestOngoing(unittest.TestCase):
         for sesa in range(4):
             column = 2*sesa
             for _ in range(2):
-                nextball = balls.generate_ball()
+                nextball = balls.generate_starting_ball()
                 nextball.setcolor(1)
                 nextball.setweight(50)
                 the_playfield.land_ball_in_column(nextball, column)
@@ -202,17 +202,17 @@ class TestOngoing(unittest.TestCase):
         # 2 3
         # 3 3 3
         # all the 3's should score (keep track of total weight), the 2 should become a FallingBall
-        nextball = balls.generate_ball()
+        nextball = balls.generate_starting_ball()
         nextball.setcolor(3)
         total_weight = nextball.getweight()
         the_playfield.land_ball_in_column(nextball, 0)
 
-        other_colored_ball = balls.generate_ball()
+        other_colored_ball = balls.generate_starting_ball()
         other_colored_ball.setcolor(2)
         the_playfield.land_ball_in_column(other_colored_ball, 0)
 
         for _ in range(2):
-            nextball = balls.generate_ball()
+            nextball = balls.generate_starting_ball()
             nextball.setcolor(3)
             total_weight += nextball.getweight()
             the_playfield.land_ball_in_column(nextball, 1)
@@ -221,7 +221,7 @@ class TestOngoing(unittest.TestCase):
         self.assertEqual(4, game.getlevel())
         
         # this ball should start the scoring
-        nextball = balls.generate_ball()
+        nextball = balls.generate_starting_ball()
         nextball.setcolor(3)
         total_weight += nextball.getweight()
         the_playfield.land_ball_in_column(nextball, 2)
