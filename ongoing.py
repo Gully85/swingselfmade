@@ -11,6 +11,7 @@
 # - throw_ball(ball, origin_coords, throwing_range) to throw a ball. Positive throwing_range indicates 
 # throwing to the right, to higher x-values / columns
 
+from abc import abstractmethod
 from typing import Tuple
 import balls
 
@@ -48,7 +49,14 @@ def get_newest_event():
 class Ongoing:
     """abstract Parent class, should not be instanciated.
     Any child class must have a tick(self, playfield) method and a draw(self,surf) method."""
-    pass
+    
+    @abstractmethod
+    def tick(self, playfield: playfield.Playfield):
+        pass
+
+    def draw(self, surf: pygame.Surface):
+        pass
+
 
 class FallingBall(Ongoing):
     """a Ball that is being dropped, falling after being thrown, or the Ball below it vanished somehow. Vars:

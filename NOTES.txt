@@ -1,7 +1,6 @@
 Current TODO List:
 
-- test around Abstract Base Classes. What happens if they dont have their values/methods?
-- fix placeholder graphics for moving seesaw
+
 - Special Balls. Start with Bomb or Cutter, that should be the easiest ones.
 - Ball generation, preview for upcoming Specials
 - "Logbook mode", write events to a log-file. Helpful if we let others look for bugs. 
@@ -24,12 +23,11 @@ Current TODO List:
     (but end of moving triggers a status-update). This also works the SpecialBall Joker logic.
     And Seesaw can, say, explode_in_height y when a Bomb explodes nearby, where moving Balls 
     are destroyed also.
+- fix placeholder graphics for moving seesaw
 
 
 Recent changes:
-- moved Ball dropping logic to Playfield.refresh_status() and Playfield.check_hanging_balls()
-- Added Combining of vertical Fives into one ball with the same total weight. The check for 
-    this is in Playfield.refresh_status() in the correct priority.
+- Bombs
 
 Suspected possible bugs:
 - perhaps range is off by one if flying out to the left for at least twice (range 10 or greater)

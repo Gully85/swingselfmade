@@ -53,7 +53,7 @@ class TestPlayfield(unittest.TestCase):
 
         # Tilting
         # Drop a ball to the rightmost column, should start a SeesawTilting
-        Testball = balls.generate_ball()
+        Testball = balls.generate_starting_ball()
         Testball.setweight(20)
         the_playfield.land_ball_in_column(Testball, 7)
         the_tilting_event = game.ongoing.get_newest_event()
