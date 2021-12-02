@@ -44,6 +44,13 @@ combining_totaltime = 1.0
 # parameter t goes from 0.0 to 1.0, how much to add per tick
 combining_dt = 1./ (max_FPS * combining_totaltime)
 
+# time an Explosion is shown, in seconds
+explosion_totaltime = 1.5
+explosion_numticks = explosion_totaltime * max_FPS
+
+
+
+
 # size of the canvas
 screen_width, screen_height = (1024, 768)
 screensize = (screen_width, screen_height)

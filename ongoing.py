@@ -20,6 +20,7 @@ import game, playfield
 from constants import ball_size, playfield_ballcoord, playfield_ballspacing, rowspacing
 from constants import falling_per_tick, tilting_per_tick, scoring_delay
 from constants import thrown_ball_dropheight
+from constants import explosion_numticks
 
 
 # this is a local variable of the module ongoing. Other files, if they import this,
@@ -476,3 +477,21 @@ class Combining(Ongoing):
     def getposition(self):
         """Position of the combining balls, where the resulting ball will be. Returned as a tuple (x,y)"""
         return self.coords
+
+class Explosion(Ongoing):
+    """A Bomb has recently exploded here, the sprite is drawn for a few frames."""
+
+    def __init__(self, coords: Tuple[int]):
+        self.coords = coords
+        self.progress = 0.0
+    
+    def tick(self, the_playfield: playfield.Playfield):
+        self.progress += 1./explosion_numticks
+        if self.progress > 1.0:
+            eventQueue.remove(self)
+    
+    def draw(self, surf: pygame.Surface):
+        pass
+
+def draw_explosion(coords):
+    eventQueue.append(Explosion(coords))

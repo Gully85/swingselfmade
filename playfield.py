@@ -123,9 +123,19 @@ class Playfield:
     def land_ball(self, ball: balls.Ball, coords: Tuple[int]):
         """Land a ball at coords. Triggers a status update. x=0..7"""
         x,y = coords
+        self.content[x][y] = ball
         if isinstance(ball, ColoredBall):
-            self.content[x][y] = ball
             self.refresh_status()
+        elif isinstance(ball, balls.SpecialBall):
+            # This depends on if it's landing on another ball or on the seesaw. Can safely assume y>0
+            # because an empty seesaw can never be in the "down" position
+            ball_below = self.content[x][y-1]
+            if isinstance(ball_below, balls.BlockedSpace):
+                ball.land_on_bottom((x,y))
+            elif isinstance(ball_below, balls.Ball):
+                ball.land_on_ball((x,y))
+            else:
+                raise TypeError("Special Ball landing on unexpected type ", ball, " at playfield position", x, y)
         else:
             raise TypeError("Trying to land unexpected ball type ", ball, " at playfield position ", x, y)
         

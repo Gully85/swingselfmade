@@ -32,6 +32,9 @@ FrameLimiter = pygame.time.Clock()
 
 
 def main():
+
+    print("The author thanks freepik.com for the pictograms used in this game.")
+
     # init screen
     screen = pygame.display.set_mode(screensize)
     pygame.display.set_caption("Swing-Remake by Gully")
@@ -46,7 +49,8 @@ def main():
     pygame.display.flip()
     
     # only a test, but doesn't hurt
-    ongoing.ball_falls(balls.generate_starting_ball(), 1)
+    #ongoing.ball_falls(balls.generate_starting_ball(), 1)
+    ongoing.ball_falls(balls.Bomb(), 1)
     
     
     # Event Loop
