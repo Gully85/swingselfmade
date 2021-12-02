@@ -125,6 +125,9 @@ class Playfield:
         x,y = coords
         self.content[x][y] = ball
         if isinstance(ball, ColoredBall):
+            # landing on a Bomb triggers the explosion
+            if isinstance(self.content[x][y-1], balls.Bomb):
+                self.content[x][y-1].explode((x,y-1))
             self.refresh_status()
         elif isinstance(ball, balls.SpecialBall):
             # This depends on if it's landing on another ball or on the seesaw. Can safely assume y>0

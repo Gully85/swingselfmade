@@ -182,7 +182,7 @@ class Bomb(SpecialBall):
                 elif isinstance(ball_there, Ball):
                     the_playfield.remove_ball((x,y))
 
-
+        the_playfield.refresh_status()
 
 def generate_ball():
     import game
@@ -201,6 +201,7 @@ def generate_ball():
     return ColoredBall(color, weight)
 
 def generate_starting_ball():
+    """This will always generate a ColoredBall."""
     color = random.randint(1, 4)
     weight = random.randint(1,4)
     return ColoredBall(color, weight)
