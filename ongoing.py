@@ -213,6 +213,12 @@ class ThrownBall(Ongoing):
         """Ball flew out to the left or right (indicated by argument). Insert it at the
             very right/left, set new origin, calculate and set new destination
         """
+        # convert into Heart or Bomb
+        if isinstance(self.ball, balls.SpecialBall) and not isinstance(self.ball, balls.Bomb):
+            self.ball = balls.Bomb()
+        else:
+            self.ball = balls.Heart()
+
         from constants import thrown_ball_flyover_height, thrown_ball_maxheight
         self.t = -1.0
         self.y = thrown_ball_flyover_height

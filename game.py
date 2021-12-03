@@ -10,10 +10,15 @@ crane = crane.Crane(craneareasize)
 playfield = playfield.Playfield(playfieldsize)
 score_area = scoreArea.ScoreArea(scoredisplayarea_size)
 
+level = 4
+balls_dropped = 0
+score = 0
+global_scorefactor = 1.0
+
 def reset():
     """Initializes the game state"""
-    global score_area
-    global level, balls_dropped, score
+    #global score_area
+    global level, balls_dropped, score, global_scorefactor
 
     depot.reset()
     crane.reset()
@@ -23,6 +28,7 @@ def reset():
     level = 4
     balls_dropped = 0
     score = 0
+    global_scorefactor = 1.0
 
 def drop_ball():
     """drops current ball from the Crane, puts next ball into Crane, generates new ball in the depot.

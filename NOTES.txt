@@ -2,11 +2,10 @@ Current TODO List:
 
 
 - more Special Balls
-- introduce landing-height for FallingBalls, prevent falling through the bottom
 - Ball generation, preview for upcoming Specials
 - draw own pictograms for SpecialBalls and Explosion
 - sound for Explosion and Scoring
-- test Bomb and Cutter
+- unittest Bomb and Cutter
 - extract playfield-coord to pixel-coord function
 - "Logbook mode", write events to a log-file. Helpful if we let others look for bugs. 
     Have a tmp logfile, if a certain key is pressed, move it to a permanent file. Regular 

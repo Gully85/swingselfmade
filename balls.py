@@ -136,7 +136,7 @@ class SpecialBall(Ball):
 
     @abstractmethod
     def draw(self, surf: pygame.Surface, drawpos: Tuple[int]):
-        pass  
+        surf.blit(self.image, drawpos)
 
     @abstractmethod
     def land_on_bottom(self, coords: Tuple[int]):
@@ -153,9 +153,8 @@ class Bomb(SpecialBall):
     def __init__(self):
         self.image = pygame.image.load("specials/bombe-selbstgemalt.png")
 
-
     def draw(self, surf: pygame.Surface, drawpos: Tuple[int]):
-        surf.blit(self.image, drawpos)
+        super().draw(surf, drawpos)
 
     def land_on_bottom(self, coords: Tuple[int]):
         pass
@@ -192,7 +191,7 @@ class Cutter(SpecialBall):
         self.image = pygame.image.load("specials/bohrer-selbstgemalt.png")
     
     def draw(self, surf: pygame.Surface, drawpos: Tuple[int]):
-        surf.blit(self.image, drawpos)
+        super().draw(surf, drawpos)
     
     def land_on_bottom(self, coords: Tuple[int]):
         game.playfield.remove_ball(coords)
@@ -202,6 +201,22 @@ class Cutter(SpecialBall):
         game.playfield.remove_ball((x, y-1))
         game.playfield.remove_ball(coords)
         game.ongoing.ball_falls_from_height(self, x, y)
+
+class Heart(SpecialBall):
+    """No special effects. When Scoring, this will increase the global 
+    score factor by 0.1*(number of Hearts scored)"""
+
+    def __init__(self):
+        self.image = pygame.image.load("specials/Herz-selbstgemalt.png")
+    
+    def draw(self, surf: pygame.Surface, drawpos: Tuple[int]):
+        super().draw(surf, drawpos)
+    
+    def land_on_bottom(self, coords: Tuple[int]):
+        pass
+
+    def land_on_ball(self, coords: Tuple[int]):
+        pass
 
 def generate_ball():
     import game
