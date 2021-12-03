@@ -408,3 +408,10 @@ class Playfield:
 
         self.content[x][y] = balls.EmptySpace()
         self.changed()
+
+    def landing_height_of_column(self, column: int):
+        """Returns the height of the lowest EmptySpace position of a column. Possible values are 1..8"""
+        for ret in range(8):
+            if isinstance(self.get_ball_at((column, ret)), balls.EmptySpace):
+                break
+        return ret

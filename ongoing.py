@@ -79,17 +79,10 @@ class FallingBall(Ongoing):
         self.ball.draw(surf, (x,y))
 
     def tick(self, playfield: playfield.Playfield):
-        new_height = int(self.height - falling_per_tick)
-        playfield.changed()
-        if new_height > 7: #still higher in the air than where any playfield-Ball could be
-            self.height -= falling_per_tick
-        elif isinstance(playfield.get_ball_at((self.column, new_height)), balls.EmptySpace):
-            self.height -= falling_per_tick
-        else:
-            x = self.column
-            y = new_height+1 # index in content[][.]
+        self.height -= falling_per_tick
+        if self.height < playfield.landing_height_of_column(self.column):
+            playfield.land_ball_in_column(self.ball, self.column)
             eventQueue.remove(self)
-            playfield.land_ball(self.ball, (x, y))
     
     def getheight(self):
         return self.height
@@ -102,6 +95,9 @@ class FallingBall(Ongoing):
 
 def ball_falls(ball, column: int):
     eventQueue.append(FallingBall(ball, column))
+
+def ball_falls_from_height(ball, column:int, height: int):
+    eventQueue.append(FallingBall(ball, column, starting_height=height))
 
 class ThrownBall(Ongoing):
     """A ball that was thrown by a seesaw. Follows a certain trajectory 

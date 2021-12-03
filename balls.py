@@ -184,12 +184,31 @@ class Bomb(SpecialBall):
 
         the_playfield.refresh_status()
 
+class Cutter(SpecialBall):
+    """Special Ball. Destroys the stack it lands on. Once hitting the BlockedSpace or
+    height 0, it disappears."""
+
+    def __init__(self):
+        self.image = pygame.image.load("specials/bohrer-selbstgemalt.png")
+    
+    def draw(self, surf: pygame.Surface, drawpos: Tuple[int]):
+        surf.blit(self.image, drawpos)
+    
+    def land_on_bottom(self, coords: Tuple[int]):
+        game.playfield.remove_ball(coords)
+
+    def land_on_ball(self, coords: Tuple[int]):
+        x,y = coords
+        game.playfield.remove_ball((x, y-1))
+        game.playfield.remove_ball(coords)
+        game.ongoing.ball_falls_from_height(self, x, y)
+
 def generate_ball():
     import game
     
     # For testing purpose: 30% chance to get a bomb
     if random.randint(0, 9) < 3:
-       return Bomb()
+       return Cutter()
     
     
     # in the first 10 Balls of each level, the new color is more likely
