@@ -28,6 +28,11 @@ from constants import explosion_numticks
 # can use and modify this. Their local name is ongoing.eventQueue
 eventQueue = []
 
+def tick():
+    """perform update of all ongoing events. Called periodically as time passes."""
+    for event in eventQueue:
+        event.tick()
+
 def reset():
     """empties eventQueue. This sets up the ongoing-module to the state of the game start"""
     global eventQueue
@@ -51,7 +56,7 @@ class Ongoing:
     Any child class must have a tick(self, playfield) method and a draw(self,surf) method."""
     
     @abstractmethod
-    def tick(self, playfield: playfield.Playfield):
+    def tick(self):
         pass
 
     def draw(self, surf: pygame.Surface):
@@ -78,10 +83,10 @@ class FallingBall(Ongoing):
         y = playfield_ballcoord[1] + (7.-self.height)*playfield_ballspacing[1]
         self.ball.draw(surf, (x,y))
 
-    def tick(self, playfield: playfield.Playfield):
+    def tick(self):
         self.height -= falling_per_tick
-        if self.height < playfield.landing_height_of_column(self.column):
-            playfield.land_ball_in_column(self.ball, self.column)
+        if self.height < game.playfield.landing_height_of_column(self.column):
+            game.playfield.land_ball_in_column(self.ball, self.column)
             eventQueue.remove(self)
     
     def getheight(self):
@@ -172,7 +177,7 @@ class ThrownBall(Ongoing):
         y = playfield_ballcoord[0] + (7. - self.y)*playfield_ballspacing[1]
         self.ball.draw(surf, (x,y))
         
-    def tick(self, playfield):
+    def tick(self):
         # increase t. If destination was reached (t>1), convert into a FallingBall or perform the fly-out.
         # If not, calculate new position x,y from the trajectory.
         from constants import thrown_ball_dt , thrown_ball_maxheight
@@ -181,7 +186,7 @@ class ThrownBall(Ongoing):
             self.t += thrown_ball_dt
         else:
             self.t += thrown_ball_dt * self.speedup_pastmax
-        playfield.changed()
+        game.playfield.changed()
         
         # is the destination reached? If yes, it can become a FallingBall or it can fly out
         if self.t > 1.0:
@@ -334,13 +339,12 @@ class SeesawTilting(Ongoing):
 
 
 
-    def tick(self, playfield):
+    def tick(self):
         self.progress += tilting_per_tick
-        playfield.changed()
+        game.playfield.changed()
         if self.progress >= 1.0:
             eventQueue.remove(self)
-            playfield.changed()
-            playfield.refresh_status()
+            game.playfield.refresh_status()
     
     def getsesa(self):
         """Returns which seesaw is moving, 0..3"""
@@ -390,7 +394,7 @@ class Scoring(Ongoing):
             pygame.draw.rect(surf, nextcolor, pygame.Rect((xcoord,ycoord), ball_size), width=3)
 
 
-    def tick(self, playfield):
+    def tick(self):
         """called once per tick. Counts down delay, expands if zero was reached, and reset delay. 
         If no expansion, removes this from the eventQueue
         """
@@ -398,7 +402,7 @@ class Scoring(Ongoing):
         import game
         self.delay -= 1
         if self.delay < 0:
-            if self.expand(playfield):
+            if self.expand(game.playfield):
                 self.delay = scoring_delay
             else:
                 # Formula for Scores: Total weight x number of balls x level (level does not exist yet)
@@ -407,7 +411,7 @@ class Scoring(Ongoing):
                 print("Total score: ", game.score)
                 game.score_area.changed()
                 eventQueue.remove(self)
-                playfield.refresh_status()
+                game.playfield.refresh_status()
                 # TODO score and display
 
     def expand(self, playfield):
@@ -462,7 +466,7 @@ class Combining(Ongoing):
         self.weight = weight
         self.t = 0.0
 
-    def tick(self, playfield):
+    def tick(self):
         from constants import combining_dt
         self.t += combining_dt
         if self.t > 1.0:
@@ -496,7 +500,7 @@ class Explosion(Ongoing):
         self.coords = coords
         self.progress = 0.0
     
-    def tick(self, the_playfield: playfield.Playfield):
+    def tick(self):
         self.progress += 1./explosion_numticks
         if self.progress > 1.0:
             eventQueue.remove(self)
