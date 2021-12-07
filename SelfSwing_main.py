@@ -33,7 +33,7 @@ FrameLimiter = pygame.time.Clock()
 
 def main():
 
-    print("The author thanks freepik.com for the pictograms used in this game.")
+    #print("The author thanks freepik.com for the pictograms used in this game.")
 
     # init screen
     screen = pygame.display.set_mode(screensize)

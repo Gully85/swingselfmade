@@ -153,6 +153,18 @@ playfield_ballcoord_perRow = ball_size[1] + column_spacing
 playfield_ballcoord = [playfield_ballcoord_x, playfield_ballcoord_y]
 playfield_ballspacing = [playfield_ballcoord_perCol, playfield_ballcoord_perRow]
 
+from typing import Tuple
+def pixel_coord_in_playfield(playfield_coords: Tuple[int]):
+    """Takes playfield-coordinate (x,y), usually 0..7 (but
+    values outside are allowed), returns pixel coordinate of the 
+    top-left corner of that position in playfield."""
+    playfield_x, playfield_y = playfield_coords
+    px_x = playfield_ballcoord[0] + playfield_x * playfield_ballspacing[0]
+    px_y = playfield_ballcoord[1] + (7. - playfield_y) * playfield_ballspacing[1]
+
+    return (px_x, px_y)
+
+
 # px position of weightdisplay
 weightdisplay_y = playfield_ballcoord_y + 8 * ball_size[1] + 8 * rowspacing
 weightdisplay_x = playfield_ballcoord_x + int(0.4 * ball_size[0])

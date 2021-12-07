@@ -47,7 +47,7 @@ class EmptySpace(PlayfieldSpace):
     def __init__(self):
         pass
 
-    def draw(self, surf: pygame.Surface, drawpos: Tuple[int,int]):
+    def draw(self, surf: pygame.Surface, drawpos: Tuple[int]):
         pass
 
     def getweight(self):

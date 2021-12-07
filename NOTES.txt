@@ -1,11 +1,12 @@
 Current TODO List:
 
-
+- Scoring Hearts
 - more Special Balls
 - Ball generation, preview for upcoming Specials
 - draw own pictograms for SpecialBalls and Explosion
 - sound for Explosion and Scoring
 - unittest Bomb and Cutter
+- fix Cutter. When destroying a stack, the seesaw starts moving and the Cutter falls through the bottom
 - extract playfield-coord to pixel-coord function
 - "Logbook mode", write events to a log-file. Helpful if we let others look for bugs. 
     Have a tmp logfile, if a certain key is pressed, move it to a permanent file. Regular 

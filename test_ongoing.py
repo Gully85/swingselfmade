@@ -96,7 +96,7 @@ class TestOngoing(unittest.TestCase):
 
         # Drop a ball of weight 15 to the left. This should throw the weight-3-ball to the left,
         # out-of-bounds. Total throwing range is 12 -> flying out twice,
-        # ultimately landing in column 5, third from the right.
+        # ultimately landing in column 5, third from the right. Should convert into a Bomb (2 fly-outs)
 
         ball15 = balls.ColoredBall(1, 15)
         game.playfield.land_ball_in_column(ball15, 0)
@@ -112,7 +112,7 @@ class TestOngoing(unittest.TestCase):
             self.assertNotEqual(0, game.ongoing.get_number_of_events())
             if isinstance(game.ongoing.get_newest_event(), game.ongoing.FallingBall):
                 the_falling_event = game.ongoing.get_newest_event()
-                self.assertIs(the_falling_event.getball(), ball3)
+                self.assertIsInstance(the_falling_event.getball(), balls.Bomb)
                 self.assertEqual(the_falling_event.getcolumn(), 5)
                 break
 
@@ -129,13 +129,14 @@ class TestOngoing(unittest.TestCase):
         Testball23.setweight(23)
         game.playfield.land_ball_in_column(Testball23, 7)
         # range is 22. Two complete rotations are 16, remainder is 6. One to rightmost, 
-        # five to go, land in column 4 since columns are zero-indexed
+        # five to go, land in column 4 since columns are zero-indexed. Should convert into
+        # a Heart (3 fly-outs)
         while True:
             game.tick()
             self.assertNotEqual(0, game.ongoing.get_number_of_events())
             if isinstance(game.ongoing.get_newest_event(), game.ongoing.FallingBall):
                 the_falling_event = game.ongoing.get_newest_event()
-                self.assertIs(the_falling_event.getball(), Testball)
+                self.assertIsInstance(the_falling_event.getball(), balls.Heart)
                 self.assertEqual(the_falling_event.getcolumn(), 4)
                 break
 

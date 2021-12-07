@@ -13,7 +13,8 @@ from balls import BlockedSpace, EmptySpace, ColoredBall, SpecialBall
 #from game import GameStateError
 
 import ongoing
-from constants import playfield_ballcoord, playfield_ballspacing 
+#from constants import playfield_ballcoord, playfield_ballspacing 
+from constants import pixel_coord_in_playfield
 from constants import weightdisplay_coords, weightdisplay_x_per_column
 from constants import playfield_position
 
@@ -75,9 +76,10 @@ class Playfield:
         
         # draw all the Balls (and Blocked Positions), iterate over self.content
         for x in range(8):
-            xcoord = playfield_ballcoord[0] + x*(playfield_ballspacing[0])
+            #xcoord = playfield_ballcoord[0] + x*(playfield_ballspacing[0])
             for y in range(8):
-                ycoord = playfield_ballcoord[1] + (7-y)*(playfield_ballspacing[1])
+                #ycoord = playfield_ballcoord[1] + (7.-y)*(playfield_ballspacing[1])
+                xcoord,ycoord = pixel_coord_in_playfield((x,y))
                 if debugprints:
                     if isinstance(self.content[x][y], BlockedSpace):
                         print("Blocked at pos {},{}".format(x,y))
@@ -122,6 +124,7 @@ class Playfield:
     
     def land_ball(self, ball: balls.Ball, coords: Tuple[int]):
         """Land a ball at coords. Triggers a status update. x=0..7"""
+        self.changed()
         x,y = coords
         self.content[x][y] = ball
         if isinstance(ball, ColoredBall):
@@ -138,7 +141,7 @@ class Playfield:
             elif isinstance(ball_below, balls.Ball):
                 ball.land_on_ball((x,y))
             else:
-                raise TypeError("Special Ball landing on unexpected type ", ball, " at playfield position", x, y)
+                raise TypeError("Special Ball landing on unexpected type ", ball_below, " at playfield position", x, y)
         else:
             raise TypeError("Trying to land unexpected ball type ", ball, " at playfield position ", x, y)
         

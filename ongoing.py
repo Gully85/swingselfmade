@@ -339,6 +339,7 @@ class SeesawTilting(Ongoing):
         playfield.changed()
         if self.progress >= 1.0:
             eventQueue.remove(self)
+            playfield.changed()
             playfield.refresh_status()
     
     def getsesa(self):
