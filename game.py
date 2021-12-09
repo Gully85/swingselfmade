@@ -44,6 +44,7 @@ def drop_ball():
 
 def tick():
     """performs update of the game state, called periodically as time passes."""
+    playfield.tick()
     ongoing.tick()
     
 def getscore():

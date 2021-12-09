@@ -162,7 +162,7 @@ def pixel_coord_in_playfield(playfield_coords: Tuple[int]):
     px_x = playfield_ballcoord[0] + playfield_x * playfield_ballspacing[0]
     px_y = playfield_ballcoord[1] + (7. - playfield_y) * playfield_ballspacing[1]
 
-    return (px_x, px_y)
+    return [px_x, px_y]
 
 
 # px position of weightdisplay

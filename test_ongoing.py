@@ -43,24 +43,19 @@ class TestOngoing(unittest.TestCase):
         chosen_column = random.randint(0,7)
         chosen_seesaw = chosen_column//2
         game.playfield.land_ball_in_column(Testball, chosen_column)
-        self.assertEqual(1, game.ongoing.get_number_of_events())
-        the_tilting_event = game.ongoing.get_newest_event()
-        self.assertIsInstance(the_tilting_event, game.ongoing.SeesawTilting)
+        the_sesa = game.playfield.stacks[chosen_seesaw]
+        self.assertTrue(the_sesa.ismoving())
 
-        self.assertEqual(the_tilting_event.getsesa(), chosen_seesaw)
-
-        # make sure progress increases per tick
-        initial_progress = the_tilting_event.getprogress()
+        # make sure tilt changes per tick
+        initial_progress = the_sesa.gettilt()
         game.tick()
-        self.assertGreater(the_tilting_event.getprogress(), initial_progress)
+        self.assertNotEqual(the_sesa.gettilt(), initial_progress)
 
         # it should remove itself after some time. Expected number of ticks is (1. / tilting_per_tick)
         maxticks = int(1./ constants.tilting_per_tick) + 1
         for i in range(maxticks):
             game.tick()
-            if 0 == game.ongoing.get_number_of_events():
-                break
-            if isinstance(game.ongoing.get_newest_event(), game.ongoing.SeesawTilting):
+            if not the_sesa.ismoving():
                 break
         
         self.assertLess(i, maxticks)

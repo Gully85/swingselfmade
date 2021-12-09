@@ -137,13 +137,14 @@ class SpecialBall(Ball):
     @abstractmethod
     def draw(self, surf: pygame.Surface, drawpos: Tuple[int]):
         surf.blit(self.image, drawpos)
+        # somehow make sure that self.image exists. @property decorator?
 
     @abstractmethod
-    def land_on_bottom(self, coords: Tuple[int]):
+    def landing_effect_on_ground(self, coords: Tuple[int]):
         pass
 
     @abstractmethod
-    def land_on_ball(self, coords: Tuple[int]):
+    def landing_effect_on_ball(self, coords: Tuple[int]):
         pass
 
 class Bomb(SpecialBall):
@@ -156,17 +157,18 @@ class Bomb(SpecialBall):
     def draw(self, surf: pygame.Surface, drawpos: Tuple[int]):
         super().draw(surf, drawpos)
 
-    def land_on_bottom(self, coords: Tuple[int]):
+    def landing_effect_on_ground(self, coords: Tuple[int]):
         pass
 
-    def land_on_ball(self, coords: Tuple[int]):
+    def landing_effect_on_ball(self, coords: Tuple[int]):
         self.explode(coords)
 
     def explode(self, coords: Tuple[int]):
         the_playfield = game.playfield
-        # in 3x3 area: Display explosion sprite (ongoing), explode bombs, remove other balls
+        # TODO in 3x3 area: Display explosion sprite (ongoing), explode bombs, remove other balls
         xcenter,ycenter = coords
         game.ongoing.draw_explosion(coords)
+
         the_playfield.remove_ball(coords)
 
         for x in range(xcenter-1, xcenter+2):
@@ -193,10 +195,10 @@ class Cutter(SpecialBall):
     def draw(self, surf: pygame.Surface, drawpos: Tuple[int]):
         super().draw(surf, drawpos)
     
-    def land_on_bottom(self, coords: Tuple[int]):
+    def landing_effect_on_ground(self, coords: Tuple[int]):
         game.playfield.remove_ball(coords)
 
-    def land_on_ball(self, coords: Tuple[int]):
+    def landing_effect_on_ball(self, coords: Tuple[int]):
         x,y = coords
         game.playfield.remove_ball((x, y-1))
         game.playfield.remove_ball(coords)
@@ -212,10 +214,10 @@ class Heart(SpecialBall):
     def draw(self, surf: pygame.Surface, drawpos: Tuple[int]):
         super().draw(surf, drawpos)
     
-    def land_on_bottom(self, coords: Tuple[int]):
+    def landing_effect_on_ground(self, coords: Tuple[int]):
         pass
 
-    def land_on_ball(self, coords: Tuple[int]):
+    def landing_effect_on_ball(self, coords: Tuple[int]):
         pass
 
 def generate_ball():
