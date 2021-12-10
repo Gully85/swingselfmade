@@ -62,6 +62,21 @@ class Ongoing:
     def draw(self, surf: pygame.Surface):
         pass
 
+def event_type_exists(eventType):
+    """True if at least one such event is currently ongoing"""
+    for event in eventQueue:
+        if isinstance(event, eventType):
+            return True
+    return False
+
+def get_event_of_type(eventType):
+    """Returns the oldest event of that type that is still ongoing.
+    Raises GameStateError if None is there"""
+    for event in eventQueue:
+        if isinstance(event, eventType):
+            return event
+    raise game.GameStateError("Requested ongoing Event type ", eventType,
+                                  "is not in the eventQueue.")
 
 class FallingBall(Ongoing):
     """a Ball that is being dropped, falling after being thrown, or the Ball below it vanished somehow. Vars:

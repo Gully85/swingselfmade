@@ -23,15 +23,7 @@ import constants
 weightdisplayfont = pygame.font.SysFont("Arial", 12)
 
 class Playfield:
-    """Information about the current Playfield. Variables:
-        content (8x9 array of either EmptySpace or Blocked or Balls). First index is column, second index height (bottom-up).
-            At y=8 there should always be EmptySpace, else the player is about to lose the game.
-        weights (8 ints, left to right). 
-        seesaws (4 ints, left to right). 0 indicates equal 
-            weights, -1 for heavier left, +1 for heavier right).
-        size (2 ints). Size of drawing in px
-        surf (pygame.Surface)
-        alive (Bool). Indicates whether the game is lost.
+    """Information about the current Playfield. 
     Constructor takes size in pixels as (width,height) tuple."""
 
     def __init__(self, size: Tuple[int]):
@@ -43,6 +35,19 @@ class Playfield:
         self.redraw_needed = True
         self.alive = True
     
+    def print_tilts(self):
+        tilt1 = self.stacks[0].gettilt()
+        tilt2 = self.stacks[1].gettilt()
+        tilt3 = self.stacks[2].gettilt()
+        tilt4 = self.stacks[3].gettilt()
+        print(tilt1, tilt2, tilt3, tilt4)
+    
+    def print_seesaw_states(self):
+        cols = []
+        for i in range(8):
+            cols.append(self.get_seesaw_state(i))
+        print(cols)
+
     def tick(self):
         for sesa in self.stacks:
             sesa.tick()
@@ -163,6 +168,12 @@ class Playfield:
             
         return ret
     
+    def any_seesaw_is_moving(self):
+        """True if at least one of the seesaws is moving."""
+        for stack in self.stacks:
+            if stack.ismoving():
+                return True
+        return False
     
     def check_Scoring_full(self):
         """checks the full content for any horizontal-threes of the same color. 
@@ -379,7 +390,7 @@ class Seesaw:
             blocked_height = 1 - round(self.tilt)
         if height < blocked_height:
             return balls.BlockedSpace()
-        elif height > blocked_height + len(stack):
+        elif height >= blocked_height + len(stack):
             return balls.EmptySpace()
         else:
             return stack[height-blocked_height]
@@ -529,14 +540,14 @@ class Seesaw:
         stackheight = blocked_height + len(stack)
         if y > stackheight:
             return
-        index_to_remove = y - blocked_height
+        index_to_remove = round(y - blocked_height)
         # if not moving, this removes just one ball from the list. 
         # Convert any above the removed one into FallingBalls
         if not self.ismoving():
             stack.pop(index_to_remove)
             for height,ball in enumerate(stack[index_to_remove:]):
                 stack.remove(ball)
-                ongoing.ball_falls_from_height(ball, x, height+blocked_height)
+                ongoing.ball_falls_from_height(ball, x, height+blocked_height+1)
         # if moving, do nothing for now.
         else:
             pass
