@@ -61,38 +61,43 @@ class TestPlayfield(unittest.TestCase):
         #self.assertIsInstance(the_tilting_event, game.ongoing.SeesawTilting)
         #self.assertEqual(the_tilting_event.getsesa(), 3)
 
-        # Scoring. Skipped for now. TODO
-        if False:
-            game.reset()
-            # Drop two heavy balls on the left side of each seesaw to create a flat ground
-            for sesa in range(4):
-                Testball = balls.generate_starting_ball()
-                Testball.setweight(100)
-                the_playfield.land_ball_in_column(Testball, 2*sesa)
-                Testball = balls.generate_starting_ball()
-                Testball.setweight(100)
-                Testball.setcolor(1)
-                the_playfield.land_ball_in_column(Testball, 2*sesa)
-            
-            self.assertTrue(wait_for_empty_eventQueue(10*constants.max_FPS))
-
-            # put balls in the three leftmost columns. This should start a Scoring.
-            for i in range(3):
-                Testball2 = balls.generate_starting_ball()
-                Testball2.setcolor(2)
-                the_playfield.land_ball_in_column(Testball2, i)
+        # Scoring
+        game.reset()
+        # Drop two heavy balls on the left side of each seesaw to create a flat ground
+        for sesa in range(4):
+            Testball = balls.generate_starting_ball()
+            Testball.setweight(100)
+            the_playfield.land_ball_in_column(Testball, 2*sesa)
+            Testball = balls.generate_starting_ball()
+            Testball.setweight(100)
+            Testball.setcolor(1)
+            the_playfield.land_ball_in_column(Testball, 2*sesa)
+        
+        # wait for all tilts
+        maxticks = int(1e6)
+        for i in range(maxticks):
             game.tick()
-            self.assertIsInstance(game.ongoing.get_newest_event(), game.ongoing.Scoring)
-            self.assertTrue(wait_for_empty_eventQueue(4*constants.scoring_delay))
+            if not game.playfield.any_seesaw_is_moving():
+                break
+        self.assertLess(i, maxticks)
 
-            # same for the rightmost columns
-            for i in range(5,8):
-                Testball3 = balls.generate_starting_ball()
-                Testball3.setcolor(3)
-                the_playfield.land_ball_in_column(Testball3, i)
-            game.tick()
-            self.assertIsInstance(game.ongoing.get_newest_event(), game.ongoing.Scoring)
-            self.assertTrue(wait_for_empty_eventQueue(4*constants.scoring_delay))
+        # put balls in the three leftmost columns. This should start a Scoring.
+        for i in range(3):
+            Testball2 = balls.generate_starting_ball()
+            Testball2.setcolor(2)
+            the_playfield.land_ball_in_column(Testball2, i)
+        game.tick()
+        self.assertIsInstance(game.ongoing.get_newest_event(), game.ongoing.Scoring)
+        self.assertTrue(wait_for_empty_eventQueue(4*constants.scoring_delay))
+
+        # same for the rightmost columns
+        for i in range(5,8):
+            Testball3 = balls.generate_starting_ball()
+            Testball3.setcolor(3)
+            the_playfield.land_ball_in_column(Testball3, i)
+        game.tick()
+        self.assertIsInstance(game.ongoing.get_newest_event(), game.ongoing.Scoring)
+        self.assertTrue(wait_for_empty_eventQueue(4*constants.scoring_delay))
 
         # Combining. Skipped for now. TODO
         if False:

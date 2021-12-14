@@ -16,13 +16,14 @@ from typing import Tuple
 import balls
 
 import pygame
-import game, playfield
+import game
 
 from constants import ball_size, playfield_ballcoord, playfield_ballspacing, rowspacing
-from constants import falling_per_tick, tilting_per_tick, scoring_delay
+from constants import falling_per_tick, tilting_per_tick
 from constants import thrown_ball_dropheight
 from constants import explosion_numticks
 
+import constants
 
 # this is a local variable of the module ongoing. Other files, if they import this,
 # can use and modify this. Their local name is ongoing.eventQueue
@@ -384,24 +385,22 @@ class Scoring(Ongoing):
         Constructor: Scoring((x,y), ball)
     """
     
-    def __init__(self, coords: Tuple[int], ball):
-        self.past = []
-        self.next = [coords]
-        self.color = ball.color
-        #print("New Scoring, color=",self.color)
-        self.delay = scoring_delay
-        self.weight_so_far = ball.weight
+    def __init__(self, coords: Tuple[int], ball: balls.ScoringColoredBall):
+        self.past = []   # list of ScoringColoredBalls
+        self.next = [coords] # list of (int,int) coords in the playfield
+        self.delay = constants.scoring_delay
+        self.weight_so_far = ball.getweight()
         
     def draw(self, surf):
         # placeholder: Rectangles. Green (65,174,118) for past and slightly
         # brighter green (102,194,164) for next
-        pastcolor = (65,174,118)
+        
         nextcolor = (102,194,164)
 
-        for (x,y) in self.past:
-            xcoord = playfield_ballcoord[0] + x*playfield_ballspacing[0]
-            ycoord = playfield_ballcoord[1] + (7-y)*playfield_ballspacing[1]
-            pygame.draw.rect(surf, pastcolor, pygame.Rect((xcoord,ycoord), ball_size), width=3)
+        #for (x,y) in self.past:
+        #    xcoord = playfield_ballcoord[0] + x*playfield_ballspacing[0]
+        #    ycoord = playfield_ballcoord[1] + (7-y)*playfield_ballspacing[1]
+        #    pygame.draw.rect(surf, pastcolor, pygame.Rect((xcoord,ycoord), ball_size), width=3)
         
         for(x,y) in self.next:
             xcoord = playfield_ballcoord[0] + x*playfield_ballspacing[0]
@@ -417,52 +416,58 @@ class Scoring(Ongoing):
         import game
         self.delay -= 1
         if self.delay < 0:
-            if self.expand(game.playfield):
-                self.delay = scoring_delay
+            if self.expand():
+                self.delay = constants.scoring_delay
             else:
-                # Formula for Scores: Total weight x number of balls x level (level does not exist yet)
+                # Formula for Scores: Total weight x number of balls x level
                 print("Score from this: ", self.weight_so_far * len(self.past) * game.level)
                 game.score += self.weight_so_far * len(self.past) * game.level
                 print("Total score: ", game.score)
+                game.playfield.finalize_scoring(self.past)
                 game.score_area.changed()
                 eventQueue.remove(self)
                 game.playfield.refresh_status()
                 # TODO score and display
 
-    def expand(self, playfield):
+    def expand(self):
         """checks if neighboring balls are same color, removes them and saves their coords in 
         self.next for the next expand() call. Returns True if the Scoring grew.
         """
 
         now = self.next
         self.next = []
-        color = self.color
         #print("Expanding Scoring. Color=",color," past=",self.past, "now=",now)
         for coords in now:
-            self.past.append(coords)
-            x,y = coords
-            #playfield.content[x][y] = balls.EmptySpace()
-            playfield.remove_ball((x,y))
-            # removing a Ball may cause those on top to fall down. OBSOLETE because once 
-            # a Scoring is finished, playfield.refresh_status() must be called
+            # TODO react properly if the Ball moved away from that position.
+            marked_ball = game.playfield.mark_position_for_scoring(coords)
+            self.past.append(marked_ball)
             
+            x,y = coords
             coords_to_check = [(x-1,y), (x+1,y), (x,y-1), (x,y+1)]
-            # remove out-of-bounds
-            for (x,y) in coords_to_check:
-                if x<0 or x>7 or y<0 or y>8:
-                    coords_to_check.remove((x,y))
+            # remove out-of-bounds from this list
+            for (x2,y2) in coords_to_check:
+                if x2<0 or x2>7 or y2<0 or y2>8:
+                    coords_to_check.remove((x2,y2))
             
             for (x2,y2) in coords_to_check:
-                neighbor_ball = playfield.get_ball_at((x2,y2))
-                if neighbor_ball.getcolor() == color:
+                neighbor_ball = game.playfield.get_ball_at((x2,y2))
+                if (neighbor_ball.matches_color(marked_ball) and
+                not isinstance(neighbor_ball, balls.ScoringColoredBall)):
                     self.next.append([x2,y2])
-                    self.weight_so_far += playfield.get_ball_at((x2,y2)).getweight()
-                    playfield.remove_ball((x2,y2))
+                    self.weight_so_far += neighbor_ball.getweight()
+                #if neighbor_ball.getcolor() == color:
+                #    self.next.append([x2,y2])
+                #    self.weight_so_far += game.playfield.get_ball_at((x2,y2)).getweight()
+                #    game.playfield.remove_ball((x2,y2))
 
         #print("more matching Balls found: next=",self.next)
-        playfield.changed()
+        game.playfield.changed()
         return len(self.next) > 0
-        
+
+def start_score(coords):
+    #first_ball = game.playfield.mark_position_for_scoring(coords)
+    first_ball = game.playfield.get_ball_at(coords)
+    eventQueue.append(Scoring(coords, first_ball))
 
 class Combining(Ongoing):
     """Balls from a vertical Five that combine into one ball with the total weight. 

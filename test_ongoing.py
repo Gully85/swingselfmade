@@ -28,7 +28,7 @@ class TestOngoing(unittest.TestCase):
         # (it should only need to drop by 7 positions and then trigger a Seesaw Tilting, 8.0 leaves some room)
         maxticks = int(8.0 * constants.max_FPS / constants.falling_speed)
         self.assertGreater(maxticks, 0)
-        for i in range(maxticks):
+        for i in range(maxticks-1):
             game.tick()
             if not the_falling_event in game.ongoing.eventQueue:
                 break
@@ -54,7 +54,7 @@ class TestOngoing(unittest.TestCase):
 
         # it should finish after some time. Expected number of ticks is (1. / tilting_per_tick)
         maxticks = int(1./ constants.tilting_per_tick) + 1
-        for i in range(maxticks):
+        for i in range(maxticks-1):
             game.tick()
             if not game.playfield.any_seesaw_is_moving():
                 break
@@ -113,7 +113,7 @@ class TestOngoing(unittest.TestCase):
         # eventually, the ThrowingBall event should convert into a FallingBall event
         # (Bomb in column 5).
         maxticks = 100000
-        for i in range(maxticks):
+        for i in range(maxticks-1):
             game.tick()
             if not game.ongoing.event_type_exists(game.ongoing.ThrownBall):
                 break
@@ -142,7 +142,7 @@ class TestOngoing(unittest.TestCase):
         # five to go, land in column 4 since columns are zero-indexed. Should convert into
         # a Heart (3 fly-outs)
 
-        for i in range(maxticks):
+        for i in range(maxticks-1):
             game.tick()
             if not game.ongoing.event_type_exists(game.ongoing.ThrownBall):
                 break
@@ -196,7 +196,6 @@ class TestOngoing(unittest.TestCase):
         self.assertEqual(totalweight, resulting_ball.getweight())
 
     def test_scoring(self):
-        return
         game.reset()
         the_playfield = game.playfield
 
@@ -208,9 +207,13 @@ class TestOngoing(unittest.TestCase):
                 nextball.setcolor(1)
                 nextball.setweight(50)
                 the_playfield.land_ball_in_column(nextball, column)
-            while 0 != game.ongoing.get_number_of_events():
+            maxticks = int(1e6)
+            for i in range(maxticks-1):
                 game.tick()
-            self.assertEqual(the_playfield.get_seesaw_state(sesa), -1)
+                if not the_playfield.any_seesaw_is_moving():
+                    break
+            self.assertLess(i, maxticks)
+            self.assertEqual(the_playfield.get_seesaw_state(column), -1)
         
         # drop ball colors like this:
         #
@@ -244,12 +247,15 @@ class TestOngoing(unittest.TestCase):
         self.assertIsInstance(game.ongoing.get_newest_event(), game.ongoing.Scoring)
 
         # after some ticks, the other_colored_ball should start dropping
-        while isinstance(game.ongoing.get_newest_event(), game.ongoing.Scoring):
+        maxticks = int(1e6)
+        for i in range(maxticks-1):
             game.tick()
+            if game.ongoing.event_type_exists(game.ongoing.FallingBall):
+                break
+        self.assertLess(i, maxticks-1)
         
         # at this point, the newest event should be the dropped ball of other color
-        the_falling_event = game.ongoing.get_newest_event()
-        self.assertIsInstance(the_falling_event, game.ongoing.FallingBall)
+        the_falling_event = game.ongoing.get_event_of_type(game.ongoing.FallingBall)
         self.assertIs(the_falling_event.getball(), other_colored_ball)
         self.assertEqual(the_falling_event.getcolumn(), 0)
 

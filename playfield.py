@@ -8,6 +8,7 @@ debugprints = False
 from typing import Tuple
 #from pygame import Rect, Surface, font
 import pygame
+from pygame.transform import threshold
 import balls, game
 #from balls import BlockedSpace, EmptySpace, ColoredBall, SpecialBall
 #from game import GameStateError
@@ -140,7 +141,6 @@ class Playfield:
         """Checks if anything needs to start now. Performs weight-check, 
         if that does nothing performs scoring-check, if that does nothing performs combining-check.
         """
-        #print("Entering full status check...")
 
         if not self.gravity_moves():
             if not self.check_Scoring_full():
@@ -181,27 +181,24 @@ class Playfield:
         Returns True if a Scoring was found.
         Checks bottom-up, only the lowest row with a horizontal-three is checked, only the leftmost Three is found.
         """
-        
-        return False
-        # TODO
-        # obsolete code below
+
+        # lowest row can never Score. Start at height 1
         for y in range(1,8):
-            for x in range(6):
-                the_ball = self.content[x][y]
-                color = the_ball.getcolor()
-                if color == -1:
+            for x in range(1,7): # x=1..6 makes sure that (x +/- 1) stays in-bound 0..7
+                the_ball = self.get_ball_at((x,y))
+                if not isinstance(the_ball, balls.Ball):
                     continue
-                #print("non-empty color at (", x, ",", y, ")")
-                if self.content[x+1][y].getcolor() != color:
+                
+                # TODO check Joker, Heart, Star
+
+                left_neighbor = self.get_ball_at((x-1,y))
+                if not left_neighbor.matches_color(the_ball):
                     continue
-                #print("matching right neighbor (", x+1, ",", y, ")")
-                if self.content[x+2][y].getcolor() == color:
-                    print("Found Scoring")
-                    ongoing.eventQueue.append(ongoing.Scoring((x,y), self.content[x][y]))
+                right_neighbor = self.get_ball_at((x+1,y))
+                if right_neighbor.matches_color(the_ball):
+                    ongoing.start_score((x,y))
                     return True
         return False
-
-    
 
     def check_combining(self):
         """Checks the full gameboard for vertical Fives. Only one per stack is possible. 
@@ -242,6 +239,17 @@ class Playfield:
         
         return ret
     
+    def mark_position_for_scoring(self, coords: Tuple[int]):
+        """Converts Ball at position to ScoringColoredBall, return the resulting one"""
+        x,y = coords
+        return self.stacks[x//2].mark_position_for_scoring(coords)
+    
+    def finalize_scoring(self, balls: list):
+        """Remove all the (marked) balls supplied"""
+        for sesa in self.stacks:
+            sesa.remove_scored_balls(balls)
+
+    
     def get_number_of_balls(self):
         """Returns the number of balls currently lying in the playfield. Not counting FallingBalls
         or ThrownBalls."""
@@ -273,7 +281,6 @@ class Playfield:
         sesa = self.stacks[x//2]
         sesa.remove_ball_at(coords)
 
-
     def landing_height_of_column(self, column: int):
         """Returns the height of the lowest EmptySpace position of a column. Possible values are 1..8"""
         sesa = self.stacks[column//2]
@@ -295,10 +302,11 @@ class Seesaw:
         return self.moving
     
     def landing_height(self, left: bool):
+        blockedheight = self.get_blocked_height(left)
         if left:
-            return 1.0 + self.tilt + len(self.stackleft)
+            return blockedheight + len(self.stackleft)
         else:
-            return 1.0 - self.tilt + len(self.stackright)
+            return blockedheight + len(self.stackright)
     
     def explode_bombs(self, left:bool):
         """If the stack is not moving and contains bombs,
@@ -308,10 +316,9 @@ class Seesaw:
         
         if left:
             stack = self.stackleft
-            blockedheight = 1 + int(self.tilt)
         else:
             stack = self.stackright
-            blockedheight = 1 - int(self.tilt)
+        blockedheight = self.get_blocked_height(left)
         for y,ball in enumerate(stack):
             if isinstance(ball, balls.Bomb):
                 ball.explode((self.xleft+(1-left), y+blockedheight))
@@ -384,17 +391,24 @@ class Seesaw:
         # TODO what if moving? Both? Return Dummy object?
         if left:
             stack = self.stackleft
-            blocked_height = 1 + round(self.tilt)
         else:
             stack = self.stackright
-            blocked_height = 1 - round(self.tilt)
-        if height < blocked_height:
+        blockedheight = round(self.get_blocked_height(left))
+        if height < blockedheight:
             return balls.BlockedSpace()
-        elif height >= blocked_height + len(stack):
+        elif height >= blockedheight + len(stack):
             return balls.EmptySpace()
         else:
-            return stack[height-blocked_height]
-        
+            return stack[height-blockedheight]
+    
+    def get_blocked_height(self, left: bool):
+        """Returns the number of blocked space at the bottom as float. 
+        Must be round()'ed to get integer 0,1,2"""
+        if left:
+            return 1.0 + self.tilt
+        else:
+            return 1.0 - self.tilt
+
     def update_weight(self):
         """calculates total weight of both sides, 
         updates internal weight variable"""
@@ -520,9 +534,11 @@ class Seesaw:
         return len(self.stackleft) + len(self.stackright)
     
     def remove_ball_at(self, coords: Tuple[int,int]):
-        """Remove a ball from specified position. If there is no ball,
-        do nothing. If that position is Blocked, raise GameStateError.
-        If the seesaw is currently moving, this can remove two balls.
+        """Remove a ball from specified position. Balls above the removed
+        one are converted into FallingBalls.
+        If there is no ball at coords, do nothing. If that position is
+        Blocked, raise GameStateError. If the seesaw is currently moving,
+        this can remove two balls.
         """
         x,y = coords
         # x should be either self.xleft or self.xleft+1. If not, 
@@ -530,6 +546,33 @@ class Seesaw:
         if not (x == self.xleft or x == self.xleft+1):
             raise ValueError("remove_ball_at(", coords
             ,") called on wrong seesaw")
+        if y < 0 or y > 9:
+            raise ValueError("Can not remove Ball from that height."
+                             "coords="+coords)
+        left = (x%2 == 0)
+        if left:
+            stack = self.stackleft
+        else:
+            stack = self.stackright
+        blockedheight = self.get_blocked_height(left)
+        y -= blockedheight
+        if y >= len(stack):
+            return
+        
+        # if not moving, this removes just one ball from the list. 
+        # Convert any above the removed one into FallingBalls
+        if not self.ismoving():
+            stack.pop(y)
+            for height,ball in enumerate(stack[y:]):
+                stack.remove(ball)
+                ongoing.ball_falls_from_height(ball, x, height+blockedheight+1)
+        # if moving, do nothing for now.
+        else:
+            pass
+    
+    def mark_position_for_scoring(self, coords: Tuple[int,int]):
+        """Converts Ball at position to ScoringColoredBall, return the resulting one"""
+        x,y = coords
         left = (x%2 == 0)
         if left:
             stack = self.stackleft
@@ -537,17 +580,51 @@ class Seesaw:
         else:
             stack = self.stackright
             blocked_height = round(1.0 - self.tilt)
-        stackheight = blocked_height + len(stack)
-        if y > stackheight:
-            return
-        index_to_remove = round(y - blocked_height)
-        # if not moving, this removes just one ball from the list. 
-        # Convert any above the removed one into FallingBalls
-        if not self.ismoving():
-            stack.pop(index_to_remove)
-            for height,ball in enumerate(stack[index_to_remove:]):
-                stack.remove(ball)
-                ongoing.ball_falls_from_height(ball, x, height+blocked_height+1)
-        # if moving, do nothing for now.
-        else:
-            pass
+        y -= blocked_height
+        old_ball = stack[y]
+        new_ball = old_ball.mark_for_Scoring()
+        stack[y] = new_ball
+        return new_ball
+
+    def remove_scored_balls(self, list_to_remove: list):
+        """Remove marked balls that are in the list, drop hanging balls"""
+        # TODO correct drop-heights
+        # left
+        blocked_height = self.get_blocked_height(True)
+        # bottom-up
+        extra_height = 0
+        for y,ball in enumerate(self.stackleft[:]): # iterate over a copy
+                                                    # so modifying is ok
+            if ball in list_to_remove:
+                self.stackleft.remove(ball)
+                extra_height += 1
+            elif extra_height > 0:  # once something was removed, all above
+                                    # must fall if not removed
+                self.stackleft.remove(ball)
+                ongoing.ball_falls_from_height(ball, self.xleft, 
+                                blocked_height + y + extra_height)
+        
+        # right
+        blocked_height = self.get_blocked_height(False)
+        # bottom-up
+        extra_height = 0
+        for y,ball in enumerate(self.stackright[:]): # iterate over a copy
+            if ball in list_to_remove:
+                self.stackright.remove(ball)
+                extra_height += 1
+            elif extra_height > 0:
+                self.stackright.remove(ball)
+                ongoing.ball_falls_from_height(ball, self.xleft+1,
+                                blocked_height + y + extra_height)
+
+
+        
+        # right
+        blocked_height = self.get_blocked_height(False)
+        # bottom-up
+        for ball in self.stackright:
+            if ball in list_to_remove:
+                self.stackright.remove(ball)
+        
+
+                

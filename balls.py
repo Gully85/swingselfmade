@@ -8,12 +8,12 @@
 # is a position blocked by the seesaw state, can only be in the lowest two 
 # positions of the playfield.
 
-
+from __future__ import annotations
 from typing import Tuple
 import colorschemes
 import pygame
 import random
-from constants import ball_size
+from constants import ball_size, pixel_coord_in_playfield
 from abc import ABC, abstractmethod
 import game
 
@@ -41,6 +41,10 @@ class PlayfieldSpace(ABC):
     def getcolor(self): 
         pass
 
+    @abstractmethod
+    def matches_color(self, ball: Ball):
+        return False
+
 class EmptySpace(PlayfieldSpace):
     """Dummy class for places where there is no Ball. Empty Constructor."""
 
@@ -55,6 +59,9 @@ class EmptySpace(PlayfieldSpace):
     
     def getcolor(self):
         return -1
+    
+    def matches_color(self, ball: Ball):
+        return False
 
 class BlockedSpace(PlayfieldSpace):
     """Dummy class for positions blocked by the seesaw state"""
@@ -71,6 +78,9 @@ class BlockedSpace(PlayfieldSpace):
     
     def getcolor(self):
         return -1
+    
+    def matches_color(self, ball: Ball):
+        return False
 
 class Ball(PlayfieldSpace):
     """Abstract class indicating that in this space is a ball. Can be either a ColoredBall 
@@ -82,11 +92,15 @@ class Ball(PlayfieldSpace):
     
     @abstractmethod
     def getweight(self):
-        pass
+        return 0
 
     @abstractmethod
     def getcolor(self):
-        pass
+        return -1
+    
+    @abstractmethod
+    def matches_color(self, ball: Ball):
+        return False
 
 class ColoredBall(Ball):
     """Child-class of Ball. Has a color (int, 1 <= color <= maxcolors)
@@ -120,6 +134,23 @@ class ColoredBall(Ball):
     def getcolor(self):
         return self.color
 
+    def matches_color(self, ball: Ball):
+        # TODO Joker
+        if not isinstance(ball, ColoredBall):
+            return False
+        return ball.getcolor() == self.color
+    
+    def mark_for_Scoring(self):
+        """Converts Ball to ScoringColoredBall, returns new one"""
+        return ScoringColoredBall(self.getcolor(), self.getweight())
+
+class ScoringColoredBall(ColoredBall):
+    def draw(self, surf: pygame.Surface, drawpos: Tuple[int,int]):
+        super().draw(surf, drawpos)
+        pastcolor = (65,174,118)
+        pygame.draw.rect(surf, pastcolor, pygame.Rect(pixel_coord_in_playfield(drawpos), ball_size), width=3)
+
+
 class SpecialBall(Ball):
     """abstract class. Must be instanciated as one of the SpecialBall types. These all have weight==0.
     Must implement draw(surf, drawpos) and land_on_bottom(coords) and land_on_ball(coords)."""
@@ -146,6 +177,10 @@ class SpecialBall(Ball):
     @abstractmethod
     def landing_effect_on_ball(self, coords: Tuple[int]):
         pass
+
+    @abstractmethod
+    def matches_color(self, ball: Ball):
+        return False
 
 class Bomb(SpecialBall):
     """Special Ball. If landing on a Ball, it explodes a 3x3 area. If landing on a BlockedSpace, it
@@ -184,6 +219,9 @@ class Bomb(SpecialBall):
                     the_playfield.remove_ball((x,y))
 
         the_playfield.refresh_status()
+    
+    def matches_color(self, ball: Ball):
+        return False
 
 class Cutter(SpecialBall):
     """Special Ball. Destroys the stack it lands on. Once hitting the BlockedSpace or
@@ -203,6 +241,9 @@ class Cutter(SpecialBall):
         game.playfield.remove_ball((x, y-1))
         game.playfield.remove_ball(coords)
         game.ongoing.ball_falls_from_height(self, x, y)
+    
+    def matches_color(self, ball: Ball):
+        return False
 
 class Heart(SpecialBall):
     """No special effects. When Scoring, this will increase the global 
@@ -219,6 +260,9 @@ class Heart(SpecialBall):
 
     def landing_effect_on_ball(self, coords: Tuple[int]):
         pass
+
+    def matches_color(self, ball: Ball):
+        return isinstance(ball, Heart) # for now
 
 def generate_ball():
     import game
