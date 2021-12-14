@@ -556,6 +556,7 @@ class Seesaw:
             stack = self.stackright
         blockedheight = self.get_blocked_height(left)
         y -= blockedheight
+        y = round(y)
         if y >= len(stack):
             return
         
