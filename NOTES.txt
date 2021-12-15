@@ -1,5 +1,6 @@
 Current TODO List:
 
+- the "mark for Scoring" mechanic needs to verify there is still a ball and color still matches
 - Scoring Hearts
 - more Special Balls
 - Ball generation, preview for upcoming Specials

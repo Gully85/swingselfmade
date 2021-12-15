@@ -44,6 +44,10 @@ class PlayfieldSpace(ABC):
     @abstractmethod
     def matches_color(self, ball: Ball):
         return False
+    
+    @abstractmethod
+    def is_scoring(self):
+        return False
 
 class EmptySpace(PlayfieldSpace):
     """Dummy class for places where there is no Ball. Empty Constructor."""
@@ -61,6 +65,9 @@ class EmptySpace(PlayfieldSpace):
         return -1
     
     def matches_color(self, ball: Ball):
+        return False
+    
+    def is_scoring(self):
         return False
 
 class BlockedSpace(PlayfieldSpace):
@@ -80,6 +87,9 @@ class BlockedSpace(PlayfieldSpace):
         return -1
     
     def matches_color(self, ball: Ball):
+        return False
+    
+    def is_scoring(self):
         return False
 
 class Ball(PlayfieldSpace):
@@ -101,6 +111,11 @@ class Ball(PlayfieldSpace):
     @abstractmethod
     def matches_color(self, ball: Ball):
         return False
+    
+    @abstractmethod
+    def is_scoring(self):
+        """True if the Ball has been marked by an expanding Scoring"""
+        return False
 
 class ColoredBall(Ball):
     """Child-class of Ball. Has a color (int, 1 <= color <= maxcolors)
@@ -109,12 +124,17 @@ class ColoredBall(Ball):
     def __init__(self, color: int, weight: int):
         self.color = color
         self.weight = weight
+        self.scoring = False
 
     def draw(self, surf: pygame.Surface, drawpos: Tuple[int]):
         """draws this Ball onto pygame.Surface surf to offset-position drawpos. Returns None"""
         color = ball_colors[self.color]
+        
         pixelpos_rect = pygame.Rect(drawpos, ball_size)
         pygame.draw.ellipse(surf, color, pixelpos_rect, 0)
+        if self.is_scoring():
+            pastcolor = (65,174,118) # for currently scoring balls
+            pygame.draw.ellipse(surf, pastcolor, pixelpos_rect, 3)
         weighttext = ballfont.render(str(self.weight), True, text_colors[self.color])
         posx = drawpos[0] + 0.2 * ball_size[0]
         posy = drawpos[1] + 0.2 * ball_size[1]
@@ -140,15 +160,12 @@ class ColoredBall(Ball):
             return False
         return ball.getcolor() == self.color
     
-    def mark_for_Scoring(self):
+    def mark_for_scoring(self):
         """Converts Ball to ScoringColoredBall, returns new one"""
-        return ScoringColoredBall(self.getcolor(), self.getweight())
-
-class ScoringColoredBall(ColoredBall):
-    def draw(self, surf: pygame.Surface, drawpos: Tuple[int,int]):
-        super().draw(surf, drawpos)
-        pastcolor = (65,174,118)
-        pygame.draw.rect(surf, pastcolor, pygame.Rect(pixel_coord_in_playfield(drawpos), ball_size), width=3)
+        self.scoring = True
+    
+    def is_scoring(self):
+        return self.scoring
 
 
 class SpecialBall(Ball):
@@ -180,6 +197,11 @@ class SpecialBall(Ball):
 
     @abstractmethod
     def matches_color(self, ball: Ball):
+        return False
+
+    def is_scoring(self):
+        """Most SpecialBalls can not score, so False is the default answer. 
+        This is overriden in the exceptions: Heart and Star"""
         return False
 
 class Bomb(SpecialBall):
@@ -251,10 +273,11 @@ class Heart(SpecialBall):
 
     def __init__(self):
         self.image = pygame.image.load("specials/Herz-selbstgemalt.png")
+        self.scoring = False
     
     def draw(self, surf: pygame.Surface, drawpos: Tuple[int]):
         super().draw(surf, drawpos)
-    
+        
     def landing_effect_on_ground(self, coords: Tuple[int]):
         pass
 
@@ -262,14 +285,21 @@ class Heart(SpecialBall):
         pass
 
     def matches_color(self, ball: Ball):
-        return isinstance(ball, Heart) # for now
+        return isinstance(ball, Heart) # for now. TODO Joker
+    
+    def mark_for_Scoring(self):
+        self.scoring = True
+    
+    def is_scoring(self):
+        return self.scoring
+
 
 def generate_ball():
     import game
     
     # For testing purpose: 30% chance to get a bomb
     if random.randint(0, 9) < 3:
-       return Cutter()
+       return Heart()
     
     
     # in the first 10 Balls of each level, the new color is more likely

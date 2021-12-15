@@ -239,11 +239,6 @@ class Playfield:
         
         return ret
     
-    def mark_position_for_scoring(self, coords: Tuple[int]):
-        """Converts Ball at position to ScoringColoredBall, return the resulting one"""
-        x,y = coords
-        return self.stacks[x//2].mark_position_for_scoring(coords)
-    
     def finalize_scoring(self, balls: list):
         """Remove all the (marked) balls supplied"""
         for sesa in self.stacks:
@@ -349,9 +344,6 @@ class Seesaw:
             from game import GameStateError
             raise GameStateError("Trying to land "
                                 "unexpected Ball type", ball)
-
-        # TODO throwing (only if ColoredBall). Or do
-        # this in playfield.refresh_status()?
 
         game.playfield.refresh_status()
         
@@ -570,22 +562,6 @@ class Seesaw:
         # if moving, do nothing for now.
         else:
             pass
-    
-    def mark_position_for_scoring(self, coords: Tuple[int,int]):
-        """Converts Ball at position to ScoringColoredBall, return the resulting one"""
-        x,y = coords
-        left = (x%2 == 0)
-        if left:
-            stack = self.stackleft
-            blocked_height = round(1.0 + self.tilt)
-        else:
-            stack = self.stackright
-            blocked_height = round(1.0 - self.tilt)
-        y -= blocked_height
-        old_ball = stack[y]
-        new_ball = old_ball.mark_for_Scoring()
-        stack[y] = new_ball
-        return new_ball
 
     def remove_scored_balls(self, list_to_remove: list):
         """Remove marked balls that are in the list, drop hanging balls"""

@@ -18,7 +18,7 @@ import balls
 import pygame
 import game
 
-from constants import ball_size, playfield_ballcoord, playfield_ballspacing, rowspacing
+from constants import ball_size, pixel_coord_in_playfield, playfield_ballcoord, playfield_ballspacing, rowspacing
 from constants import falling_per_tick, tilting_per_tick
 from constants import thrown_ball_dropheight
 from constants import explosion_numticks
@@ -277,21 +277,18 @@ def throw_ball(ball, origin_coords: Tuple[int], throwing_range: int):
 
 
 class Scoring(Ongoing):
-    """Balls currently scoring points. Vars:
-        past (list of [int,int], refers to coords in Playfield.content). Coords of all Balls that were already scored
-        next (list of [int,int], refers to coords in Playfield.content). Coords of all Balls that should check their neighbors at next expand().
-        color (int, corresponds to Ball.color)
-        delay (int, counting down from scoring_delay. Number of ticks until Scoring will expand next)
-        weight_so_far (int)
-        
+    """Balls currently scoring points. Expands every few ticks to connected 
+        Balls of the same color, when finished all the Balls are removed.        
         Constructor: Scoring((x,y), ball)
     """
     
-    def __init__(self, coords: Tuple[int], ball: balls.ScoringColoredBall):
+    def __init__(self, coords: Tuple[int], ball: balls.Ball): 
         self.past = []   # list of ScoringColoredBalls
         self.next = [coords] # list of (int,int) coords in the playfield
         self.delay = constants.scoring_delay
-        self.weight_so_far = ball.getweight()
+        self.weight_so_far = 0
+        self.ball = ball    # this is used to match colors when deciding 
+                            # whether to expand. Should be a ColoredBall or Heart
         
     def draw(self, surf):
         # placeholder: Rectangles. Green (65,174,118) for past and slightly
@@ -305,8 +302,7 @@ class Scoring(Ongoing):
         #    pygame.draw.rect(surf, pastcolor, pygame.Rect((xcoord,ycoord), ball_size), width=3)
         
         for(x,y) in self.next:
-            xcoord = playfield_ballcoord[0] + x*playfield_ballspacing[0]
-            ycoord = playfield_ballcoord[1] + (7-y)*playfield_ballspacing[1]
+            xcoord, ycoord = pixel_coord_in_playfield((x,y))
             pygame.draw.rect(surf, nextcolor, pygame.Rect((xcoord,ycoord), ball_size), width=3)
 
 
@@ -338,29 +334,24 @@ class Scoring(Ongoing):
 
         now = self.next
         self.next = []
-        #print("Expanding Scoring. Color=",color," past=",self.past, "now=",now)
         for coords in now:
-            # TODO react properly if the Ball moved away from that position.
-            marked_ball = game.playfield.mark_position_for_scoring(coords)
-            self.past.append(marked_ball)
+            new_ball = game.playfield.get_ball_at(coords)
+            # do not expand to a position that already has a scoring Ball, 
+            # and not to a position that does not match colors
+            if  new_ball.is_scoring() or not new_ball.matches_color(self.ball):
+                continue 
+            
+            new_ball.mark_for_scoring()
+            self.weight_so_far += new_ball.getweight()
+            self.past.append(new_ball)
             
             x,y = coords
             coords_to_check = [(x-1,y), (x+1,y), (x,y-1), (x,y+1)]
             # remove out-of-bounds from this list
             for (x2,y2) in coords_to_check:
                 if x2<0 or x2>7 or y2<0 or y2>8:
-                    coords_to_check.remove((x2,y2))
-            
-            for (x2,y2) in coords_to_check:
-                neighbor_ball = game.playfield.get_ball_at((x2,y2))
-                if (neighbor_ball.matches_color(marked_ball) and
-                not isinstance(neighbor_ball, balls.ScoringColoredBall)):
-                    self.next.append([x2,y2])
-                    self.weight_so_far += neighbor_ball.getweight()
-                #if neighbor_ball.getcolor() == color:
-                #    self.next.append([x2,y2])
-                #    self.weight_so_far += game.playfield.get_ball_at((x2,y2)).getweight()
-                #    game.playfield.remove_ball((x2,y2))
+                    continue
+                self.next.append((x2,y2))
 
         #print("more matching Balls found: next=",self.next)
         game.playfield.changed()
