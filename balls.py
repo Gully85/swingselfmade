@@ -226,8 +226,10 @@ class Bomb(SpecialBall):
         the_playfield = game.playfield
         # TODO in 3x3 area: Display explosion sprite (ongoing), explode bombs, remove other balls
         xcenter,ycenter = coords
-        game.ongoing.draw_explosion(coords)
+        xcenter = int(xcenter)
+        ycenter = int(ycenter)
 
+        game.ongoing.draw_explosion(coords)
         the_playfield.remove_ball(coords)
 
         for x in range(xcenter-1, xcenter+2):
@@ -293,7 +295,7 @@ class Heart(SpecialBall):
     def matches_color(self, ball: Ball):
         return isinstance(ball, Heart) # for now. TODO Joker
     
-    def mark_for_Scoring(self):
+    def mark_for_scoring(self):
         self.scoring = True
     
     def is_scoring(self):

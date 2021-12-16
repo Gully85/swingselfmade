@@ -42,6 +42,20 @@ def drop_ball():
         score_area.update_level()
     score_area.changed()
 
+def getscorefactor():
+    return global_scorefactor
+
+def increase_score_factor(num_hearts):
+    """increases the global score factor by 0.1 times the number submitted"""
+    global global_scorefactor
+    global_scorefactor += 0.1*num_hearts
+
+def addscore(a):
+    """adds to total score, returns new score"""
+    global score
+    score += a
+    return score
+
 def tick():
     """performs update of the game state, called periodically as time passes."""
     playfield.tick()

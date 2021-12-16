@@ -311,10 +311,15 @@ class Scoring(Ongoing):
             if self.expand():
                 self.delay = constants.scoring_delay
             else:
-                # Formula for Scores: Total weight x number of balls x level
-                print("Score from this: ", self.weight_so_far * len(self.past) * game.level)
-                game.score += self.weight_so_far * len(self.past) * game.level
-                print("Total score: ", game.score)
+                if isinstance(self.ball, balls.ColoredBall):
+                    # Formula for Scores: Total weight x number of balls x level
+                    score_from_this =   (self.weight_so_far * len(self.past) *
+                                        game.level * game.getscorefactor())
+                    print("Score from this: ", game.addscore(score_from_this))
+                    print("Total score: ", game.getscore())
+                elif isinstance(self.ball, balls.Heart):
+                    game.increase_score_factor(len(self.past))
+                    print("Global score factor is now ", game.getscorefactor())
                 game.playfield.finalize_scoring(self.past)
                 game.score_area.changed()
                 eventQueue.remove(self)
