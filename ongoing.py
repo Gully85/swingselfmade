@@ -293,17 +293,11 @@ class Scoring(Ongoing):
     def draw(self, surf):
         # placeholder: Rectangles. Green (65,174,118) for past and slightly
         # brighter green (102,194,164) for next
-        
-        nextcolor = (102,194,164)
-
-        #for (x,y) in self.past:
-        #    xcoord = playfield_ballcoord[0] + x*playfield_ballspacing[0]
-        #    ycoord = playfield_ballcoord[1] + (7-y)*playfield_ballspacing[1]
-        #    pygame.draw.rect(surf, pastcolor, pygame.Rect((xcoord,ycoord), ball_size), width=3)
-        
-        for(x,y) in self.next:
-            xcoord, ycoord = pixel_coord_in_playfield((x,y))
-            pygame.draw.rect(surf, nextcolor, pygame.Rect((xcoord,ycoord), ball_size), width=3)
+        pass
+        #nextcolor = (102,194,164)
+        #for(x,y) in self.next:
+        #    xcoord, ycoord = pixel_coord_in_playfield((x,y))
+        #    pygame.draw.rect(surf, nextcolor, pygame.Rect((xcoord,ycoord), ball_size), width=3)
 
 
     def tick(self):

@@ -100,6 +100,12 @@ def process_user_input():
                 game.crane.move_right()
             if event.key == K_DOWN or event.key == K_SPACE:
                 game.drop_ball()
+            if event.key == K_b:
+                balls.force_special("B")
+            if event.key == K_c:
+                balls.force_special("C")
+            if event.key == K_h:
+                balls.force_special("H")
 
 
 

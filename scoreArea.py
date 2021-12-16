@@ -21,8 +21,6 @@ class ScoreArea:
     Methods
     """
     
-    
-    
     def __init__(self, size: Tuple[int]):
         self.surf = pygame.Surface(size)
         self.size = size

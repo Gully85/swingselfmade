@@ -208,6 +208,8 @@ class Bomb(SpecialBall):
     """Special Ball. If landing on a Ball, it explodes a 3x3 area. If landing on a BlockedSpace, it
     just lies around, but explodes once any Ball lands on it or a neighboring Bomb explodes."""
 
+    level_required = 4
+
     def __init__(self):
         self.image = pygame.image.load("specials/bombe-selbstgemalt.png")
 
@@ -249,6 +251,8 @@ class Cutter(SpecialBall):
     """Special Ball. Destroys the stack it lands on. Once hitting the BlockedSpace or
     height 0, it disappears."""
 
+    level_required = 5
+
     def __init__(self):
         self.image = pygame.image.load("specials/bohrer-selbstgemalt.png")
     
@@ -270,6 +274,8 @@ class Cutter(SpecialBall):
 class Heart(SpecialBall):
     """No special effects. When Scoring, this will increase the global 
     score factor by 0.1*(number of Hearts scored)"""
+
+    level_required = 4
 
     def __init__(self):
         self.image = pygame.image.load("specials/Herz-selbstgemalt.png")
@@ -293,14 +299,37 @@ class Heart(SpecialBall):
     def is_scoring(self):
         return self.scoring
 
+nextspecial = Bomb()
+nextspecial_delay = 5
+
+def regenerate_nextspecial():
+    """Resets the upcoming special and timer
+    to new randomly generated ones"""
+    import game
+
+    random_pool = [Bomb, Cutter, Heart]
+    pick = random.choice(random_pool)
+    while pick.level_required > game.level:
+        pick = random.choice(random_pool)
+    
+    global nextspecial, nextspecial_delay
+    nextspecial = pick()
+    nextspecial_delay = random.randint(int(0.8*pick.level_required), int(1.2*pick.level_required))
+    if nextspecial_delay < 6:
+        nextspecial_delay = 6
+    #print("next upcoming Special: " + pick + " in " + nextspecial_delay)
 
 def generate_ball():
     import game
-    
-    # For testing purpose: 30% chance to get a bomb
-    if random.randint(0, 9) < 3:
-       return Heart()
-    
+
+    # TODO Star at levelup
+
+    global nextspecial_delay
+    if nextspecial_delay == 0:
+        ret = nextspecial
+        regenerate_nextspecial()
+        return ret
+    nextspecial_delay -= 1
     
     # in the first 10 Balls of each level, the new color is more likely
     if game.balls_dropped % 50 < 10 and random.choice([True,False]):
@@ -315,3 +344,18 @@ def generate_starting_ball():
     color = random.randint(1, 4)
     weight = random.randint(1,4)
     return ColoredBall(color, weight)
+
+def force_special(char):
+    """Forces the next generated ball to be a Bomb/Cutter/Heart,
+    depending on char being B/C/H. If not B/C/H, do nothing"""
+    global nextspecial, nextspecial_delay
+    if char == "B":
+        nextspecial = Bomb()
+    elif char == "C":
+        nextspecial = Cutter()
+    elif char == "H":
+        nextspecial = Heart()
+    else:
+        return
+    nextspecial_delay = 1
+    
