@@ -62,6 +62,15 @@ class ScoreArea:
         score_position_y = 0.8*self.size[1]
         score_position = (score_position_x, score_position_y)
         self.surf.blit(score_text, score_position)
+
+        nextspecial_text = score_font.render("Next Special in "+ str(balls.getnextspecial_delay()), True, (0,0,0))
+        nextspecial_position_x = score_position_x
+        nextspecial_position_y = 0.6*self.size[1]
+        nextspecial_position = (nextspecial_position_x, nextspecial_position_y)
+        nextspecial_ballpos = (nextspecial_position_x+125, nextspecial_position_y)
+        self.surf.blit(nextspecial_text, nextspecial_position)
+        balls.getnextspecial().draw(self.surf, nextspecial_ballpos)
+
         
         
         return self.surf

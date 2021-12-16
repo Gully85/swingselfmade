@@ -1,14 +1,11 @@
 Current TODO List:
 
-- the "mark for Scoring" mechanic needs to verify there is still a ball and color still matches
-- Scoring Hearts
 - more Special Balls
-- Ball generation, preview for upcoming Specials
+- preview for upcoming Specials
 - draw own pictograms for SpecialBalls and Explosion
 - sound for Explosion and Scoring
 - unittest Bomb and Cutter
 - fix Cutter. When destroying a stack, the seesaw starts moving and the Cutter falls through the bottom
-- extract playfield-coord to pixel-coord function
 - "Logbook mode", write events to a log-file. Helpful if we let others look for bugs. 
     Have a tmp logfile, if a certain key is pressed, move it to a permanent file. Regular 
     updates (at each level?) for the full game state. Track all Ongoing_Events in there. 
@@ -24,35 +21,23 @@ Current TODO List:
     Make it two (or more) separate objects? Local dictionary of the Constants module?
 - split ongoing EventQueue into multiple, for the different types. SeesawTiltings should always
     be drawn earlier than ThrownBalls. Or introduce a drawing-priority.
-- Refactor Playfield / Seesaw Code. Playfield should be 4 Seesaw objects, Seesaw has a method 
-    "does the left/right ball at height y match color X", if moving, the answer is always No 
-    (but end of moving triggers a status-update). This also works the SpecialBall Joker logic.
-    And Seesaw can, say, explode_in_height y when a Bomb explodes nearby, where moving Balls 
-    are destroyed also.
 - fix placeholder graphics for moving seesaw
 
 
 
 Recent changes:
-- Bombs
+- Scoring Hearts
 
 Suspected possible bugs:
 - perhaps range is off by one if flying out to the left for at least twice (range 10 or greater)
 
 
 Known bugs, need to find exact conditions to reproduce
-- A Scoring can remove a Blocked if a seesaw tilts while the Scoring expands. 
-- Scoring seems to remove wrong-colored Balls sometimes
-- if a Scoring removes the ball in height 0 but not the one above it (b/c it expanded sideways),
-    the one above falls through the bottom and triggers a crash. This requires a change in
-    the FallingBall landing logic. Have the playfield supply a landing-height.
 
 
 
 maybe later TODOs:
 - more Special_Balls
-- it is atm not consistent if we need playfield to be a parameter in the Ongoings. For later VS mode,
-     we need to handle two Playfields at once, but with a shared eventQueue.
 - automate creation of standalone-exe. For now, use the console command 
 pyinstaller --onefile SelfSwing_main.py
 

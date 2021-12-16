@@ -321,6 +321,12 @@ def regenerate_nextspecial():
         nextspecial_delay = 6
     #print("next upcoming Special: " + pick + " in " + nextspecial_delay)
 
+def getnextspecial():
+    return nextspecial
+
+def getnextspecial_delay():
+    return nextspecial_delay
+
 def generate_ball():
     import game
 
