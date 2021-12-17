@@ -409,16 +409,21 @@ class Explosion(Ongoing):
     """A Bomb has recently exploded here, the sprite is drawn for a few frames."""
 
     def __init__(self, coords: Tuple[int]):
-        self.coords = coords
+        x,y = coords
+        self.coords = (x-1, y+1)
         self.progress = 0.0
+        self.image = pygame.image.load("specials/explosion_zugeschnitten.png")
     
     def tick(self):
         self.progress += 1./explosion_numticks
         if self.progress > 1.0:
             eventQueue.remove(self)
+            game.playfield.changed()
     
     def draw(self, surf: pygame.Surface):
-        pass
+        drawpos = pixel_coord_in_playfield(self.coords)
+        surf.blit(self.image, drawpos)
+        
 
 def draw_explosion(coords):
     eventQueue.append(Explosion(coords))
