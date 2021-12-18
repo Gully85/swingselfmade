@@ -67,17 +67,15 @@ class Playfield:
 
         trigger_redraw = self.redraw_needed
         trigger_redraw |= game.ongoing.get_number_of_events() > 0
-        for sesa in self.stacks:
-            trigger_redraw |= sesa.ismoving()
         
         if not trigger_redraw:
             return
-        else:
-            drawn_playfield = self.draw()
-            for event in game.ongoing.eventQueue:
-                event.draw(drawn_playfield)
-            screen.blit(drawn_playfield, playfield_position)
-            self.redraw_needed = False
+        
+        drawn_playfield = self.draw()
+        for event in game.ongoing.eventQueue:
+            event.draw(drawn_playfield)
+        screen.blit(drawn_playfield, playfield_position)
+        self.redraw_needed = False
 
     def draw(self):
         """draws the Playfield including all Balls. Returns surface."""
@@ -106,7 +104,19 @@ class Playfield:
 
         return self.stacks[x//2].get_ball_at_height(y, x%2==0)
 
+    def column_is_empty(self, column:int):
+        if column<0 or column>7:
+            raise ValueError(   "Trying to get empty-status of column{}, "
+                                "only 0..7 possible".format(column))
+        sesa = column//2
+        return self.stacks[sesa].isempty(column%2==0)
     
+    def add_on_top(self, ball, column):
+        """add a Ball on top of a stack, do not trigger anything"""
+        if column<0 or column>7:
+            raise ValueError("Wrong column {}".format(column))
+        self.stacks[column//2].add_on_top(ball, column%2==0)
+
     def get_weight_of_column(self, column:int):
         """Returns total weight of the stack in given column 0..7."""
         if column<0 or column>7:
@@ -133,9 +143,33 @@ class Playfield:
         sesa.land_ball(x%2==0, ball)
         
     def land_ball_in_column(self, ball: balls.Ball, x: int):
-        """Land a ball in specified column on top of the stack. x=0..7"""
-        sesa = self.stacks[x//2]
-        sesa.land_ball(x%2==0, ball)
+        """Land a ball in specified column on top of the stack. x=0..7. 
+        Does not trigger on-land effects."""
+        self.stacks[x//2].add_on_top(ball, x%2==0)
+        self.refresh_status()
+
+    def trigger_explosion(self, coords: Tuple[int]):
+        """Trigger an explosion centered at given position."""
+        ongoing.draw_explosion(coords)
+        x,y = coords
+        x = round(x)
+        y = round(y)
+        # area of the explosion, respect boundaries
+        coords_to_blowup = []
+        for x2 in range(x-1,x+2):
+            if x2<0 or x2>7:
+                continue
+            for y2 in range(y+1,y-2,-1):
+                if y2<0 or y2>7:
+                    continue
+                coords_to_blowup.append([x2,y2])
+        
+        for position in coords_to_blowup:
+            ball_there = self.get_ball_at(position)
+            if isinstance(ball_there, balls.Bomb):
+                self.trigger_explosion(position)
+            self.remove_ball_at(position)
+        
     
     def refresh_status(self):
         """Checks if anything needs to start now. Performs weight-check, 
@@ -266,7 +300,7 @@ class Playfield:
         else:
             return round(-raw_tilt)
     
-    def remove_ball(self, coords:Tuple[int]):
+    def remove_ball_at(self, coords:Tuple[int]):
         """remove a ball from specified position. If there is already no ball, do nothing. If the position
         is Blocked, raises GameStateError"""
         x,y = coords
@@ -280,6 +314,16 @@ class Playfield:
         """Returns the height of the lowest EmptySpace position of a column. Possible values are 1..8"""
         sesa = self.stacks[column//2]
         return sesa.landing_height(column%2==0)
+
+    def get_top_ball(self, column: int):
+        """returns highest ball in the stack, or BlockedSpace if the stack is empty"""
+        if column<0 or column>7:
+            raise ValueError("Can not get top of ball of stack {},"
+                             "only 0..7 possible".format(column))
+        if self.column_is_empty(column):
+            return balls.BlockedSpace()
+        else:
+            return self.stacks[column//2].get_top_ball(column%2==0)
 
 class Seesaw:
     """A pair of two connected stacks in the playfield."""
@@ -295,6 +339,12 @@ class Seesaw:
     
     def ismoving(self):
         return self.moving
+    
+    def isempty(self, left: bool):
+        if left:
+            return len(self.stackleft) == 0
+        else:
+            return len(self.stackright) == 0
     
     def landing_height(self, left: bool):
         blockedheight = self.get_blocked_height(left)
@@ -317,35 +367,6 @@ class Seesaw:
         for y,ball in enumerate(stack):
             if isinstance(ball, balls.Bomb):
                 ball.explode((self.xleft+(1-left), y+blockedheight))
-
-    def land_ball(self, left: bool, ball: balls.Ball):
-        game.playfield.changed()
-        y = self.landing_height(left)
-        if left:
-            stack = self.stackleft
-            stack.append(ball)
-            self.weightleft += ball.getweight()
-            x = self.xleft
-        else:
-            stack = self.stackright
-            stack.append(ball)
-            self.weightright += ball.getweight()
-            x = 1 + self.xleft
-        
-        # trigger on-landing effect of SpecialBall
-        if isinstance(ball, balls.SpecialBall):
-            if 1 == len(stack):
-                ball.landing_effect_on_ground((x,y))
-            else:
-                ball.landing_effect_on_ball((x,y))
-        elif isinstance(ball, balls.ColoredBall):
-            pass
-        else:
-            from game import GameStateError
-            raise GameStateError("Trying to land "
-                                "unexpected Ball type", ball)
-
-        game.playfield.refresh_status()
         
     def check_gravity(self):
         """Sets state to moving if weights dont fit 
@@ -378,7 +399,20 @@ class Seesaw:
         +1 for heavier right. Can have any float value 
         between -1.0 and +1.0."""
         return self.tilt
+    
+    def add_on_top(self, ball: balls.Ball, left: bool):
+        if left:
+            self.stackleft.append(ball)
+        else:
+            self.stackright.append(ball)
+    
+    def get_top_ball(self, left: bool):
+        if left:
+            return self.stackleft[-1]
+        else:
+            return self.stackright[-1]
 
+    # TODO can this be removed?
     def get_ball_at_height(self, height: int, left: bool):
         # TODO what if moving? Both? Return Dummy object?
         if left:
@@ -386,12 +420,14 @@ class Seesaw:
         else:
             stack = self.stackright
         blockedheight = round(self.get_blocked_height(left))
+        height = round(height)
         if height < blockedheight:
             return balls.BlockedSpace()
         elif height >= blockedheight + len(stack):
             return balls.EmptySpace()
         else:
             return stack[height-blockedheight]
+    
     
     def get_blocked_height(self, left: bool):
         """Returns the number of blocked space at the bottom as float. 
@@ -416,6 +452,7 @@ class Seesaw:
         if not self.moving:
             return
         
+        game.playfield.changed()
         # if left is heavier, reduce tilt
         if self.weightleft > self.weightright:
             self.tilt -= constants.tilting_per_tick
@@ -528,44 +565,43 @@ class Seesaw:
     def remove_ball_at(self, coords: Tuple[int,int]):
         """Remove a ball from specified position. Balls above the removed
         one are converted into FallingBalls.
-        If there is no ball at coords, do nothing. If that position is
-        Blocked, raise GameStateError. If the seesaw is currently moving,
-        this can remove two balls.
-        """
+        If there is no ball at coords, do nothing. """
         x,y = coords
         # x should be either self.xleft or self.xleft+1. If not, 
         # this was called on the wrong seesaw.
-        if not (x == self.xleft or x == self.xleft+1):
-            raise ValueError("remove_ball_at(", coords
-            ,") called on wrong seesaw")
+        if x == self.xleft:
+            stack = self.stackleft
+            left = True
+        elif x == self.xleft + 1:
+            stack = self.stackright
+            left = False
+        else:
+            raise ValueError("remove_ball_at called on wrong seesaw")
         if y < 0 or y > 9:
             raise ValueError("Can not remove Ball from that height."
                              "coords="+coords)
-        left = (x%2 == 0)
-        if left:
-            stack = self.stackleft
-        else:
-            stack = self.stackright
-        blockedheight = self.get_blocked_height(left)
-        y -= blockedheight
-        y = round(y)
-        if y >= len(stack):
+        
+        blocked_height = self.get_blocked_height(left)
+        #y -= blockedheight
+        height_to_remove = round(y - blocked_height)
+        
+        if height_to_remove < 0 or height_to_remove >= len(stack):
             return
         
         # if not moving, this removes just one ball from the list. 
         # Convert any above the removed one into FallingBalls
-        if not self.ismoving():
-            stack.pop(y)
-            for height,ball in enumerate(stack[y:]):
-                stack.remove(ball)
-                ongoing.ball_falls_from_height(ball, x, height+blockedheight+1)
+    
+        stack.pop(height_to_remove)
+        for height,ball in enumerate(stack[height_to_remove-1:]):# this iterates over a copy
+                                                # so modifying is ok
+            stack.remove(ball)
+            ongoing.ball_falls_from_height(ball, x, height+blocked_height+1)
         # if moving, do nothing for now.
         else:
             pass
 
     def remove_scored_balls(self, list_to_remove: list):
         """Remove marked balls that are in the list, drop hanging balls"""
-        # TODO correct drop-heights
         # left
         blocked_height = self.get_blocked_height(True)
         # bottom-up

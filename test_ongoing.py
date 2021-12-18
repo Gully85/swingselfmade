@@ -43,7 +43,9 @@ class TestOngoing(unittest.TestCase):
         Testball = balls.generate_starting_ball()
         chosen_column = random.randint(0,7)
         chosen_seesaw = chosen_column//2
-        game.playfield.land_ball_in_column(Testball, chosen_column)
+        #game.playfield.land_ball_in_column(Testball, chosen_column)
+        Testball.lands_on_empty((chosen_column,1))
+        game.playfield.refresh_status()
         the_sesa = game.playfield.stacks[chosen_seesaw]
         self.assertTrue(the_sesa.ismoving())
 
@@ -76,14 +78,16 @@ class TestOngoing(unittest.TestCase):
         game.reset()
         # drop a ball of weight 1 to the leftmost column. Wait until tilting is finished.
         ball1 = balls.ColoredBall(1, 1)
-        game.playfield.land_ball_in_column(ball1, 0)
+        
+        ball1.lands_on_empty((0,1))
         while game.playfield.any_seesaw_is_moving():
             game.tick()
         
         # Then a ball of weight 3 to the second-to-left. This should start a 
         # ThrownBall, range 2 to the right. Should land in column 2.
         ball3 = balls.ColoredBall(1, 3)
-        game.playfield.land_ball_in_column(ball3, 1)
+        ball3.lands_on_empty((1,2))
+        game.playfield.refresh_status()
         self.assertTrue(game.ongoing.event_type_exists(game.ongoing.ThrownBall))
         the_throwing_event = game.ongoing.get_event_of_type(game.ongoing.ThrownBall)
         self.assertEqual(the_throwing_event.getdestination(), 2)
@@ -101,9 +105,8 @@ class TestOngoing(unittest.TestCase):
         # ultimately landing in column 5, third from the right. Should convert into a Bomb (2 fly-outs)
 
         ball15 = balls.ColoredBall(1, 15)
-        game.playfield.land_ball_in_column(ball15, 0)
-        #the_throwing_event = game.ongoing.get_newest_event()
-        #self.assertIsInstance(the_throwing_event, game.ongoing.ThrownBall)
+        ball15.lands_on_empty((0,2))
+        game.playfield.refresh_status()
         self.assertTrue(game.ongoing.event_type_exists(game.ongoing.ThrownBall))
         the_throwing_event = game.ongoing.get_event_of_type(game.ongoing.ThrownBall)
         self.assertIs(the_throwing_event.getball(), ball3)
@@ -131,13 +134,15 @@ class TestOngoing(unittest.TestCase):
 
         Testball = balls.generate_starting_ball()
         Testball.setweight(1)
-        game.playfield.land_ball_in_column(Testball, 6)
+        Testball.lands_on_empty((6,1))
+        game.playfield.refresh_status()
         while game.playfield.any_seesaw_is_moving():
             game.tick()
         
         Testball23 = balls.generate_starting_ball()
         Testball23.setweight(23)
-        game.playfield.land_ball_in_column(Testball23, 7)
+        Testball23.lands_on_empty((7,2))
+        game.playfield.refresh_status()
         # range is 22. Two complete rotations are 16, remainder is 6. One to rightmost, 
         # five to go, land in column 4 since columns are zero-indexed. Should convert into
         # a Heart (3 fly-outs)
@@ -206,15 +211,17 @@ class TestOngoing(unittest.TestCase):
                 nextball = balls.generate_starting_ball()
                 nextball.setcolor(1)
                 nextball.setweight(50)
-                the_playfield.land_ball_in_column(nextball, column)
+                nextball.lands_on_empty((column, 1)) # y-value is ignored on ColoredBalls
+            the_playfield.refresh_status()
             maxticks = int(1e6)
-            for i in range(maxticks-1):
-                game.tick()
-                if not the_playfield.any_seesaw_is_moving():
-                    break
-            self.assertLess(i, maxticks)
-            self.assertEqual(the_playfield.get_seesaw_state(column), -1)
         
+        for i in range(maxticks-1):
+            game.tick()
+            if not the_playfield.any_seesaw_is_moving():
+                break
+        self.assertLess(i, maxticks)
+        self.assertEqual(the_playfield.get_seesaw_state(column), -1)
+    
         # drop ball colors like this:
         #
         # 2 3
@@ -223,17 +230,20 @@ class TestOngoing(unittest.TestCase):
         nextball = balls.generate_starting_ball()
         nextball.setcolor(3)
         total_weight = nextball.getweight()
-        the_playfield.land_ball_in_column(nextball, 0)
+        nextball.lands_on_empty((0,2)) # actually lands on a Ball, doesnt matter for ColoredBalls
+        the_playfield.refresh_status()
 
         other_colored_ball = balls.generate_starting_ball()
         other_colored_ball.setcolor(2)
-        the_playfield.land_ball_in_column(other_colored_ball, 0)
+        other_colored_ball.lands_on_empty((0,3))
+        the_playfield.refresh_status()
 
         for _ in range(2):
             nextball = balls.generate_starting_ball()
             nextball.setcolor(3)
             total_weight += nextball.getweight()
-            the_playfield.land_ball_in_column(nextball, 1)
+            nextball.lands_on_empty((1,4))
+        the_playfield.refresh_status()
         
         self.assertEqual(0, game.getscore())
         self.assertEqual(4, game.getlevel())
@@ -242,9 +252,12 @@ class TestOngoing(unittest.TestCase):
         nextball = balls.generate_starting_ball()
         nextball.setcolor(3)
         total_weight += nextball.getweight()
-        the_playfield.land_ball_in_column(nextball, 2)
+        nextball.lands_on_empty((2,4))
+        the_playfield.refresh_status()
+        
         game.tick()
-        self.assertIsInstance(game.ongoing.get_newest_event(), game.ongoing.Scoring)
+        
+        self.assertTrue(game.ongoing.event_type_exists(game.ongoing.Scoring))
 
         # after some ticks, the other_colored_ball should start dropping
         maxticks = int(1e6)

@@ -19,9 +19,8 @@ import pygame
 import game
 
 from constants import ball_size, pixel_coord_in_playfield, playfield_ballcoord, playfield_ballspacing, rowspacing
-from constants import falling_per_tick, tilting_per_tick
+from constants import falling_per_tick
 from constants import thrown_ball_dropheight
-from constants import explosion_numticks
 
 import constants
 
@@ -60,6 +59,7 @@ class Ongoing:
     def tick(self):
         pass
 
+    @abstractmethod
     def draw(self, surf: pygame.Surface):
         pass
 
@@ -89,21 +89,25 @@ class FallingBall(Ongoing):
             if the Ball drops from Playfield instead of Crane/Thrown
         """
     
-    def __init__(self, ball, column: int, starting_height=8.0):
+    def __init__(self, ball: balls.Ball, column: int, starting_height=8.0):
         self.ball = ball
         self.column = column
         self.height = starting_height
         
     def draw(self, surf:pygame.Surface):
-        x = playfield_ballcoord[0] + (self.column) * playfield_ballspacing[0]
-        y = playfield_ballcoord[1] + (7.-self.height)*playfield_ballspacing[1]
+        x,y = pixel_coord_in_playfield((self.column, self.height))
         self.ball.draw(surf, (x,y))
 
     def tick(self):
         self.height -= falling_per_tick
         if self.height < game.playfield.landing_height_of_column(self.column):
-            game.playfield.land_ball_in_column(self.ball, self.column)
+            ball_below = game.playfield.get_top_ball(self.column)
+            if isinstance(ball_below, balls.Ball):
+                self.ball.lands_on_ball((self.column, self.height), ball_below)
+            else:
+                self.ball.lands_on_empty((self.column, self.height))
             eventQueue.remove(self)
+            game.playfield.refresh_status()
     
     def getheight(self):
         return self.height
@@ -415,7 +419,7 @@ class Explosion(Ongoing):
         self.image = pygame.image.load("specials/explosion_zugeschnitten.png")
     
     def tick(self):
-        self.progress += 1./explosion_numticks
+        self.progress += 1./constants.explosion_numticks
         if self.progress > 1.0:
             eventQueue.remove(self)
             game.playfield.changed()

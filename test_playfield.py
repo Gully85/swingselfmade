@@ -128,7 +128,7 @@ class TestPlayfield(unittest.TestCase):
             game.tick()
         
         # remove lower one and trigger a status update
-        the_playfield.remove_ball((6,0))
+        the_playfield.remove_ball_at((6,0))
         the_playfield.refresh_status()
         game.tick()
 

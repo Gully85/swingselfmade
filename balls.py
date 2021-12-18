@@ -116,6 +116,18 @@ class Ball(PlayfieldSpace):
     def is_scoring(self):
         """True if the Ball has been marked by an expanding Scoring"""
         return False
+    
+    @abstractmethod
+    def lands_on_empty(self, coords: Tuple[int,int]):
+        """effects of a Ball landing on an empty side. 
+        Excluding status update. """
+        return None
+    
+    @abstractmethod
+    def lands_on_ball(self, coords: Tuple[int,int], ball_below: Ball):
+        """effects of a Ball landing on another ball.
+        Excluding status update. """
+        return None
 
 class ColoredBall(Ball):
     """Child-class of Ball. Has a color (int, 1 <= color <= maxcolors)
@@ -167,6 +179,11 @@ class ColoredBall(Ball):
     def is_scoring(self):
         return self.scoring
 
+    def lands_on_empty(self, coords: Tuple[int, int]):
+        game.playfield.add_on_top(self, coords[0])
+    
+    def lands_on_ball(self, coords: Tuple[int, int], ball_below: Ball):
+        game.playfield.add_on_top(self, coords[0])
 
 class SpecialBall(Ball):
     """abstract class. Must be instanciated as one of the SpecialBall types. These all have weight==0.
@@ -203,6 +220,15 @@ class SpecialBall(Ball):
         """Most SpecialBalls can not score, so False is the default answer. 
         This is overriden in the exceptions: Heart and Star"""
         return False
+    
+    @abstractmethod
+    def lands_on_empty(self, coords: Tuple[int, int]):
+        return None
+    
+    @abstractmethod
+    def lands_on_ball(self, coords: Tuple[int, int], ball_below: Ball):
+        return None
+
 
 class Bomb(SpecialBall):
     """Special Ball. If landing on a Ball, it explodes a 3x3 area. If landing on a BlockedSpace, it
@@ -230,7 +256,7 @@ class Bomb(SpecialBall):
         ycenter = int(ycenter)
 
         game.ongoing.draw_explosion(coords)
-        the_playfield.remove_ball(coords)
+        the_playfield.remove_ball_at(coords)
 
         for x in range(xcenter-1, xcenter+2):
             if x < 0 or xcenter > 7:
@@ -242,12 +268,18 @@ class Bomb(SpecialBall):
                 if isinstance(ball_there, Bomb):
                     ball_there.explode((x,y))
                 elif isinstance(ball_there, Ball):
-                    the_playfield.remove_ball((x,y))
+                    the_playfield.remove_ball_at((x,y))
 
         the_playfield.refresh_status()
     
     def matches_color(self, ball: Ball):
         return False
+    
+    def lands_on_empty(self, coords: Tuple[int, int]):
+        game.playfield.add_on_top(self, coords[0])
+    
+    def lands_on_ball(self, coords: Tuple[int, int], ball_below: Ball):
+        game.playfield.trigger_explosion(coords)
 
 class Cutter(SpecialBall):
     """Special Ball. Destroys the stack it lands on. Once hitting the BlockedSpace or
@@ -262,16 +294,23 @@ class Cutter(SpecialBall):
         super().draw(surf, drawpos)
     
     def landing_effect_on_ground(self, coords: Tuple[int]):
-        game.playfield.remove_ball(coords)
+        game.playfield.remove_ball_at(coords)
 
     def landing_effect_on_ball(self, coords: Tuple[int]):
         x,y = coords
-        game.playfield.remove_ball((x, y-1))
-        game.playfield.remove_ball(coords)
+        game.playfield.remove_ball_at((x, y-1))
+        game.playfield.remove_ball_at(coords)
         game.ongoing.ball_falls_from_height(self, x, y)
     
     def matches_color(self, ball: Ball):
         return False
+    
+    def lands_on_empty(self, coords: Tuple[int, int]):
+        pass
+
+    def lands_on_ball(self, coords: Tuple[int, int], ball_below: Ball):
+        game.playfield.remove_ball_at((coords[0], coords[1]-1))
+        game.ongoing.ball_falls_from_height(self, coords[0], coords[1])
 
 class Heart(SpecialBall):
     """No special effects. When Scoring, this will increase the global 
@@ -300,6 +339,12 @@ class Heart(SpecialBall):
     
     def is_scoring(self):
         return self.scoring
+    
+    def lands_on_ball(self, coords: Tuple[int, int], ball_below: Ball):
+        return game.playfield.add_on_top(self, coords[0])
+
+    def lands_on_empty(self, coords: Tuple[int, int]):
+        return game.playfield.add_on_top(self, coords[0])
 
 nextspecial = Bomb()
 nextspecial_delay = 5
