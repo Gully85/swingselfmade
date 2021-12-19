@@ -36,6 +36,7 @@ def main():
     #print("The author thanks freepik.com for the pictograms used in this game.")
 
     # init screen
+    global screen
     screen = pygame.display.set_mode(screensize)
     pygame.display.set_caption("Swing-Remake by Gully")
     
@@ -65,6 +66,7 @@ def main():
         
         ### Step 2.5, check if the player lost
         if not game.playfield.alive:
+            finish_game(game.score)
             print("Final score: ", game.score)
             exit()
         
@@ -80,6 +82,25 @@ def main():
         
         # make sure the loop doesn't cycle faster than the FPS limit
         FrameLimiter.tick(max_FPS)
+
+def finish_game(finalscore: int):
+    import constants
+    finalscore_pixelpos = (constants.scoredisplayarea_position_x, 50)
+    finalscore_font = pygame.font.SysFont("Arial", 28)
+    finalscore_text = finalscore_font.render("Final Score: " + str(finalscore), True, (255,0,0))
+    global screen
+    screen.blit(finalscore_text, finalscore_pixelpos)
+    pygame.display.flip()
+    while True:
+        FrameLimiter.tick(max_FPS)
+        for event in pygame.event.get():
+            if event.type == QUIT or (
+                event.type==KEYDOWN and event.key == K_ESCAPE):
+                exit()
+                
+
+
+
 
 def process_user_input():
     for event in pygame.event.get():

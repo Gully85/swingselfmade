@@ -1,10 +1,11 @@
 Current TODO List:
 
+- Test game losing condition. After losing, show the final score
+- Combining 5 verticals.
 - Special Balls: Star, Joker
 - draw own pictograms for Explosion
 - sound for Explosion and Scoring?
 - unittest Bomb and Cutter
-- fix Cutter. When destroying a stack, the seesaw starts moving and the Cutter falls through the bottom
 - "Logbook mode", write events to a log-file. Helpful if we let others look for bugs. 
     Have a tmp logfile, if a certain key is pressed, move it to a permanent file. Regular 
     updates (at each level?) for the full game state. Track all Ongoing_Events in there. 
@@ -36,7 +37,7 @@ Known bugs, need to find exact conditions to reproduce
 
 
 maybe later TODOs:
-- more Special_Balls
+- more Special Balls
 - automate creation of standalone-exe. For now, use the console command 
 pyinstaller --onefile SelfSwing_main.py
 

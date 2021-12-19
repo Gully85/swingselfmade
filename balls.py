@@ -401,6 +401,7 @@ def generate_starting_ball():
 def force_special(char):
     """Forces the next generated ball to be a Bomb/Cutter/Heart,
     depending on char being B/C/H. If not B/C/H, do nothing"""
+    return
     global nextspecial, nextspecial_delay
     if char == "B":
         nextspecial = Bomb()
