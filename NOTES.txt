@@ -1,6 +1,6 @@
 Current TODO List:
 
-- Test game losing condition. After losing, show the final score
+- fix endless-recursion if a Bomb explodes another Bomb
 - Combining 5 verticals.
 - Special Balls: Star, Joker
 - draw own pictograms for Explosion

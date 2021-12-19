@@ -154,6 +154,7 @@ class Playfield:
         x,y = coords
         x = round(x)
         y = round(y)
+        self.remove_ball_at((x,y))
         # area of the explosion, respect boundaries
         coords_to_blowup = []
         for x2 in range(x-1,x+2):
