@@ -386,15 +386,15 @@ def generate_ball():
     
     # in the first 10 Balls of each level, the new color is more likely
     if game.balls_dropped % 50 < 10 and random.choice([True,False]):
-        color = game.level
+        color = game.level - 1
     else:
-        color = random.randint(1, game.level)
+        color = random.randint(1, game.level - 1)
     weight = random.randint(1, game.level)
     return ColoredBall(color, weight)
 
 def generate_starting_ball():
     """This will always generate a ColoredBall."""
-    color = random.randint(1, 4)
+    color = random.randint(0, 3)
     weight = random.randint(1,4)
     return ColoredBall(color, weight)
 

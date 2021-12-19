@@ -51,7 +51,7 @@ def main():
     
     # only a test, but doesn't hurt
     #ongoing.ball_falls(balls.generate_starting_ball(), 1)
-    ongoing.ball_falls(balls.Bomb(), 1)
+    #ongoing.ball_falls(balls.Bomb(), 1)
     
     
     # Event Loop
@@ -59,16 +59,21 @@ def main():
         ### Step 1, process user input
         process_user_input()
         
+        ### Step 1.5, auto-drop if no balls are Falling/Thrown atm
+        if  not game.ongoing.event_type_exists(game.ongoing.FallingBall) and (
+            not game.ongoing.event_type_exists(game.ongoing.ThrownBall)):
+            game.drop_ball()
 
         ## Step 2, proceed ongoing Events
         game.tick()
         
         
-        ### Step 2.5, check if the player lost
+        ### Step 2.5, check if the game ended
+        if game.getlevel() == 9 and game.balls_dropped % 50 == 49:
+            game.score = game.score*3
+            game.playfield.alive = False
         if not game.playfield.alive:
             finish_game(game.score)
-            print("Final score: ", game.score)
-            exit()
         
         ### Step 3, update screen where necessary. TODO make this only one call, game.draw()
         game.depot.draw_if_changed(screen)
