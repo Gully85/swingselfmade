@@ -1,9 +1,9 @@
 # tests the ongoing module. Separate test_ method for each class in there
 
-from unittest.case import TestCase
 import game, balls, constants
 import unittest, random
 
+from testing_generals import wait_for_empty_eq
 
 
 class TestOngoing(unittest.TestCase):
@@ -26,15 +26,12 @@ class TestOngoing(unittest.TestCase):
 
         # it should land after some time. Maximum number of ticks allowed is 8.0 / falling_speed * max_FPS
         # (it should only need to drop by 7 positions and then trigger a Seesaw Tilting, 8.0 leaves some room)
-        maxticks = int(8.0 * constants.max_FPS / constants.falling_speed)
+        maxticks = int(8.0 * constants.max_FPS / constants.falling_per_tick)
         self.assertGreater(maxticks, 0)
-        for i in range(maxticks-1):
-            game.tick()
-            if not the_falling_event in game.ongoing.eventQueue:
-                break
+        self.assertTrue(wait_for_empty_eq(maxticks))
         
-        self.assertLess(i, maxticks)
-        self.assertTrue(game.playfield.stacks[chosen_column//2].ismoving())
+        # The seesaw where it landed, should now be in a not-balanced position
+        self.assertNotEqual(0, game.playfield.get_seesaw_state(chosen_column))
         
     def test_tilting(self):
         game.reset()
@@ -43,7 +40,6 @@ class TestOngoing(unittest.TestCase):
         Testball = balls.generate_starting_ball()
         chosen_column = random.randint(0,7)
         chosen_seesaw = chosen_column//2
-        #game.playfield.land_ball_in_column(Testball, chosen_column)
         Testball.lands_on_empty((chosen_column,1))
         game.playfield.refresh_status()
         the_sesa = game.playfield.stacks[chosen_seesaw]
@@ -56,12 +52,8 @@ class TestOngoing(unittest.TestCase):
 
         # it should finish after some time. Expected number of ticks is (1. / tilting_per_tick)
         maxticks = int(1./ constants.tilting_per_tick) + 1
-        for i in range(maxticks-1):
-            game.tick()
-            if not game.playfield.any_seesaw_is_moving():
-                break
-        
-        self.assertLess(i, maxticks)
+        self.assertTrue(wait_for_empty_eq(maxticks))
+
 
         # after finishing, the seesaw should be tilted towards the landed ball. 
         # exact column always down (-1), connected_neighbor up (+1)
@@ -80,8 +72,9 @@ class TestOngoing(unittest.TestCase):
         ball1 = balls.ColoredBall(1, 1)
         
         ball1.lands_on_empty((0,1))
-        while game.playfield.any_seesaw_is_moving():
-            game.tick()
+        game.playfield.refresh_status()
+        maxticks = int(2.*constants.max_FPS/constants.tilting_per_tick + 1)
+        self.assertTrue(wait_for_empty_eq(maxticks))
         
         # Then a ball of weight 3 to the second-to-left. This should start a 
         # ThrownBall, range 2 to the right. Should land in column 2.
@@ -213,13 +206,10 @@ class TestOngoing(unittest.TestCase):
                 nextball.setweight(50)
                 nextball.lands_on_empty((column, 1)) # y-value is ignored on ColoredBalls
             the_playfield.refresh_status()
-            maxticks = int(1e6)
         
-        for i in range(maxticks-1):
-            game.tick()
-            if not the_playfield.any_seesaw_is_moving():
-                break
-        self.assertLess(i, maxticks)
+        maxticks = int(1e6)
+        self.assertTrue(wait_for_empty_eq(maxticks))
+        
         self.assertEqual(the_playfield.get_seesaw_state(column), -1)
     
         # drop ball colors like this:
@@ -230,7 +220,7 @@ class TestOngoing(unittest.TestCase):
         nextball = balls.generate_starting_ball()
         nextball.setcolor(3)
         total_weight = nextball.getweight()
-        nextball.lands_on_empty((0,2)) # actually lands on a Ball, doesnt matter for ColoredBalls
+        nextball.lands_on_empty((0,2))
         the_playfield.refresh_status()
 
         other_colored_ball = balls.generate_starting_ball()
@@ -261,24 +251,9 @@ class TestOngoing(unittest.TestCase):
 
         # after some ticks, the other_colored_ball should start dropping
         maxticks = int(1e6)
-        for i in range(maxticks-1):
-            game.tick()
-            if game.ongoing.event_type_exists(game.ongoing.FallingBall):
-                break
-        self.assertLess(i, maxticks-1)
-        
-        # at this point, the newest event should be the dropped ball of other color
-        the_falling_event = game.ongoing.get_event_of_type(game.ongoing.FallingBall)
-        self.assertIs(the_falling_event.getball(), other_colored_ball)
-        self.assertEqual(the_falling_event.getcolumn(), 0)
+        self.assertTrue(wait_for_empty_eq(maxticks))
 
-        # wait until eventQueue is empty again. Check that the dropped ball is in correct
-        # position (column=0, height=2) and the score. 
-        # The score should be 4 * 4 * total_weight, 
-        # the formula is level*number of balls * totalweight
-        while 0 != game.ongoing.get_number_of_events():
-            game.tick()
-        
+        # check correct position of dropped ball        
         the_landed_ball = game.playfield.get_ball_at((0,2))
         self.assertIs(the_landed_ball, other_colored_ball)
         self.assertEqual(game.getscore(), 16*total_weight)

@@ -3,6 +3,7 @@
 import game, constants
 import unittest
 import balls
+from testing_generals import wait_for_empty_eq
 
 class TestPlayfield(unittest.TestCase):
     def test_playfield(self):
@@ -11,7 +12,7 @@ class TestPlayfield(unittest.TestCase):
         the_playfield = game.playfield
 
         # at the beginning: The bottom row should be Blocked, the row 
-        # above that should be EmptySpace, and check_hanging_balls() == False
+        # above that should be EmptySpace
         for i in range(8):
             self.assertIsInstance(the_playfield.get_ball_at((i,0)), balls.BlockedSpace)
             self.assertIsInstance(the_playfield.get_ball_at((i,1)), balls.EmptySpace)
@@ -21,8 +22,8 @@ class TestPlayfield(unittest.TestCase):
         # (1,0) and (1,1) must be Blocked
         Testball = balls.generate_starting_ball()
         the_playfield.land_ball_in_column(Testball, 0)
-        while game.playfield.any_seesaw_is_moving():
-            game.tick()
+        maxticks = int(constants.max_FPS / constants.tilting_per_tick)
+        self.assertTrue(wait_for_empty_eq(maxticks))
         self.assertEqual(the_playfield.get_seesaw_state(0), -1)
         self.assertIs(the_playfield.get_ball_at((0,0)), Testball)
         self.assertIsInstance(the_playfield.get_ball_at((1,0)), balls.BlockedSpace)
@@ -33,8 +34,8 @@ class TestPlayfield(unittest.TestCase):
         Testball2 = balls.generate_starting_ball()
         Testball2.setweight(Testball.getweight())
         the_playfield.land_ball_in_column(Testball2, 1)
-        while game.playfield.any_seesaw_is_moving():
-            game.tick()
+        maxticks = int(constants.max_FPS // constants.tilting_per_tick)
+        self.assertTrue(wait_for_empty_eq(maxticks))
         self.assertEqual(the_playfield.get_seesaw_state(0), 0)
         self.assertIs(the_playfield.get_ball_at((0,1)), Testball)
         self.assertIs(the_playfield.get_ball_at((1,1)), Testball2)

@@ -14,6 +14,8 @@ class TestTheDepot(unittest.TestCase):
         for i in range(8):
             self.assertIsInstance(the_depot.next_ball(i), balls.Ball)
         with self.assertRaises(IndexError):
+            the_depot.next_ball(-1)
+        with self.assertRaises(IndexError):
             the_depot.next_ball(8)
         
         # TODO once ball generation can force a certain ball, check if it comes out exactly two drops later

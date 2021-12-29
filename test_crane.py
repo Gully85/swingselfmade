@@ -10,7 +10,7 @@ class TestTheCrane(unittest.TestCase):
         
         the_crane = game.crane
 
-        # move 20x in random direction (left or right), position must stay 0..7, get_ball must return a ball
+        # move 20x in random direction (left or right), position must stay 0..7
         for i in range(20):
             if random.choice([True,False]):
                 the_crane.move_left()
@@ -18,6 +18,7 @@ class TestTheCrane(unittest.TestCase):
                 the_crane.move_right()
             position = the_crane.getx()
             self.assertTrue(position >= 0 and position <= 7)
+        
         self.assertIsInstance(the_crane.getball(), balls.Ball)
 
         # move all the way to the left, position must be 0 then
@@ -35,7 +36,7 @@ class TestTheCrane(unittest.TestCase):
 
         # after dropping a ball, the newest item in the eventQueue must be a FallingBall
         the_crane.drop_ball()
-        fallingEvent = game.ongoing.get_newest_event()
+        fallingEvent = game.ongoing.get_event_of_type(game.ongoing.FallingBall)
         self.assertIsInstance(fallingEvent, game.ongoing.FallingBall)
 
 if __name__ == '__main__':
