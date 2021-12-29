@@ -32,7 +32,8 @@ Suspected possible bugs:
 - perhaps range is off by one if flying out to the left for at least twice (range 10 or greater)
 
 
-Known bugs, need to find exact conditions to reproduce
+Known bugs:
+- If a ScoringBall is thrown, it will not be removed when finalizing the Scoring. It can never be Scored again.
 
 
 
