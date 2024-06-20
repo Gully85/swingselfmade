@@ -66,7 +66,10 @@ class Depot:
         return self.surf
     
     def next_ball(self, column: int):
-        """get ball of specified column, move ball down and generate a new one"""
+        """get ball of specified column, move ball down and generate a new one. Raise IndexError if 
+        the column is not 0..7"""
+        if column < 0 or column > 7:
+            raise IndexError("Column index must be 0..7")
         ret = self.content[column][1]
         self.content[column][1] = self.content[column][0]
         self.content[column][0] = balls.generate_ball()
