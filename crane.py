@@ -71,6 +71,12 @@ class Crane:
         if self.x > 7:
             self.x = 7
         self.changed()
+
+    def move_to_column(self, col: int) -> None:
+        if col < 0 or col > 7:
+            raise ValueError(f"Crane column must be 0..7, attempted to move it to column {col}")
+        self.x = col
+        self.changed()
     
     def getx(self): 
         """position of the crane. Always returns an int, possible values are 0..7"""
