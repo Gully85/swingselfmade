@@ -3,7 +3,7 @@
 import game, balls, constants
 import unittest, random
 
-from testing_generals import wait_for_empty_eq
+from tests.testing_generals import wait_for_empty_eq
 
 
 class TestOngoing(unittest.TestCase):

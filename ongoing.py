@@ -89,7 +89,9 @@ class FallingBall(Ongoing):
             if the Ball drops from Playfield instead of Crane/Thrown
         """
     
-    def __init__(self, ball: balls.Ball, column: int, starting_height=8.0):
+    from balls import Ball
+    
+    def __init__(self, ball: Ball, column: int, starting_height=8.0):
         self.ball = ball
         self.column = column
         self.height = starting_height

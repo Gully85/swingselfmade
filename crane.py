@@ -5,7 +5,7 @@ from typing import Tuple
 import pygame
 from pygame import Rect, Surface
 from constants import cranearea_position, cranearea_ballcoord, cranearea_x_perCol, ball_size
-import balls, depot, ongoing, game
+import balls
 
 class Crane:
     """Information about the Crane. Has x (int, 0 <= x <= 7) and current_Ball (Ball).
@@ -88,6 +88,8 @@ class Crane:
     
     def drop_ball(self):
         """drops ball at the current position, gets a new one from the depot"""
+        import ongoing, game
+
         ongoing.ball_falls(self.current_Ball, self.x)
         self.current_Ball = game.depot.next_ball(self.x)
         self.changed()

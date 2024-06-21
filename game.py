@@ -2,7 +2,7 @@
 # and the bigger objects (Playfield, Depot etc) also
 
 
-import depot, crane, playfield, scoreArea, ongoing, balls
+import depot, crane, playfield, scoreArea, ongoing
 from constants import depotsize, craneareasize, playfieldsize, scoredisplayarea_size
 
 depot = depot.Depot(depotsize)

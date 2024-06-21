@@ -3,7 +3,10 @@
 
 from crane import Crane
 import game, balls
-import unittest, random
+import unittest
+
+import sys
+sys.path.append('..')
 
 class TestTheCrane(unittest.TestCase):
 
@@ -58,6 +61,8 @@ class TestTheCrane(unittest.TestCase):
         fallingEvent: game.ongoing.FallingBall = game.ongoing.get_event_of_type(game.ongoing.FallingBall)
         self.assertEqual(the_ball, fallingEvent.getball())
 
+    def test_false(self):
+        self.assertEqual(0,1)
 
 
 if __name__ == '__main__':

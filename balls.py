@@ -15,7 +15,6 @@ import pygame
 import random
 from constants import ball_size, pixel_coord_in_playfield
 from abc import ABC, abstractmethod
-import game
 
 pygame.font.init()
 ball_colors = colorschemes.simple_standard_ball_colors
@@ -180,9 +179,11 @@ class ColoredBall(Ball):
         return self.scoring
 
     def lands_on_empty(self, coords: Tuple[int, int]):
+        import game
         game.playfield.add_on_top(self, coords[0])
     
     def lands_on_ball(self, coords: Tuple[int, int], ball_below: Ball):
+        import game
         game.playfield.add_on_top(self, coords[0])
 
 class SpecialBall(Ball):
@@ -249,6 +250,7 @@ class Bomb(SpecialBall):
         self.explode(coords)
 
     def explode(self, coords: Tuple[int]):
+        import game
         the_playfield = game.playfield
         # TODO in 3x3 area: Display explosion sprite (ongoing), explode bombs, remove other balls
         xcenter,ycenter = coords
@@ -276,9 +278,11 @@ class Bomb(SpecialBall):
         return False
     
     def lands_on_empty(self, coords: Tuple[int, int]):
+        import game
         game.playfield.add_on_top(self, coords[0])
     
     def lands_on_ball(self, coords: Tuple[int, int], ball_below: Ball):
+        import game
         game.playfield.trigger_explosion(coords)
 
 class Cutter(SpecialBall):
@@ -294,9 +298,11 @@ class Cutter(SpecialBall):
         super().draw(surf, drawpos)
     
     def landing_effect_on_ground(self, coords: Tuple[int]):
+        import game
         game.playfield.remove_ball_at(coords)
 
     def landing_effect_on_ball(self, coords: Tuple[int]):
+        import game
         x,y = coords
         game.playfield.remove_ball_at((x, y-1))
         game.playfield.remove_ball_at(coords)
@@ -309,6 +315,7 @@ class Cutter(SpecialBall):
         pass
 
     def lands_on_ball(self, coords: Tuple[int, int], ball_below: Ball):
+        import game
         game.playfield.remove_ball_at((coords[0], coords[1]-1))
         game.ongoing.ball_falls_from_height(self, coords[0], coords[1])
 
@@ -341,9 +348,11 @@ class Heart(SpecialBall):
         return self.scoring
     
     def lands_on_ball(self, coords: Tuple[int, int], ball_below: Ball):
+        import game
         return game.playfield.add_on_top(self, coords[0])
 
     def lands_on_empty(self, coords: Tuple[int, int]):
+        import game
         return game.playfield.add_on_top(self, coords[0])
 
 nextspecial = Bomb()
