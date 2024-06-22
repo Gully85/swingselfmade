@@ -1,5 +1,9 @@
 # contains some code used several times in tests.
 
+import sys
+sys.path.append("S:/SwingSelfmade/")
+
+
 import game, ongoing
 
 

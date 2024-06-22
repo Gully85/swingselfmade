@@ -1,5 +1,8 @@
 # test around the game class
 
+import sys
+sys.path.append("S:/SwingSelfmade/")
+
 import game
 import unittest
 

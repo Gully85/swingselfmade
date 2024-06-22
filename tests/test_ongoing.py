@@ -1,5 +1,8 @@
 # tests the ongoing module. Separate test_ method for each class in there
 
+import sys
+sys.path.append("S:/SwingSelfmade/")
+
 import game, balls, constants
 import unittest, random
 

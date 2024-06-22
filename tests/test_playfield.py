@@ -1,9 +1,12 @@
 # tests the playfield module
 
+import sys
+sys.path.append("S:/SwingSelfmade/")
+
 import game, constants
 import unittest
 import balls
-from testing_generals import wait_for_empty_eq
+from tests.testing_generals import wait_for_empty_eq
 
 class TestPlayfield(unittest.TestCase):
     def test_playfield(self):

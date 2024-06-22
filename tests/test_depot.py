@@ -1,6 +1,9 @@
 # tests around the Depot class and module
 # is imported indirectly via import game, testing game.depot
 
+import sys
+sys.path.append("S:/SwingSelfmade/")
+
 import game, balls
 import unittest, random
 
