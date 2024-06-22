@@ -120,13 +120,14 @@ class TestTilting(unittest.TestCase):
 
         self.assertFalse(game.playfield.stacks[chosen_sesa].ismoving())
 
-    def tilting_ends_towards_heavier_side(self):
+    def test_tilting_ends_towards_heavier_side(self):
         """generate random Ball and land it somewhere, wait for tilting to finish. Once on the left side, once on the right side.
         Verify that the tilt ends towards the Ball."""
         game.reset()
 
         chosen_column: int = 0
         generate_starting_ball().lands_on_empty((chosen_column, 2))
+        game.playfield.refresh_status()
         # wait for tilt to finish
         maxticks: int = int(1.0 / constants.tilting_per_tick) + 1
         self.assertTrue(wait_for_empty_eq(maxticks))
@@ -137,8 +138,9 @@ class TestTilting(unittest.TestCase):
         # test on the rightmost column, should tilt to the right
         chosen_column: int = 7
         generate_starting_ball().lands_on_empty((chosen_column, 2))
+        game.playfield.refresh_status()
         maxticks: int = int(1.0 / constants.tilting_per_tick) + 1
-        self.assertEqual(wait_for_empty_eq(maxticks))
+        self.assertTrue(wait_for_empty_eq(maxticks))
 
         self.assertEqual(1, game.playfield.get_seesaw_state(chosen_column - 1))
         self.assertEqual(-1, game.playfield.get_seesaw_state(chosen_column))
