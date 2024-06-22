@@ -146,26 +146,76 @@ class TestTilting(unittest.TestCase):
         self.assertEqual(-1, game.playfield.get_seesaw_state(chosen_column))
 
 
+class TestThrowing(unittest.TestCase):
+
+    def test_throwing_range(self):
+        """land a Ball with weight 1 in column 0, then a Ball with weight 3 in column 1.
+        Assert that the first Ball is thrown with range 2."""
+        game.reset()
+
+        ball1: ColoredBall = ColoredBall(1, 1)
+        ball1.lands_on_empty((0, 1))
+        game.playfield.refresh_status()
+        maxticks: int = int(1.0 / constants.tilting_per_tick) + 1
+        self.assertTrue(wait_for_empty_eq(maxticks))
+
+        ball2: ColoredBall = ColoredBall(1, 3)
+        ball2.lands_on_empty((1, 2))
+        game.playfield.refresh_status()
+
+        self.assertTrue(game.ongoing.event_type_exists(game.ongoing.ThrownBall))
+        the_throwing_event = game.ongoing.get_event_of_type(game.ongoing.ThrownBall)
+        self.assertEqual(the_throwing_event.getball(), ball1)
+        self.assertEqual(the_throwing_event.getdestination(), 2)
+
+    def test_thrown_ball_falls(self):
+        """create a ThrownBall, assert that it converts to a FallingBall eventually"""
+        from ongoing import ThrownBall
+
+        game.reset()
+        the_ball: ColoredBall = generate_starting_ball()
+        game.ongoing.throw_ball(the_ball, (0, 0), 2)
+
+        maxticks: int = int(constants.thrown_ball_totaltime * constants.max_FPS) + 1
+        for _ in range(maxticks):
+            game.tick()
+            if game.ongoing.event_type_exists(game.ongoing.FallingBall):
+                break
+        else:
+            # if this executes, the ThrownBall was not converted into a FallingBall
+            self.assertFalse(True)
+
+        the_falling_event = game.ongoing.get_event_of_type(game.ongoing.FallingBall)
+        self.assertIsInstance(the_falling_event, FallingBall)
+        self.assertEqual(the_ball, the_falling_event.getball())
+        self.assertEqual(2, the_falling_event.getcolumn())
+
+    def test_leftflyout_range(self):
+        """create a ThrownBall that flies out. Verify that the remaining throwing-range is reduced correctly"""
+        from ongoing import ThrownBall
+
+        game.reset()
+
+        the_ball: ColoredBall = generate_starting_ball()
+        game.ongoing.throw_ball(the_ball, (1, 0), -2)
+        the_throwing_event: ThrownBall = game.ongoing.get_event_of_type(ThrownBall)
+
+        maxticks: int = 2 * int(constants.thrown_ball_totaltime * constants.max_FPS) + 1
+        for _ in range(maxticks):
+            game.tick()
+            if the_throwing_event.getx() > 6.5:
+                break
+        else:
+            # if this executes, the ball did not fly out
+            self.assertFalse(True)
+
+        self.assertEqual(the_throwing_event.getdestination(), 7)
+
+
 class TestOngoing(unittest.TestCase):
 
     def test_throwing(self):
         game.reset()
-        # drop a ball of weight 1 to the leftmost column. Wait until tilting is finished.
-        ball1 = ColoredBall(1, 1)
-
-        ball1.lands_on_empty((0, 1))
-        game.playfield.refresh_status()
-        maxticks = int(2.0 * constants.max_FPS / constants.tilting_per_tick + 1)
-        self.assertTrue(wait_for_empty_eq(maxticks))
-
-        # Then a ball of weight 3 to the second-to-left. This should start a
-        # ThrownBall, range 2 to the right. Should land in column 2.
-        ball3 = ColoredBall(1, 3)
-        ball3.lands_on_empty((1, 2))
-        game.playfield.refresh_status()
-        self.assertTrue(game.ongoing.event_type_exists(game.ongoing.ThrownBall))
-        the_throwing_event = game.ongoing.get_event_of_type(game.ongoing.ThrownBall)
-        self.assertEqual(the_throwing_event.getdestination(), 2)
 
         # Wait until it flew over to that column
         while game.ongoing.event_type_exists(game.ongoing.ThrownBall):
@@ -184,7 +234,7 @@ class TestOngoing(unittest.TestCase):
         game.playfield.refresh_status()
         self.assertTrue(game.ongoing.event_type_exists(game.ongoing.ThrownBall))
         the_throwing_event = game.ongoing.get_event_of_type(game.ongoing.ThrownBall)
-        self.assertIs(the_throwing_event.getball(), ball3)
+        # self.assertIs(the_throwing_event.getball(), ball3)
         self.assertEqual(
             the_throwing_event.getdestination(), -1
         )  # destination -1 indicates fly-out

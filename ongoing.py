@@ -217,6 +217,13 @@ class ThrownBall(Ongoing):
 
         # Maybe generate the trajectory here, as a local lambda(t)?
 
+    def getx(self) -> float:
+        """Possible values are 0.0 to 7.0"""
+        return self.x
+
+    def gety(self) -> float:
+        return self.y
+
     def getdestination(self):
         """Returns the destination of this ball-throwing event. Only x-coordinate.
         Possible values are -1 .. 8. -1 for fly-out left, 0..7 for landing, 8 for fly-out right
