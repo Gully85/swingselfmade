@@ -296,6 +296,63 @@ class TestThrowing(unittest.TestCase):
         self.assertIsInstance(the_throwing_event.getball(), Heart)
 
 
+class TestScoring(unittest.TestCase):
+
+    def test_triplet_is_scored(self):
+        """make solid ground, then land 3 same-colored ColoredBalls.
+        Two must not score, the third must start a Scoring. Verify that
+        it finishes and that it gives the correct amount of points."""
+        from ongoing import Scoring
+
+        game.reset()
+
+        for sesa in range(4):
+            column: int = 2 * sesa
+            for _ in range(2):
+                nextball: ColoredBall = generate_starting_ball()
+                nextball.setcolor(1)
+                nextball.setweight(50)
+                nextball.lands_on_empty((column, 1))
+                game.playfield.refresh_status()
+
+        # wait for seesaws to stop tilting
+        maxticks: int = int(1.0 / constants.tilting_per_tick) + 1
+        self.assertTrue(wait_for_empty_eq(maxticks))
+
+        # drop two balls, color=2 in the three leftmost columns. Sum their weights.
+        totalweight: int = 0
+        for col in range(2):
+            nextball: ColoredBall = generate_starting_ball()
+            nextball.setcolor(2)
+            totalweight += nextball.getweight()
+            nextball.lands_on_empty((col, 3))
+        game.playfield.refresh_status()
+
+        self.assertFalse(game.ongoing.event_type_exists(Scoring))
+
+        # drop third ball, this should start a Scoring
+        nextball = generate_starting_ball()
+        nextball.setcolor(2)
+        totalweight += nextball.getweight()
+        nextball.lands_on_empty((2, 3))
+        game.playfield.refresh_status()
+
+        game.tick()
+        self.assertTrue(game.ongoing.event_type_exists(Scoring))
+
+        # Scoring should finish within this many ticks
+        maxticks: int = 4 * int(constants.max_FPS // constants.scoring_speed) + 1
+        for _ in range(maxticks):
+            game.tick()
+            if not game.ongoing.event_type_exists(Scoring):
+                break
+        else:
+            # if this is executed, Scoring did not finish in time
+            self.assertTrue(False)
+
+        self.assertEqual(game.getscore(), 3 * totalweight * game.getlevel())
+
+
 class TestOngoing(unittest.TestCase):
 
     def test_combining(self):
@@ -357,10 +414,10 @@ class TestOngoing(unittest.TestCase):
                 )  # y-value is ignored on ColoredBalls
             the_playfield.refresh_status()
 
-        maxticks = int(1e6)
-        self.assertTrue(wait_for_empty_eq(maxticks))
+            maxticks = int(1e6)
+            self.assertTrue(wait_for_empty_eq(maxticks))
 
-        self.assertEqual(the_playfield.get_seesaw_state(column), -1)
+            self.assertEqual(the_playfield.get_seesaw_state(column), -1)
 
         # drop ball colors like this:
         #
