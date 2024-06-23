@@ -211,77 +211,92 @@ class TestThrowing(unittest.TestCase):
 
         self.assertEqual(the_throwing_event.getdestination(), 7)
 
+    def test_rightflyout_range(self):
+        """create a ThrownBall that flies out. Verify that the remaining throwing-range is reduced correctly"""
+        from ongoing import ThrownBall
 
-class TestOngoing(unittest.TestCase):
-
-    def test_throwing(self):
         game.reset()
 
-        # Wait until it flew over to that column
-        while game.ongoing.event_type_exists(game.ongoing.ThrownBall):
+        the_ball: ColoredBall = generate_starting_ball()
+        game.ongoing.throw_ball(the_ball, (6, 0), 2)
+        the_throwing_event: ThrownBall = game.ongoing.get_event_of_type(ThrownBall)
+
+        maxticks: int = 2 * int(constants.thrown_ball_totaltime * constants.max_FPS) + 1
+        for _ in range(maxticks):
             game.tick()
-        # it should now fall
-        self.assertTrue(game.ongoing.event_type_exists(game.ongoing.FallingBall))
-        the_falling_event = game.ongoing.get_event_of_type(game.ongoing.FallingBall)
-        self.assertEqual(the_falling_event.getcolumn(), 2)
-
-        # Drop a ball of weight 15 to the left. This should throw the weight-3-ball to the left,
-        # out-of-bounds. Total throwing range is 12 -> flying out twice,
-        # ultimately landing in column 5, third from the right. Should convert into a Bomb (2 fly-outs)
-
-        ball15 = ColoredBall(1, 15)
-        ball15.lands_on_empty((0, 2))
-        game.playfield.refresh_status()
-        self.assertTrue(game.ongoing.event_type_exists(game.ongoing.ThrownBall))
-        the_throwing_event = game.ongoing.get_event_of_type(game.ongoing.ThrownBall)
-        # self.assertIs(the_throwing_event.getball(), ball3)
-        self.assertEqual(
-            the_throwing_event.getdestination(), -1
-        )  # destination -1 indicates fly-out
-        # to the left
-
-        # eventually, the ThrowingBall event should convert into a FallingBall event
-        # (Bomb in column 5).
-        maxticks = 100000
-        for i in range(maxticks - 1):
-            game.tick()
-            if not game.ongoing.event_type_exists(game.ongoing.ThrownBall):
+            if the_throwing_event.getx() < 0.5:
                 break
-        self.assertLess(i, maxticks)
+        else:
+            # if this executes, the ball did not fly out
+            self.assertFalse(True)
 
-        self.assertTrue(game.ongoing.event_type_exists(game.ongoing.FallingBall))
-        the_falling_event = game.ongoing.get_event_of_type(game.ongoing.FallingBall)
-        self.assertIsInstance(the_falling_event.getball(), Bomb)
-        self.assertEqual(the_falling_event.getcolumn(), 5)
+        self.assertEqual(the_throwing_event.getdestination(), 0)
 
-        # same test for (multiple) fly-outs to the right. Clear playfield and eventQueue first
-        game.playfield.reset()
-        game.ongoing.reset()
+    def test_flyout_conversions(self):
+        """Throw a ColoredBall with high throwing range. It should convert to a Heart on the
+        first fly-out, then Bomb, then Heart"""
+        from ongoing import ThrownBall
 
-        Testball = generate_starting_ball()
-        Testball.setweight(1)
-        Testball.lands_on_empty((6, 1))
-        game.playfield.refresh_status()
-        while game.playfield.any_seesaw_is_moving():
+        the_ball: ColoredBall = generate_starting_ball()
+        game.ongoing.throw_ball(the_ball, (6, 0), 30)
+        the_throwing_event: ThrownBall = game.ongoing.get_event_of_type(ThrownBall)
+
+        # ticks per fly-through, not total
+        maxticks: int = 2 * int(constants.thrown_ball_totaltime * constants.max_FPS) + 1
+        for _ in range(maxticks):
             game.tick()
-
-        Testball23 = generate_starting_ball()
-        Testball23.setweight(23)
-        Testball23.lands_on_empty((7, 2))
-        game.playfield.refresh_status()
-        # range is 22. Two complete rotations are 16, remainder is 6. One to rightmost,
-        # five to go, land in column 4 since columns are zero-indexed. Should convert into
-        # a Heart (3 fly-outs)
-
-        for i in range(maxticks - 1):
-            game.tick()
-            if not game.ongoing.event_type_exists(game.ongoing.ThrownBall):
+            if the_throwing_event.getx() < 0.5:
                 break
-        self.assertLess(i, maxticks)
-        self.assertTrue(game.ongoing.event_type_exists(game.ongoing.FallingBall))
-        the_falling_event = game.ongoing.get_event_of_type(game.ongoing.FallingBall)
-        self.assertIsInstance(the_falling_event.getball(), Heart)
-        self.assertEqual(the_falling_event.getcolumn(), 4)
+        else:
+            # if this executes, the ball did not fly out
+            self.assertFalse(True)
+
+        self.assertIsInstance(the_throwing_event.getball(), Heart)
+
+        # There should be enough flying-range left to fly-out once more.
+        self.assertGreater(the_throwing_event.remaining_range, 0)
+
+        # Tick() until it reaches the half-way, then until x < 0.5 again. Check that both doesn't take too long
+        for _ in range(maxticks):
+            game.tick()
+            if the_throwing_event.getx() > 4.0:
+                break
+        else:
+            # if this executes, the ball did not reach the half-way mark
+            self.assertFalse(True)
+
+        for _ in range(maxticks):
+            game.tick()
+            if the_throwing_event.getx() < 0.5:
+                break
+        else:
+            # if this executes, the ball did not fly-out a second time
+            self.assertFalse(True)
+
+        # Ball should convert to a Bomb at second fly-out
+        self.assertIsInstance(the_throwing_event.getball(), Bomb)
+
+        # Same once more, to verify that a Bomb converts to a Heart
+        for _ in range(maxticks):
+            game.tick()
+            if the_throwing_event.getx() > 4.0:
+                break
+        else:
+            # if this executes, the ball did not reach the half-way mark after 2nd fly-out
+            self.assertFalse(True)
+
+        for _ in range(maxticks):
+            game.tick()
+            if the_throwing_event.getx() < 0.5:
+                break
+        else:
+            # if this executes, the ball did not fly-out the third time
+            self.assertFalse(True)
+
+        self.assertIsInstance(the_throwing_event.getball(), Heart)
+
+
+class TestOngoing(unittest.TestCase):
 
     def test_combining(self):
         return
