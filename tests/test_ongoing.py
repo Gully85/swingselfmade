@@ -298,14 +298,9 @@ class TestThrowing(unittest.TestCase):
 
 class TestScoring(unittest.TestCase):
 
-    def test_triplet_is_scored(self):
-        """make solid ground, then land 3 same-colored ColoredBalls.
-        Two must not score, the third must start a Scoring. Verify that
-        it finishes and that it gives the correct amount of points."""
-        from ongoing import Scoring
-
-        game.reset()
-
+    # Helper function, no actual test
+    def make_solid_ground(self):
+        """Drop heavy (weight=50) balls, color=1, on one side of each seesaw. Wait for tilt to finish."""
         for sesa in range(4):
             column: int = 2 * sesa
             for _ in range(2):
@@ -318,6 +313,15 @@ class TestScoring(unittest.TestCase):
         # wait for seesaws to stop tilting
         maxticks: int = int(1.0 / constants.tilting_per_tick) + 1
         self.assertTrue(wait_for_empty_eq(maxticks))
+
+    def test_triplet_is_scored(self):
+        """make solid ground, then land 3 same-colored ColoredBalls.
+        Two must not score, the third must start a Scoring. Verify that
+        it finishes and that it gives the correct amount of points."""
+        from ongoing import Scoring
+
+        game.reset()
+        self.make_solid_ground()
 
         # drop two balls, color=2 in the three leftmost columns. Sum their weights.
         totalweight: int = 0
@@ -351,6 +355,85 @@ class TestScoring(unittest.TestCase):
             self.assertTrue(False)
 
         self.assertEqual(game.getscore(), 3 * totalweight * game.getlevel())
+
+    def test_scoring_extends_up_and_down(self):
+        """Make solid ground. Then drop ColoredBalls to create a shape of Scoring that extends
+        over multiple rows. Make sure it scores all connected balls."""
+        from ongoing import Scoring
+
+        game.reset()
+        self.make_solid_ground()
+
+        # Draw the following shape (numbers are colors, all weight 1):
+        #
+        # 2
+        # 2 2
+        # 2 3 3
+        # then drop a color=2 ball to the third column. Verify that before that final ball, no
+        # Scoring is started. Verify that the Scoring affects and removes five balls.
+
+        ColoredBall(2, 1).lands_on_empty((0, 2))
+        ColoredBall(3, 1).lands_on_empty((1, 2))
+        ColoredBall(3, 1).lands_on_empty((2, 2))
+
+        ColoredBall(2, 1).lands_on_empty((0, 3))
+        ColoredBall(2, 1).lands_on_empty((1, 3))
+
+        ColoredBall(2, 1).lands_on_empty((0, 4))
+
+        self.assertFalse(game.ongoing.event_type_exists(Scoring))
+
+        # Number of balls: 8 for the solid ground, 6 placed in this test.
+        self.assertEqual(game.playfield.get_number_of_balls(), 14)
+
+        ColoredBall(2, 1).lands_on_empty((2, 3))
+        game.playfield.refresh_status()
+        self.assertTrue(game.ongoing.event_type_exists(Scoring))
+
+        # it should take 3 expansions for the Scoring to include all color=2 balls.
+        maxticks: int = 5 * constants.scoring_delay + 1
+        self.assertTrue(wait_for_empty_eq(maxticks))
+
+        # There should be 10 balls left: 8 for the solid ground, 2 of the color=3
+        self.assertEqual(game.playfield.get_number_of_balls(), 10)
+
+    def test_scoring_drops_hanging_balls(self):
+        """Tests that balls lieing on a Scored Ball will start to fall"""
+        from ongoing import Scoring
+
+        game.reset()
+        self.make_solid_ground()
+
+        # Draw the following shape (numbers are colors, weight is always 1):
+        #   3
+        # 2 2
+        # then drop a 2 to the third column. Check that the color=3 ball is now a FallingBall and not in
+        # the playfield any more.
+
+        ColoredBall(2, 1).lands_on_empty((0, 2))
+        ColoredBall(2, 1).lands_on_empty((1, 2))
+        offcolor_ball = ColoredBall(3, 1)
+        offcolor_ball.lands_on_empty((1, 3))
+
+        self.assertFalse(game.ongoing.event_type_exists(Scoring))
+
+        ColoredBall(2, 1).lands_on_empty((2, 2))
+        game.playfield.refresh_status()
+        self.assertTrue(game.ongoing.event_type_exists(Scoring))
+
+        maxticks: int = 4 * constants.scoring_delay + 1
+        for _ in range(maxticks):
+            game.tick()
+            if not game.ongoing.event_type_exists(Scoring):
+                break
+        else:
+            # if this is executed, the Scoring did not finish in time
+            self.assertFalse(True)
+
+        self.assertTrue(game.ongoing.event_type_exists(FallingBall))
+        falling_event: FallingBall = game.ongoing.get_event_of_type(FallingBall)
+        self.assertEqual(offcolor_ball, falling_event.getball())
+        self.assertEqual(falling_event.getcolumn(), 1)
 
 
 class TestOngoing(unittest.TestCase):
@@ -397,77 +480,6 @@ class TestOngoing(unittest.TestCase):
         resulting_ball = game.playfield.get_ball_at((0, 1))
         self.assertIsInstance(resulting_ball, balls.ColoredBall)
         self.assertEqual(totalweight, resulting_ball.getweight())
-
-    def test_scoring(self):
-        game.reset()
-        the_playfield = game.playfield
-
-        # make solid ground: 2x 50 weight, color=1 to every left-side of a seesaw
-        for sesa in range(4):
-            column = 2 * sesa
-            for _ in range(2):
-                nextball = generate_starting_ball()
-                nextball.setcolor(1)
-                nextball.setweight(50)
-                nextball.lands_on_empty(
-                    (column, 1)
-                )  # y-value is ignored on ColoredBalls
-            the_playfield.refresh_status()
-
-            maxticks = int(1e6)
-            self.assertTrue(wait_for_empty_eq(maxticks))
-
-            self.assertEqual(the_playfield.get_seesaw_state(column), -1)
-
-        # drop ball colors like this:
-        #
-        # 2 3
-        # 3 3 3
-        # all the 3's should score (keep track of total weight), the 2 should become a FallingBall
-        nextball = generate_starting_ball()
-        nextball.setcolor(3)
-        total_weight = nextball.getweight()
-        nextball.lands_on_empty((0, 2))
-        the_playfield.refresh_status()
-
-        other_colored_ball = generate_starting_ball()
-        other_colored_ball.setcolor(2)
-        other_colored_ball.lands_on_empty((0, 3))
-        the_playfield.refresh_status()
-
-        for _ in range(2):
-            nextball = generate_starting_ball()
-            nextball.setcolor(3)
-            total_weight += nextball.getweight()
-            nextball.lands_on_empty((1, 4))
-        the_playfield.refresh_status()
-
-        self.assertEqual(0, game.getscore())
-        self.assertEqual(4, game.getlevel())
-
-        # this ball should start the scoring
-        nextball = generate_starting_ball()
-        nextball.setcolor(3)
-        total_weight += nextball.getweight()
-        nextball.lands_on_empty((2, 4))
-        the_playfield.refresh_status()
-
-        game.tick()
-
-        self.assertTrue(game.ongoing.event_type_exists(game.ongoing.Scoring))
-
-        # after some ticks, the other_colored_ball should start dropping
-        maxticks = int(1e6)
-        self.assertTrue(wait_for_empty_eq(maxticks))
-
-        # check correct position of dropped ball
-        the_landed_ball = game.playfield.get_ball_at((0, 2))
-        self.assertIs(the_landed_ball, other_colored_ball)
-        self.assertEqual(game.getscore(), 16 * total_weight)
-
-        # there should be the 8 weight-50 balls that create a solid ground,
-        # and the other_colored_ball. Make sure no other balls are there.
-        self.assertEqual(the_playfield.get_number_of_balls(), 9)
 
 
 if __name__ == "__main__":
