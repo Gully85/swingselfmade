@@ -6,17 +6,17 @@ import sys
 sys.path.append("S:/SwingSelfmade/")
 
 from crane import Crane
-import game, balls
+from balls import Ball
+from ongoing import FallingBall
+import game
 import unittest
-
-import sys
 
 
 class TestTheCrane(unittest.TestCase):
 
     def test_crane_moves(self):
         game.reset()
-        the_crane = game.crane
+        the_crane: Crane = game.crane
 
         the_crane.move_to_column(0)
         self.assertEqual(the_crane.getx(), 0)
@@ -47,24 +47,22 @@ class TestTheCrane(unittest.TestCase):
 
     def test_crane_has_ball(self):
         game.reset()
-        the_crane = game.crane
+        the_crane: Crane = game.crane
 
-        self.assertIsInstance(the_crane.getball(), balls.Ball)
+        self.assertIsInstance(the_crane.getball(), Ball)
 
     def test_crane_drops_ball(self):
         """Drop a ball. Assert that the ball is falling in the EventQueue, and that
         the crane holds a different ball"""
         game.reset()
-        the_crane = game.crane
+        the_crane: Crane = game.crane
 
         the_ball = the_crane.getball()
         the_crane.drop_ball()
-        self.assertNotEqual(the_crane.getball(), the_ball)
+        self.assertIsNot(the_crane.getball(), the_ball)
 
-        fallingEvent: game.ongoing.FallingBall = game.ongoing.get_event_of_type(
-            game.ongoing.FallingBall
-        )
-        self.assertEqual(the_ball, fallingEvent.getball())
+        fallingEvent: FallingBall = game.ongoing.get_event_of_type(FallingBall)
+        self.assertIs(the_ball, fallingEvent.getball())
 
 
 if __name__ == "__main__":
