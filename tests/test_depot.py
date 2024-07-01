@@ -5,7 +5,10 @@ import sys
 
 sys.path.append("S:/SwingSelfmade/")
 
-import game, balls
+import game
+from depot import Depot
+from balls import Ball
+
 import unittest
 
 
@@ -14,11 +17,11 @@ class TestTheDepot(unittest.TestCase):
     def test_depot_number_of_rows(self):
         game.reset()
 
-        the_depot = game.depot
+        the_depot: Depot = game.depot
 
         # Rows 0..7 must be able to drop a Ball
         for i in range(8):
-            self.assertIsInstance(the_depot.next_ball(i), balls.Ball)
+            self.assertIsInstance(the_depot.next_ball(i), Ball)
 
         # Rows -1 and 8 must raise an IndexError
         with self.assertRaises(IndexError):
