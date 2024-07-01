@@ -35,7 +35,7 @@ class TestTheGame(unittest.TestCase):
 
         event: FallingBall = game.ongoing.get_newest_event()
         self.assertIsInstance(event, FallingBall)
-        self.assertEqual(event.getball(), the_ball)
+        self.assertIs(event.getball(), the_ball)
 
 
 if __name__ == "__main__":
