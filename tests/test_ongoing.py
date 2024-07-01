@@ -7,7 +7,8 @@ sys.path.append("S:/SwingSelfmade/")
 import game, constants
 from balls import Ball, ColoredBall, Heart, Bomb
 from balls import generate_starting_ball
-from ongoing import FallingBall
+from ongoing import FallingBall, ThrownBall
+from playfield import Seesaw
 import unittest, random
 
 from tests.testing_generals import wait_for_empty_eq
@@ -47,7 +48,7 @@ class TestFalling(unittest.TestCase):
 
         # it should land after some time. Maximum number of ticks allowed is 8.0 / falling_speed * max_FPS
         # (it should only need to drop by 7 positions and then trigger a Seesaw Tilting, 8.0 leaves some room)
-        maxticks = int(8.0 * constants.max_FPS / constants.falling_per_tick) + 1
+        maxticks: int = int(8.0 * constants.max_FPS / constants.falling_per_tick) + 1
         self.assertGreater(maxticks, 0)
         self.assertTrue(wait_for_empty_eq(maxticks))
         self.assertFalse(game.ongoing.event_type_exists(FallingBall))
@@ -66,7 +67,7 @@ class TestTilting(unittest.TestCase):
         Testball.lands_on_empty((chosen_column, 1))
         game.playfield.refresh_status()
 
-        the_sesa = game.playfield.stacks[chosen_seesaw]
+        the_sesa: Seesaw = game.playfield.stacks[chosen_seesaw]
         self.assertTrue(the_sesa.ismoving())
 
         initial_tiltvalue: float = the_sesa.gettilt()
@@ -163,9 +164,9 @@ class TestThrowing(unittest.TestCase):
         ball2.lands_on_empty((1, 2))
         game.playfield.refresh_status()
 
-        self.assertTrue(game.ongoing.event_type_exists(game.ongoing.ThrownBall))
-        the_throwing_event = game.ongoing.get_event_of_type(game.ongoing.ThrownBall)
-        self.assertEqual(the_throwing_event.getball(), ball1)
+        self.assertTrue(game.ongoing.event_type_exists(ThrownBall))
+        the_throwing_event: ThrownBall = game.ongoing.get_event_of_type(ThrownBall)
+        self.assertIs(the_throwing_event.getball(), ball1)
         self.assertEqual(the_throwing_event.getdestination(), 2)
 
     def test_thrown_ball_falls(self):
@@ -179,15 +180,17 @@ class TestThrowing(unittest.TestCase):
         maxticks: int = int(constants.thrown_ball_totaltime * constants.max_FPS) + 1
         for _ in range(maxticks):
             game.tick()
-            if game.ongoing.event_type_exists(game.ongoing.FallingBall):
+            if game.ongoing.event_type_exists(FallingBall):
                 break
         else:
-            # if this executes, the ThrownBall was not converted into a FallingBall
-            self.assertFalse(True)
 
-        the_falling_event = game.ongoing.get_event_of_type(game.ongoing.FallingBall)
+            self.fail(
+                "ThrownBall was not converted into a FallingBall within expected time."
+            )
+
+        the_falling_event = game.ongoing.get_event_of_type(FallingBall)
         self.assertIsInstance(the_falling_event, FallingBall)
-        self.assertEqual(the_ball, the_falling_event.getball())
+        self.assertIs(the_ball, the_falling_event.getball())
         self.assertEqual(2, the_falling_event.getcolumn())
 
     def test_leftflyout_range(self):
@@ -206,8 +209,7 @@ class TestThrowing(unittest.TestCase):
             if the_throwing_event.getx() > 6.5:
                 break
         else:
-            # if this executes, the ball did not fly out
-            self.assertFalse(True)
+            self.fail("ThrownBall did not fly-out left within expected time.")
 
         self.assertEqual(the_throwing_event.getdestination(), 7)
 
@@ -227,8 +229,7 @@ class TestThrowing(unittest.TestCase):
             if the_throwing_event.getx() < 0.5:
                 break
         else:
-            # if this executes, the ball did not fly out
-            self.assertFalse(True)
+            self.fail("ThrownBall did not fly-out right within expected time.")
 
         self.assertEqual(the_throwing_event.getdestination(), 0)
 
@@ -248,8 +249,7 @@ class TestThrowing(unittest.TestCase):
             if the_throwing_event.getx() < 0.5:
                 break
         else:
-            # if this executes, the ball did not fly out
-            self.assertFalse(True)
+            self.fail("Thrown Ball did not fly-out")
 
         self.assertIsInstance(the_throwing_event.getball(), Heart)
 
@@ -262,16 +262,18 @@ class TestThrowing(unittest.TestCase):
             if the_throwing_event.getx() > 4.0:
                 break
         else:
-            # if this executes, the ball did not reach the half-way mark
-            self.assertFalse(True)
+            self.fail(
+                "Thrown Ball with high range did not reach the half-way mark within expected time"
+            )
 
         for _ in range(maxticks):
             game.tick()
             if the_throwing_event.getx() < 0.5:
                 break
         else:
-            # if this executes, the ball did not fly-out a second time
-            self.assertFalse(True)
+            self.fail(
+                "Thrown Ball with high range did not fly-out a second time within expected time"
+            )
 
         # Ball should convert to a Bomb at second fly-out
         self.assertIsInstance(the_throwing_event.getball(), Bomb)
@@ -282,16 +284,18 @@ class TestThrowing(unittest.TestCase):
             if the_throwing_event.getx() > 4.0:
                 break
         else:
-            # if this executes, the ball did not reach the half-way mark after 2nd fly-out
-            self.assertFalse(True)
+            self.fail(
+                "Thrown Ball with high range did not reach the half-way mark within expected time"
+            )
 
         for _ in range(maxticks):
             game.tick()
             if the_throwing_event.getx() < 0.5:
                 break
         else:
-            # if this executes, the ball did not fly-out the third time
-            self.assertFalse(True)
+            self.fail(
+                "Thrown Ball with high range did not fly-out a third time within expected time"
+            )
 
         self.assertIsInstance(the_throwing_event.getball(), Heart)
 
@@ -351,8 +355,7 @@ class TestScoring(unittest.TestCase):
             if not game.ongoing.event_type_exists(Scoring):
                 break
         else:
-            # if this is executed, Scoring did not finish in time
-            self.assertTrue(False)
+            self.fail("Scoring did not finish within expected time")
 
         self.assertEqual(game.getscore(), 3 * totalweight * game.getlevel())
 
@@ -427,12 +430,11 @@ class TestScoring(unittest.TestCase):
             if not game.ongoing.event_type_exists(Scoring):
                 break
         else:
-            # if this is executed, the Scoring did not finish in time
-            self.assertFalse(True)
+            self.fail("Scoring did not finish within expected time")
 
         self.assertTrue(game.ongoing.event_type_exists(FallingBall))
         falling_event: FallingBall = game.ongoing.get_event_of_type(FallingBall)
-        self.assertEqual(offcolor_ball, falling_event.getball())
+        self.assertIs(offcolor_ball, falling_event.getball())
         self.assertEqual(falling_event.getcolumn(), 1)
 
 
