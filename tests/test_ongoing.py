@@ -436,50 +436,81 @@ class TestScoring(unittest.TestCase):
         self.assertEqual(falling_event.getcolumn(), 1)
 
 
-class TestOngoing(unittest.TestCase):
+class TestCombining(unittest.TestCase):
+
+    # Helper function, no actual test
+    def make_solid_ground(self):
+        """Drop heavy (weight=50) balls, color=1, on one side of each seesaw. Wait for tilt to finish."""
+        for sesa in range(4):
+            column: int = 2 * sesa
+            for _ in range(2):
+                nextball: ColoredBall = generate_starting_ball()
+                nextball.setcolor(1)
+                nextball.setweight(50)
+                nextball.lands_on_empty((column, 1))
+                game.playfield.refresh_status()
+
+        # wait for seesaws to stop tilting
+        maxticks: int = int(1.0 / constants.tilting_per_tick) + 1
+        self.assertTrue(wait_for_empty_eq(maxticks))
 
     def test_combining(self):
-        return
-        game.reset()
-        the_playfield = game.playfield
+        """Stack 4 same-colored Balls, make sure they don't Combine. Land one more, make sure they do
+        Combine and that the total weight is added."""
+        from ongoing import Combining
 
-        # make solid ground: 50 weight to the leftmost column
-        Testball = balls.generate_starting_ball()
-        Testball.setweight(50)
-        Testball.setcolor(1)
-        the_playfield.land_ball_in_column(Testball, 0)
-        # wait until eventQueue is empty
-        while 0 != game.ongoing.get_number_of_events():
-            game.tick()
+        # Test deactivated for now, since there is no implementation for Combining
+        return
+
+        game.reset()
+        self.make_solid_ground()
 
         # drop four balls, color=2, weights random, keep track of total weight
-        totalweight = 0
+        totalweight: int = 0
         for i in range(4):
-            nextball = balls.generate_starting_ball()
+            nextball = generate_starting_ball()
             nextball.setcolor(2)
             totalweight += nextball.getweight()
-            the_playfield.land_ball_in_column(nextball, 0)
+            nextball.lands_on_empty((0, i + 2))
         # the eventQueue should be empty at this point
         self.assertEqual(0, game.ongoing.get_number_of_events())
         # the fifth ball should trigger the Combining
-        triggerball = balls.generate_starting_ball()
+        triggerball = generate_starting_ball()
         triggerball.setcolor(2)
         totalweight += triggerball.getweight()
-        the_playfield.land_ball_in_column(triggerball, 0)
+        triggerball.lands_on_empty((0, 6))
+        game.playfield.refresh_status()
 
-        # there should be a Combining now, at position (0,1).
-        self.assertGreater(game.ongoing.get_number_of_events(), 0)
-        the_combining_event = game.ongoing.get_newest_event()
-        self.assertIsInstance(the_combining_event, game.ongoing.Combining)
-        self.assertEqual((0, 1), the_combining_event.getposition())
+        # there should be a Combining now, at position (0,2).
+        self.assertTrue(game.ongoing.event_type_exists(Combining))
+        the_combining_event: Combining = game.ongoing.get_event_of_type(Combining)
+        self.assertEqual((0, 2), the_combining_event.getposition())
 
         # After finishing eQ, check the resulting ball
-        while 0 != game.ongoing.get_number_of_events():
-            game.tick()
+        maxticks: int = constants.combining_totaltime
+        self.assertTrue(wait_for_empty_eq(maxticks))
 
-        resulting_ball = game.playfield.get_ball_at((0, 1))
-        self.assertIsInstance(resulting_ball, balls.ColoredBall)
+        resulting_ball = game.playfield.get_ball_at((0, 2))
+        self.assertIsInstance(resulting_ball, ColoredBall)
         self.assertEqual(totalweight, resulting_ball.getweight())
+
+
+class TestOngoing(unittest.TestCase):
+
+    def make_solid_ground(self):
+        """Drop heavy (weight=50) balls, color=1, on one side of each seesaw. Wait for tilt to finish."""
+        for sesa in range(4):
+            column: int = 2 * sesa
+            for _ in range(2):
+                nextball: ColoredBall = generate_starting_ball()
+                nextball.setcolor(1)
+                nextball.setweight(50)
+                nextball.lands_on_empty((column, 1))
+                game.playfield.refresh_status()
+
+        # wait for seesaws to stop tilting
+        maxticks: int = int(1.0 / constants.tilting_per_tick) + 1
+        self.assertTrue(wait_for_empty_eq(maxticks))
 
 
 if __name__ == "__main__":
