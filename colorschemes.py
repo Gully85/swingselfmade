@@ -1,10 +1,24 @@
 # provides Colorschemes. For now, a Colorscheme is just a list of Ballcolors and textcolors.
-# For now, only 10 Colors are allowed. 
+# For now, only 10 Colors are allowed.
 # taken from colorbrewer2.org, qualitative 10-class Set3. Ballcolors as set there, Textcolors all black
 
-simple_standard_ball_colors = [(141, 211, 199), (255, 255, 179), (190, 186, 218), (251, 128, 114), (128, 177, 211),
-                               (253, 180, 98), (179, 222, 105), (252, 205, 229), (217, 217, 217), (188, 128, 189)]
 
-simple_standard_text_colors = []
+from typing import Tuple, List
+
+
+simple_standard_ball_colors: List[Tuple[int]] = [
+    (141, 211, 199),
+    (255, 255, 179),
+    (190, 186, 218),
+    (251, 128, 114),
+    (128, 177, 211),
+    (253, 180, 98),
+    (179, 222, 105),
+    (252, 205, 229),
+    (217, 217, 217),
+    (188, 128, 189),
+]
+
+simple_standard_text_colors: List[Tuple[int]] = []
 for i in range(10):
     simple_standard_text_colors.append((0, 0, 0))
