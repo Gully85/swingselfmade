@@ -1,5 +1,10 @@
 Current TODO List:
 
+- Code Cleanup: Move all magic numbers to constants
+- Code Cleanup: Move module-wide vars to classes
+- Code Cleanup: Disentangle classes. Have ONE landing method in the playfield class
+- Code Cleanup: Split ThrownBall into FlyoutBall and InboundFlyingBall. Maybe even split
+    into flying right and flying left.
 - fix endless-recursion if a Bomb explodes another Bomb
 - Combining 5 verticals.
 - Special Balls: Star, Joker

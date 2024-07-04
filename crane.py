@@ -10,7 +10,8 @@ from constants import (
     cranearea_x_perCol,
     ball_size,
 )
-import balls
+from balls import Ball
+from balls import generate_starting_ball
 
 
 class Crane:
@@ -22,39 +23,47 @@ class Crane:
         drop_ball(), drops ball at the current position, gets a new one from the depot
         move_left()
         move_right(), these two respect boundaries
+        move_to_column(int), raises ValueError if out-of-bounds
         getx(), current position 0..7
-        getball(), returns the current ball"""
+        getball(), returns the current ball
+        drop_ball(), drops current ball"""
 
-    def __init__(self, size: Tuple[int]):
+    x: int
+    current_Ball: Ball
+    size: Tuple[int, int]
+    surf: Surface
+    redraw_needed: bool
+
+    def __init__(self, size: Tuple[int, int]):
         self.x = 0
-        self.current_Ball = balls.generate_starting_ball()
+        self.current_Ball = generate_starting_ball()
         self.size = size
         self.surf = Surface(size)
         self.redraw_needed = True
 
     def changed(self):
-        """trigger a redraw"""
+        """trigger a redraw at next opportunity"""
         self.redraw_needed = True
 
     def reset(self):
         """puts the crane into the state of game start"""
         self.x = 0
-        self.current_Ball = balls.generate_starting_ball()
+        self.current_Ball = generate_starting_ball()
         self.changed()
 
     def draw_if_changed(self, screen: pygame.Surface):
         if not self.redraw_needed:
             return
-        else:
-            drawn_crane = self.draw()
-            screen.blit(drawn_crane, cranearea_position)
-            self.redraw_needed = False
+
+        drawn_crane = self.draw()
+        screen.blit(drawn_crane, cranearea_position)
+        self.redraw_needed = False
 
     def draw(self):
         """draws the Crane and its current_Ball to surface at position, returns surface"""
         self.surf.fill((127, 127, 127))
 
-        xcoord = cranearea_ballcoord[0] + self.x * cranearea_x_perCol
+        xcoord: int = cranearea_ballcoord[0] + self.x * cranearea_x_perCol
         # draw Ball, then an ellipse on top of it
         self.current_Ball.draw(self.surf, (xcoord, cranearea_ballcoord[1]))
         pixelpos_rect = Rect((xcoord, cranearea_ballcoord[1]), ball_size)
@@ -64,16 +73,20 @@ class Crane:
 
     def move_left(self):
         """moves the Crane one position to the left. Does nothing if already in the leftmost position."""
+
+        if self.x == 0:
+            return
+
         self.x -= 1
-        if self.x < 0:
-            self.x = 0
         self.changed()
 
     def move_right(self):
         """moves the Crane one position to the right. Does nothing if already in the rightmost position."""
+
+        if self.x == 7:
+            return
+
         self.x += 1
-        if self.x > 7:
-            self.x = 7
         self.changed()
 
     def move_to_column(self, col: int) -> None:

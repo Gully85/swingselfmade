@@ -49,6 +49,9 @@ class PlayfieldSpace(ABC):
     def is_scoring(self) -> bool:
         return False
 
+    def mark_for_scoring(self) -> None:
+        pass
+
 
 class EmptySpace(PlayfieldSpace):
     """Dummy class for places where there is no Ball. Empty Constructor."""
@@ -131,6 +134,9 @@ class Ball(PlayfieldSpace):
         """effects of a Ball landing on another ball.
         Excluding status update."""
         return None
+
+    def mark_for_scoring(self) -> None:
+        pass
 
 
 class ColoredBall(Ball):
@@ -278,7 +284,7 @@ class Bomb(SpecialBall):
         xcenter = int(xcenter)
         ycenter = int(ycenter)
 
-        game.ongoing.draw_explosion(coords)
+        game.ongoing.start_explosion(coords)
         the_playfield.remove_ball_at(coords)
 
         for x in range(xcenter - 1, xcenter + 2):

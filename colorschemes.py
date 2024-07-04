@@ -6,7 +6,7 @@
 from typing import Tuple, List
 
 
-simple_standard_ball_colors: List[Tuple[int]] = [
+simple_standard_ball_colors: List[Tuple[int, int, int]] = [
     (141, 211, 199),
     (255, 255, 179),
     (190, 186, 218),
@@ -19,6 +19,6 @@ simple_standard_ball_colors: List[Tuple[int]] = [
     (188, 128, 189),
 ]
 
-simple_standard_text_colors: List[Tuple[int]] = []
+simple_standard_text_colors: List[Tuple[int, int, int]] = []
 for i in range(10):
     simple_standard_text_colors.append((0, 0, 0))
