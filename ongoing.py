@@ -14,7 +14,7 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Tuple, List, Type
-from game import GameStateError
+
 import game
 from balls import Ball, SpecialBall, Bomb, Heart, ColoredBall
 
@@ -79,6 +79,8 @@ def event_type_exists(eventType: Type[Ongoing]) -> bool:
 def get_event_of_type(eventType: Type[Ongoing]) -> Ongoing:
     """Returns the oldest event of that type that is still ongoing.
     Raises GameStateError if None is there"""
+    from game import GameStateError
+
     for event in eventQueue:
         if isinstance(event, eventType):
             return event
@@ -118,9 +120,9 @@ class FallingBall(Ongoing):
 
         ball_below = game.playfield.get_top_ball(self.column)
         if isinstance(ball_below, Ball):
-            self.ball.lands_on_ball((self.column, self.height), ball_below)
+            self.ball.lands_on_ball((self.column, int(self.height)), ball_below)
         else:
-            self.ball.lands_on_empty((self.column, self.height))
+            self.ball.lands_on_empty((self.column, int(self.height)))
         eventQueue.remove(self)
         game.playfield.refresh_status()
 

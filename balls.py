@@ -265,16 +265,16 @@ class Bomb(SpecialBall):
     def __init__(self):
         self.image = pygame.image.load("specials/bombe-selbstgemalt.png")
 
-    def draw(self, surf: pygame.Surface, drawpos: Tuple[int]) -> None:
+    def draw(self, surf: pygame.Surface, drawpos: Tuple[int, int]) -> None:
         super().draw(surf, drawpos)
 
-    def landing_effect_on_ground(self, coords: Tuple[int]) -> None:
+    def landing_effect_on_ground(self, coords: Tuple[int, int]) -> None:
         pass
 
-    def landing_effect_on_ball(self, coords: Tuple[int]) -> None:
+    def landing_effect_on_ball(self, coords: Tuple[int, int]) -> None:
         self.explode(coords)
 
-    def explode(self, coords: Tuple[int]) -> None:
+    def explode(self, coords: Tuple[int, int]) -> None:
         import game
         from playfield import Playfield
 
