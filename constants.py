@@ -5,8 +5,14 @@
 
 from typing import Tuple, List
 
+
 # (max) number of ticks to be calculated per second
 max_FPS: int = 50
+
+endlevel: int = 10
+endlevel_score_multiplier: float = 3.0
+
+balls_per_level: int = 50
 
 # speed of falling Balls, in tiles/sec
 falling_speed: float = 3.0
@@ -53,9 +59,14 @@ explosion_totaltime: float = 1.5
 explosion_numticks: int = int(explosion_totaltime * max_FPS)
 
 
+window_width: int = 1024
+window_height: int = 768
+window_size: Tuple[int, int] = (window_width, window_height)
+
+
 # size of the canvas
-screen_width, screen_height = (1024, 768)
-screensize: Tuple[int] = (screen_width, screen_height)
+# window_width, window_height = (1024, 768)
+# window_size: Tuple[int, int] = (window_width, window_height)
 
 # this many px blank at the edge, to have a margin
 global_xmargin: int = 10
@@ -72,13 +83,13 @@ rowspacing: int = 5
 # Size of area for the depot, relative to screensize
 depot_width_fraction, depot_height_fraction = (0.7, 0.2)
 depotsize: Tuple[int] = (
-    int(screen_width * depot_width_fraction),
-    int(screen_height * depot_height_fraction),
+    int(window_width * depot_width_fraction),
+    int(window_height * depot_height_fraction),
 )
 # Pixel coordinates of the top-left corner of the Depot.
 depot_position_y: int = global_ymargin
-depot_position_x: int = int(0.2 * (1.0 - depot_width_fraction) * screen_width)
-depot_position: Tuple[int] = (depot_position_x, depot_position_y)
+depot_position_x: int = int(0.2 * (1.0 - depot_width_fraction) * window_width)
+depot_position: Tuple[int, int] = (depot_position_x, depot_position_y)
 
 # Calculate Pixel coords of the (top-left corner of the) first Ball in the depot, and
 # distance to second-to-left Ball in the depot.
@@ -107,8 +118,8 @@ depot_ballspacing: List[int] = [depot_x_perCol, depot_y_perRow]
 # Size of area where the crane moves, relative to screensize
 craneareasize_fraction: Tuple[int, int] = (0.7, 0.1)
 craneareasize: Tuple[int, int] = (
-    int(screen_width * craneareasize_fraction[0]),
-    int(screen_height * craneareasize_fraction[1]),
+    int(window_width * craneareasize_fraction[0]),
+    int(window_height * craneareasize_fraction[1]),
 )
 # Pixel coords of the top-left corner of the crane area. For now, just 3 px below the depot
 crane_position_x: int = depot_position_x
@@ -134,8 +145,8 @@ cranearea_ballspacing: List[int] = [0, cranearea_x_perCol]
 # Size of area where the playfield is, including falling Balls, blocked tiles from the seesaws, weightdisplay
 playfieldsize_fraction: Tuple[float, float] = (0.7, 0.6)
 playfieldsize: Tuple[int, int] = (
-    int(screen_width * playfieldsize_fraction[0]),
-    int(screen_height * playfieldsize_fraction[1]),
+    int(window_width * playfieldsize_fraction[0]),
+    int(window_height * playfieldsize_fraction[1]),
 )
 # Pixel coords of the top-left corner of the playfield area. For now, just 3 px below the crane area
 playfield_position_x: int = crane_position_x
@@ -196,9 +207,11 @@ scoredisplayarea_position: Tuple[int, int] = (
     scoredisplayarea_position_y,
 )
 
-scoredisplayarea_size_x: int = screen_width - px_used - global_xmargin
+scoredisplayarea_size_x: int = window_width - px_used - global_xmargin
 scoredisplayarea_size_y: int = playfieldsize[1]
 scoredisplayarea_size: Tuple[int, int] = (
     scoredisplayarea_size_x,
     scoredisplayarea_size_y,
 )
+
+finalscore_y: int = 50

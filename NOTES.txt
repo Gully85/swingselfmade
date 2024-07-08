@@ -1,3 +1,5 @@
+https://online.visual-paradigm.com/app/diagrams/#diagram:proj=0&id=1&type=ClassDiagram&width=11&height=8.5&unit=inch
+
 Current TODO List:
 
 - Code Cleanup: Move all magic numbers to constants
@@ -27,6 +29,7 @@ Current TODO List:
 - split ongoing EventQueue into multiple, for the different types. SeesawTiltings should always
     be drawn earlier than ThrownBalls. Or introduce a drawing-priority.
 - fix placeholder graphics for moving seesaw
+- fix crash on Drill
 
 
 
