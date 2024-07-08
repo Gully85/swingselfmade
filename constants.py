@@ -9,6 +9,8 @@ from typing import Tuple, List
 # (max) number of ticks to be calculated per second
 max_FPS: int = 50
 
+startlevel: int = 4
+
 endlevel: int = 10
 endlevel_score_multiplier: float = 3.0
 

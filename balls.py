@@ -13,7 +13,7 @@ from typing import Tuple, Type, List
 import colorschemes
 import pygame
 import random
-from constants import ball_size
+from constants import ball_size, balls_per_level, startlevel
 from abc import ABC, abstractmethod
 from pygame.font import Font
 
@@ -21,6 +21,8 @@ pygame.font.init()
 ball_colors: List[Tuple[int]] = colorschemes.simple_standard_ball_colors
 text_colors: List[Tuple[int]] = colorschemes.simple_standard_text_colors
 ballfont: Font = pygame.font.SysFont("monospace", 24)
+
+RGB_scoringcolor: Tuple[int, int, int] = (65, 174, 118)
 
 
 class PlayfieldSpace(ABC):
@@ -83,7 +85,7 @@ class BlockedSpace(PlayfieldSpace):
 
     def draw(self, surf: pygame.Surface, drawpos: Tuple[int]) -> None:
         # just a black rectangle for now
-        pygame.draw.rect(surf, (0, 0, 0), pygame.Rect(drawpos, ball_size))
+        pygame.draw.rect(surf, colorschemes.RGB_black, pygame.Rect(drawpos, ball_size))
 
     def getweight(self) -> int:
         return 0
@@ -159,7 +161,7 @@ class ColoredBall(Ball):
         pixelpos_rect = pygame.Rect(drawpos, ball_size)
         pygame.draw.ellipse(surf, color, pixelpos_rect, 0)
         if self.is_scoring():
-            pastcolor: Tuple[int] = (65, 174, 118)  # for currently scoring balls
+            pastcolor: Tuple[int] = RGB_scoringcolor  # for currently scoring balls
             pygame.draw.ellipse(surf, pastcolor, pixelpos_rect, 3)
         weighttext: pygame.Surface = ballfont.render(
             str(self.weight), True, text_colors[self.color]
@@ -319,7 +321,7 @@ class Cutter(SpecialBall):
     """Special Ball. Destroys the stack it lands on. Once hitting the BlockedSpace or
     height 0, it disappears."""
 
-    level_required = 5
+    level_required: int = 5
 
     def __init__(self):
         self.image = pygame.image.load("specials/bohrer-selbstgemalt.png")
@@ -357,7 +359,7 @@ class Heart(SpecialBall):
     """No special effects. When Scoring, this will increase the global
     score factor by 0.1*(number of Hearts scored)"""
 
-    level_required = 4
+    level_required: int = 4
 
     def __init__(self):
         self.image = pygame.image.load("specials/Herz-selbstgemalt.png")
@@ -438,8 +440,10 @@ def generate_ball() -> Ball:
 
     nextspecial_delay -= 1
 
-    # in the first 10 Balls of each level, the new color is more likely
-    if game.balls_dropped % 50 < 10 and random.choice([True, False]):
+    # in the first 20% of each level, the new color is more likely
+    if game.balls_dropped % balls_per_level < int(
+        0.2 * balls_per_level
+    ) and random.choice([True, False]):
         color = game.level - 1
     else:
         color = random.randint(1, game.level - 1)
@@ -449,8 +453,8 @@ def generate_ball() -> Ball:
 
 def generate_starting_ball():
     """This will always generate a ColoredBall."""
-    color = random.randint(0, 3)
-    weight = random.randint(1, 4)
+    color = random.randint(0, startlevel - 1)
+    weight = random.randint(1, startlevel)
     return ColoredBall(color, weight)
 
 
