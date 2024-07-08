@@ -16,6 +16,7 @@ import random
 from constants import ball_size, balls_per_level, startlevel
 from abc import ABC, abstractmethod
 from pygame.font import Font
+from pygame import Surface
 
 pygame.font.init()
 ball_colors: List[Tuple[int]] = colorschemes.simple_standard_ball_colors
@@ -23,6 +24,8 @@ text_colors: List[Tuple[int]] = colorschemes.simple_standard_text_colors
 ballfont: Font = pygame.font.SysFont("monospace", 24)
 
 RGB_scoringcolor: Tuple[int, int, int] = (65, 174, 118)
+
+from constants import num_columns, min_balls_between_Specials
 
 
 class PlayfieldSpace(ABC):
@@ -145,10 +148,6 @@ class ColoredBall(Ball):
     """Child-class of Ball. Has a color (int, 1 <= color <= maxcolors)
     and a weight (int, 0 or greater). Constructor is Colored_Ball(color, weight)."""
 
-    color: int
-    weight: int
-    scoring: bool
-
     def __init__(self, color: int, weight: int):
         self.color: int = color
         self.weight: int = weight
@@ -208,7 +207,7 @@ class ColoredBall(Ball):
         game.playfield.add_on_top(self, coords[0])
 
 
-class SpecialBall(Ball):
+class SpecialBall(ABC, Ball):
     """abstract class. Must be instanciated as one of the SpecialBall types. These all have weight==0.
     Must implement draw(surf, drawpos) and land_on_bottom(coords) and land_on_ball(coords).
     """
@@ -263,9 +262,10 @@ class Bomb(SpecialBall):
     """
 
     level_required: int = 4
+    image: Surface = pygame.image.load("specials/bombe-selbstgemalt.png")
 
     def __init__(self):
-        self.image = pygame.image.load("specials/bombe-selbstgemalt.png")
+        pass
 
     def draw(self, surf: pygame.Surface, drawpos: Tuple[int, int]) -> None:
         super().draw(surf, drawpos)
@@ -290,10 +290,10 @@ class Bomb(SpecialBall):
         the_playfield.remove_ball_at(coords)
 
         for x in range(xcenter - 1, xcenter + 2):
-            if x < 0 or xcenter > 7:
+            if x < 0 or xcenter > num_columns - 1:
                 continue
             for y in range(ycenter - 1, ycenter + 2):
-                if y < 0 or y > 7:
+                if y < 0 or y > num_columns - 1:
                     continue
                 ball_there = the_playfield.get_ball_at((x, y))
                 if isinstance(ball_there, Bomb):
@@ -322,14 +322,15 @@ class Cutter(SpecialBall):
     height 0, it disappears."""
 
     level_required: int = 5
+    image: Surface = pygame.image.load("specials/bohrer-selbstgemalt.png")
 
     def __init__(self):
-        self.image = pygame.image.load("specials/bohrer-selbstgemalt.png")
+        pass
 
-    def draw(self, surf: pygame.Surface, drawpos: Tuple[int]) -> None:
+    def draw(self, surf: pygame.Surface, drawpos: Tuple[int, int]) -> None:
         super().draw(surf, drawpos)
 
-    def landing_effect_on_ground(self, coords: Tuple[int]):
+    def landing_effect_on_ground(self, coords: Tuple[int, int]):
         import game
 
         game.playfield.remove_ball_at(coords)
@@ -360,9 +361,9 @@ class Heart(SpecialBall):
     score factor by 0.1*(number of Hearts scored)"""
 
     level_required: int = 4
+    image: Surface = pygame.image.load("specials/Herz-selbstgemalt.png")
 
     def __init__(self):
-        self.image = pygame.image.load("specials/Herz-selbstgemalt.png")
         self.scoring = False
 
     def draw(self, surf: pygame.Surface, drawpos: Tuple[int]) -> None:
@@ -413,8 +414,8 @@ def regenerate_nextspecial() -> None:
     nextspecial_delay = random.randint(
         int(0.8 * pick.level_required), int(1.2 * pick.level_required)
     )
-    if nextspecial_delay < 6:
-        nextspecial_delay = 6
+    if nextspecial_delay < min_balls_between_Specials:
+        nextspecial_delay = min_balls_between_Specials
     # print("next upcoming Special: " + pick + " in " + nextspecial_delay)
 
 
