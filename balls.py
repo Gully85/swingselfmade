@@ -207,7 +207,7 @@ class ColoredBall(Ball):
         game.playfield.add_on_top(self, coords[0])
 
 
-class SpecialBall(ABC, Ball):
+class SpecialBall(Ball):
     """abstract class. Must be instanciated as one of the SpecialBall types. These all have weight==0.
     Must implement draw(surf, drawpos) and land_on_bottom(coords) and land_on_ball(coords).
     """
