@@ -9,7 +9,9 @@ from constants import (
     cranearea_ballcoord,
     cranearea_x_perCol,
     ball_size,
+    num_columns,
 )
+from colorschemes import RGB_lightgrey, RGB_black
 from balls import Ball
 from balls import generate_starting_ball
 
@@ -61,13 +63,13 @@ class Crane:
 
     def draw(self):
         """draws the Crane and its current_Ball to surface at position, returns surface"""
-        self.surf.fill((127, 127, 127))
+        self.surf.fill(RGB_lightgrey)
 
         xcoord: int = cranearea_ballcoord[0] + self.x * cranearea_x_perCol
         # draw Ball, then an ellipse on top of it
         self.current_Ball.draw(self.surf, (xcoord, cranearea_ballcoord[1]))
         pixelpos_rect = Rect((xcoord, cranearea_ballcoord[1]), ball_size)
-        pygame.draw.ellipse(self.surf, (0, 0, 0), pixelpos_rect, width=3)
+        pygame.draw.ellipse(self.surf, RGB_black, pixelpos_rect, width=3)
 
         return self.surf
 
@@ -83,14 +85,14 @@ class Crane:
     def move_right(self):
         """moves the Crane one position to the right. Does nothing if already in the rightmost position."""
 
-        if self.x == 7:
+        if self.x == num_columns - 1:
             return
 
         self.x += 1
         self.changed()
 
     def move_to_column(self, col: int) -> None:
-        if col < 0 or col > 7:
+        if col < 0 or col > num_columns - 1:
             raise ValueError(
                 f"Crane column must be 0..7, attempted to move it to column {col}"
             )

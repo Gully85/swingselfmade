@@ -5,7 +5,8 @@ from pygame import Surface
 
 from balls import Ball, generate_starting_ball, generate_ball
 
-from constants import depot_position, depot_ballcoord, depot_ballspacing
+from constants import depot_position, depot_ballcoord, depot_ballspacing, num_columns
+from colorschemes import RGB_lightgrey
 
 
 class Depot:
@@ -34,7 +35,7 @@ class Depot:
 
         self.content = []
 
-        for _ in range(8):
+        for _ in range(num_columns):
             one_row: List[Ball] = []
             one_row.append(generate_starting_ball())
             one_row.append(generate_starting_ball())
@@ -61,7 +62,7 @@ class Depot:
 
     def draw(self) -> None:
         """draws full Depot, calls draw() methods of the Balls in the Depot. Returns self.surf"""
-        self.surf.fill((127, 127, 127))
+        self.surf.fill(RGB_lightgrey)
 
         for row in range(8):
             px_x: int = depot_ballcoord[0] + row * depot_ballspacing[0]
@@ -80,9 +81,9 @@ class Depot:
 
     def next_ball(self, column: int) -> Ball:
         """get ball of specified column, move ball down and generate a new one. Raise IndexError if
-        the column is not 0..7"""
-        if column < 0 or column > 7:
-            raise IndexError("Column index must be 0..7")
+        the column is not 0..num_columns-1"""
+        if column < 0 or column > num_columns - 1:
+            raise IndexError(f"Column index must be 0..{num_columns}")
         ret: Ball = self.content[column][1]
         self.content[column][1] = self.content[column][0]
         self.content[column][0] = generate_ball()

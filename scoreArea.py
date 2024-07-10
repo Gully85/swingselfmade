@@ -4,7 +4,9 @@ from typing import Tuple
 import pygame
 from balls import ColoredBall
 from balls import getnextspecial, getnextspecial_delay
-from constants import ball_size, scoredisplayarea_position
+from constants import ball_size, scoredisplayarea_position, startlevel
+
+from colorschemes import RGB_lightgrey, RGB_black
 
 ballsdropped_font = pygame.font.SysFont("Arial", 16)
 score_font = pygame.font.SysFont("Arial", 16)
@@ -34,7 +36,7 @@ class ScoreArea:
         self.surf = pygame.Surface(size)
         self.size = size
         self.redraw_needed = True
-        self.levelball = ColoredBall(4, 4)
+        self.levelball = ColoredBall(startlevel, startlevel)
 
     def changed(self) -> None:
         self.redraw_needed = True
@@ -49,7 +51,7 @@ class ScoreArea:
     def draw(self) -> None:
         from game import level, balls_dropped, score
 
-        self.surf.fill((127, 127, 127))
+        self.surf.fill(RGB_lightgrey)
 
         # Level is at the top, as a Colored_Ball of the newest Color, with the level as weight
 
@@ -62,7 +64,7 @@ class ScoreArea:
         self.levelball.draw(self.surf, level_position)
 
         ballsdropped_text: Surface = ballsdropped_font.render(
-            "Balls dropped: " + str(balls_dropped), True, (0, 0, 0)
+            "Balls dropped: " + str(balls_dropped), True, RGB_black
         )
         ballsdropped_position_x: int = int(0.1 * self.size[0])
         ballsdropped_position_y: int = int(0.4 * self.size[1])
@@ -72,14 +74,14 @@ class ScoreArea:
         )
         self.surf.blit(ballsdropped_text, ballsdropped_position)
 
-        score_text: Surface = score_font.render("Score: " + str(score), True, (0, 0, 0))
+        score_text: Surface = score_font.render("Score: " + str(score), True, RGB_black)
         score_position_x: int = ballsdropped_position_x
         score_position_y: int = 0.8 * self.size[1]
         score_position: Tuple[int, int] = (score_position_x, score_position_y)
         self.surf.blit(score_text, score_position)
 
         nextspecial_text: Surface = score_font.render(
-            "Next Special in " + str(getnextspecial_delay()), True, (0, 0, 0)
+            "Next Special in " + str(getnextspecial_delay()), True, RGB_black
         )
         nextspecial_position_x: int = score_position_x
         nextspecial_position_y: int = int(0.6 * self.size[1])

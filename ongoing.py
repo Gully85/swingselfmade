@@ -21,6 +21,8 @@ from balls import Ball, SpecialBall, Bomb, Heart, ColoredBall
 from pygame import Surface
 from pygame.image import load
 
+from constants import num_columns, max_height, falling_per_tick
+
 
 # this is a local variable of the module ongoing. Other files, if they import this,
 # can use and modify this. Their local name is ongoing.eventQueue
@@ -100,7 +102,9 @@ class FallingBall(Ongoing):
     column: int
     height: float
 
-    def __init__(self, ball: Ball, column: int, starting_height: float = 8.0):
+    def __init__(
+        self, ball: Ball, column: int, starting_height: float = float(max_height)
+    ):
         self.ball = ball
         self.column = column
         self.height = starting_height
@@ -112,7 +116,6 @@ class FallingBall(Ongoing):
         self.ball.draw(surf, (x, y))
 
     def tick(self) -> None:
-        from constants import falling_per_tick
 
         self.height -= falling_per_tick
         if self.height >= game.playfield.landing_height_of_column(self.column):
@@ -198,9 +201,9 @@ class ThrownBall(Ongoing):
         if destination_raw < 0:  # fly out left
             self.destination = -1
             self.remaining_range = destination_raw + 1
-        elif destination_raw > 8:  # fly out right
-            self.destination = 8
-            self.remaining_range = destination_raw - 8
+        elif destination_raw > num_columns:  # fly out right
+            self.destination = num_columns
+            self.remaining_range = destination_raw - num_columns
         else:  # stay in-bound
             self.destination = destination_raw
             self.remaining_range = 0
@@ -246,7 +249,10 @@ class ThrownBall(Ongoing):
 
         # identical to FallingBall.draw() so far
         px_x: int = playfield_ballcoord[0] + self.x * playfield_ballspacing[0]
-        px_y: int = playfield_ballcoord[0] + (7.0 - self.y) * playfield_ballspacing[1]
+        px_y: int = (
+            playfield_ballcoord[0]
+            + int(max_height - 1 - self.y) * playfield_ballspacing[1]
+        )
         self.ball.draw(surf, (px_x, px_y))
 
     def tick(self) -> None:
@@ -267,7 +273,7 @@ class ThrownBall(Ongoing):
 
         # is the destination reached? If yes, it can become a FallingBall or it can fly out
         if self.t > 1.0:
-            if self.destination == -1 or self.destination == 8:
+            if self.destination == -1 or self.destination == num_columns:
                 self.fly_out(self.destination == -1)
             else:
                 eventQueue.append(
@@ -317,7 +323,7 @@ class ThrownBall(Ongoing):
         self.t = -1.0
         self.y = thrown_ball_flyover_height
         if left:
-            self.x = 8.0
+            self.x = float(num_columns)
         else:
             self.x = -1.0
         self.origin = (self.x, self.y)
@@ -325,18 +331,18 @@ class ThrownBall(Ongoing):
         # calculate new destination. It can be another fly-out (if remaining_range is high enough) or a column.
         # Didn't find a way to make this shorter without losing readability...
         if left:
-            if self.remaining_range < -8:
+            if self.remaining_range < -num_columns:
                 self.destination = -1
-                self.remaining_range += 8
+                self.remaining_range += num_columns
             else:  # in-bound
                 self.destination = (
-                    7 + self.remaining_range
+                    num_columns - 1 + self.remaining_range
                 )  # self.remaining is negative
                 self.remaining_range = 0
         else:
-            if self.remaining_range > 7:
-                self.destination = 8
-                self.remaining_range -= 8
+            if self.remaining_range > num_columns - 1:
+                self.destination = num_columns
+                self.remaining_range -= num_columns
             else:
                 self.destination = self.remaining_range
                 self.remaining_range = 0
@@ -447,7 +453,7 @@ class Scoring(Ongoing):
             ]
             # remove out-of-bounds from this list
             for x2, y2 in coords_to_check:
-                if x2 < 0 or x2 > 7 or y2 < 0 or y2 > 8:
+                if x2 < 0 or x2 > num_columns - 1 or y2 < 0 or y2 > max_height:
                     continue
                 self.next.append((x2, y2))
 
@@ -507,10 +513,12 @@ class Combining(Ongoing):
         )
         xcoord: int = playfield_ballcoord[0] + self.coords[0] * playfield_ballspacing[0]
         ycoord_final: int = (
-            playfield_ballcoord[1] + (7 - self.coords[1]) * playfield_ballspacing[1]
+            playfield_ballcoord[1]
+            + (max_height - 1 - self.coords[1]) * playfield_ballspacing[1]
         )
         ycoord_start: int = (
-            playfield_ballcoord[1] + (7 - self.coords[1] - 4) * playfield_ballspacing[1]
+            playfield_ballcoord[1]
+            + (max_height - self.coords[1] - 5) * playfield_ballspacing[1]
         )
         ycoord_now: int = ycoord_start + int(self.t * (ycoord_final - ycoord_start))
 

@@ -15,13 +15,15 @@ from pygame.draw import rect as draw_rect
 import balls, game
 from balls import PlayfieldSpace, Ball
 
+from colorschemes import RGB_lightgrey
 
 import ongoing
 
 # from constants import playfield_ballcoord, playfield_ballspacing
 from constants import pixel_coord_in_playfield
-from constants import playfield_position
-import constants
+from constants import playfield_position, ball_size
+
+from constants import num_columns, max_height, tilting_per_tick
 
 from pygame.font import SysFont
 
@@ -32,19 +34,17 @@ class Playfield:
     """Information about the current Playfield.
     Constructor takes size in pixels as (width,height) tuple."""
 
-    stacks: List[Seesaw]
-    surf: Surface
-    redraw_needed: bool
-    alive: bool
+    def __init__(self, size: Tuple[int, int]):
+        numstacks = num_columns // 2
+        self.stacks: List[Seesaw] = []
 
-    def __init__(self, size: Tuple[int]):
+        for i in range(numstacks):
+            self.stacks.append(Seesaw(2 * i))
 
-        self.stacks = [Seesaw(0), Seesaw(2), Seesaw(4), Seesaw(6)]
-
-        self.size = size
-        self.surf = Surface(size)
-        self.redraw_needed = True
-        self.alive = True
+        self.size: Tuple[int, int] = size
+        self.surf: Surface = Surface(size)
+        self.redraw_needed: bool = True
+        self.alive: bool = True
 
     def tick(self) -> None:
         for sesa in self.stacks:
@@ -74,11 +74,10 @@ class Playfield:
 
     def draw(self) -> Surface:
         """draws the Playfield including all Balls."""
-        self.surf.fill((127, 127, 127))
+        self.surf.fill(RGB_lightgrey)
 
-        for x in range(4):
+        for x in range(num_columns // 2):
             self.stacks[x].draw(self.surf)
-        # self.stacks[0].draw(self.surf)
 
         return self.surf
 
@@ -88,32 +87,32 @@ class Playfield:
         Blocked is returned if that position is blocked by the seesaw state, only possible for y=0 or y=1
         """
         x, y = coords
-        if x < 0 or x > 7 or y < 0 or y > 7:
+        if x < 0 or x > num_columns - 1 or y < 0 or y > num_columns - 1:
             raise IndexError("can't get Ball from position ({},{})".format(x, y))
 
         return self.stacks[x // 2].get_ball_at_height(y, x % 2 == 0)
 
     def column_is_empty(self, column: int) -> bool:
-        if column < 0 or column > 7:
+        if column < 0 or column > num_columns - 1:
             raise ValueError(
-                "Trying to get empty-status of column{}, "
-                "only 0..7 possible".format(column)
+                f"Trying to get empty-status of column {column}, "
+                f"only 0..{num_columns - 1} possible"
             )
         sesa: int = column // 2
         return self.stacks[sesa].isempty(column % 2 == 0)
 
     def add_on_top(self, ball: Ball, column: int) -> None:
         """add a Ball on top of a stack, do not trigger anything"""
-        if column < 0 or column > 7:
+        if column < 0 or column > num_columns:
             raise ValueError("Wrong column {}".format(column))
         self.stacks[column // 2].add_on_top(ball, column % 2 == 0)
 
     def get_weight_of_column(self, column: int) -> int:
         """Returns total weight of the stack in given column 0..7."""
-        if column < 0 or column > 7:
+        if column < 0 or column > num_columns - 1:
             raise ValueError(
-                "Trying to get weight of column {}, "
-                "only 0..7 possible".format(column)
+                f"Trying to get weight of column {column}, "
+                f"only 0..{num_columns} possible"
             )
 
         x: int = column // 2  # 0..3 possible
@@ -128,12 +127,6 @@ class Playfield:
             if not sesa.check_alive():
                 return False
         return True
-
-    def land_ball(self, ball: Ball, coords: Tuple[int, int]) -> None:
-        """Land a ball at coords. Triggers a status update. x=0..7"""
-        x: int = coords[0]
-        sesa: Seesaw = self.stacks[x // 2]
-        sesa.land_ball(x % 2 == 0, ball)
 
     def land_ball_in_column(self, ball: Ball, x: int) -> None:
         """Land a ball in specified column on top of the stack. x=0..7.
@@ -150,10 +143,10 @@ class Playfield:
         # area of the explosion, respect boundaries
         coords_to_blowup: List[Tuple[int, int]] = []
         for x2 in range(x - 1, x + 2):
-            if x2 < 0 or x2 > 7:
+            if x2 < 0 or x2 > num_columns - 1:
                 continue
             for y2 in range(y + 1, y - 2, -1):
-                if y2 < 0 or y2 > 7:
+                if y2 < 0 or y2 > num_columns:
                     continue
                 coords_to_blowup.append((x2, y2))
 
@@ -209,9 +202,9 @@ class Playfield:
         """
 
         # lowest row can never Score. Start at height 1
-        for y in range(1, 8):
+        for y in range(1, num_columns):
             # x=1..6 makes sure that (x +/- 1) stays in-bound 0..7
-            for x in range(1, 7):
+            for x in range(1, num_columns - 1):
                 the_ball = self.get_ball_at((x, y))
                 if not isinstance(the_ball, balls.Ball):
                     continue
@@ -299,7 +292,7 @@ class Playfield:
         """remove a ball from specified position. If there is already no ball, do nothing. If the position
         is Blocked, raises GameStateError"""
         x, y = coords
-        if x < 0 or x > 7 or y < 0:
+        if x < 0 or x > num_columns - 1 or y < 0:
             raise ValueError(
                 f"Trying to remove ball from position {coords}, that is out of bounds"
             )
@@ -314,7 +307,7 @@ class Playfield:
 
     def get_top_ball(self, column: int) -> PlayfieldSpace:
         """returns highest ball in the stack, or BlockedSpace if the stack is empty"""
-        if column < 0 or column > 7:
+        if column < 0 or column > num_columns:
             raise ValueError(
                 "Can not get top of ball of stack {},"
                 "only 0..7 possible".format(column)
@@ -328,23 +321,15 @@ class Playfield:
 class Seesaw:
     """A pair of two connected stacks in the playfield."""
 
-    tilt: float  # 0.0 for balanced, -1.0 for heavier left, +1.0 for heavier right
-    weightleft: int  # sum of weights on the left side, at last refresh
-    weightright: int
-    stackleft: List[Ball]
-    stackright: List[Ball]
-    moving: bool
-    xleft: int  # column number of the left half. Should be an even number.
-
     def __init__(self, xleft):
-        self.tilt = 0.0  # 0 for balanced, #-1 for heavier left
+        self.tilt: float = 0.0  # 0 for balanced, #-1 for heavier left
         # side, +1 for heavier right side
-        self.weightleft = 0
-        self.weightright = 0
-        self.stackleft = []  # first is lowest, last is highest Ball
-        self.stackright = []  # first is lowest, last is highest Ball
-        self.moving = False
-        self.xleft = xleft
+        self.weightleft: int = 0
+        self.weightright: int = 0
+        self.stackleft: List[Ball] = []  # first is lowest, last is highest Ball
+        self.stackright: List[Ball] = []  # first is lowest, last is highest Ball
+        self.moving: bool = False
+        self.xleft: int = xleft  # should always be an even number
 
     def ismoving(self) -> bool:
         return self.moving
@@ -422,7 +407,7 @@ class Seesaw:
             return self.stackright[-1]
 
     # TODO can this be removed?
-    def get_ball_at_height(self, height: int, left: bool):
+    def get_ball_at_height(self, height: int, left: bool) -> PlayfieldSpace:
         # TODO what if moving? Both? Return Dummy object?
         if left:
             stack = self.stackleft
@@ -463,25 +448,25 @@ class Seesaw:
         game.playfield.changed()
         # if left is heavier, reduce tilt
         if self.weightleft > self.weightright:
-            self.tilt -= constants.tilting_per_tick
+            self.tilt -= tilting_per_tick
             if self.tilt <= -1.0:
                 self.tilt = -1.0
                 self.finalize_tilting()
         # if weights are equal, move tilt towards zero
         elif self.weightleft == self.weightright:
             if self.tilt > 0.0:
-                self.tilt -= constants.tilting_per_tick
+                self.tilt -= tilting_per_tick
                 if self.tilt <= 0.0:
                     self.tilt = 0.0
                     self.finalize_tilting()
             else:
-                self.tilt += constants.tilting_per_tick
+                self.tilt += tilting_per_tick
                 if self.tilt >= 0.0:
                     self.tilt = 0.0
                     self.finalize_tilting()
         # if right is heavier, increase tilt
         else:
-            self.tilt += constants.tilting_per_tick
+            self.tilt += tilting_per_tick
             # check if finished tilting to the right
             if self.tilt >= 1.0:
                 self.tilt = 1.0
@@ -503,8 +488,8 @@ class Seesaw:
 
         blocked_botright: Tuple[int, int] = pixel_coord_in_playfield((self.xleft, 0))
 
-        blocked_botright[0] += constants.ball_size[0]
-        blocked_botright[1] += constants.ball_size[1]
+        blocked_botright[0] += ball_size[0]
+        blocked_botright[1] += ball_size[1]
         width: int = blocked_botright[0] - blocked_topleft[0]
         height: int = blocked_botright[1] - blocked_topleft[1]
 
@@ -523,8 +508,8 @@ class Seesaw:
         )
         blocked_botright = pixel_coord_in_playfield((self.xleft + 1, 0))
 
-        blocked_botright[0] += constants.ball_size[0]
-        blocked_botright[1] += constants.ball_size[1]
+        blocked_botright[0] += ball_size[0]
+        blocked_botright[1] += ball_size[1]
         width = blocked_botright[0] - blocked_topleft[0]
         height = blocked_botright[1] - blocked_topleft[1]
 
@@ -543,11 +528,18 @@ class Seesaw:
         stackheight_left = len(self.stackleft)
         stackheight_right = len(self.stackright)
         if self.tilt == -1.0:
-            return stackheight_left <= 8 and stackheight_right <= 6
+            return (
+                stackheight_left <= max_height and stackheight_right <= max_height - 2
+            )
         elif self.tilt == 0.0:
-            return stackheight_left <= 7 and stackheight_right <= 7
+            return (
+                stackheight_left <= max_height - 1
+                and stackheight_right <= max_height - 1
+            )
         else:
-            return stackheight_left <= 6 and stackheight_right <= 8
+            return (
+                stackheight_left <= max_height - 2 and stackheight_right <= max_height
+            )
 
     def throw_top_ball(self) -> None:
         """if weights differ, throw top ball of lighter side.
@@ -588,7 +580,7 @@ class Seesaw:
             left = False
         else:
             raise ValueError("remove_ball_at called on wrong seesaw")
-        if y < 0 or y > 9:
+        if y < 0 or y > max_height + 1:
             raise ValueError("Can not remove Ball from that height." "coords=" + coords)
 
         blocked_height = self.get_blocked_height(left)

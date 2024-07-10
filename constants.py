@@ -21,6 +21,9 @@ min_balls_between_Specials: int = 6
 # number of columns in the play area. This must be an even number
 num_columns: int = 8
 
+# max allowed height before the game is lost
+max_height: int = 8
+
 # speed of falling Balls, in tiles/sec
 falling_speed: float = 3.0
 # same in tiles/tick

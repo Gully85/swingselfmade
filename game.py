@@ -3,14 +3,21 @@
 
 
 import depot, crane, playfield, scoreArea, ongoing
-from constants import depotsize, craneareasize, playfieldsize, scoredisplayarea_size
+from constants import (
+    depotsize,
+    craneareasize,
+    playfieldsize,
+    scoredisplayarea_size,
+    startlevel,
+    balls_per_level,
+)
 
 depot = depot.Depot(depotsize)
 crane = crane.Crane(craneareasize)
 playfield = playfield.Playfield(playfieldsize)
 score_area = scoreArea.ScoreArea(scoredisplayarea_size)
 
-level: int = 4
+level: int = startlevel
 balls_dropped: int = 0
 score: int = 0
 global_scorefactor: float = 1.0
@@ -25,7 +32,7 @@ def reset() -> None:
     ongoing.reset()
     playfield.reset()
 
-    level = 4
+    level = startlevel
     balls_dropped = 0
     score = 0
     global_scorefactor = 1.0
@@ -38,7 +45,7 @@ def drop_ball() -> None:
     crane.drop_ball()
 
     balls_dropped += 1
-    if balls_dropped % 50 == 0:
+    if balls_dropped % balls_per_level == 0:
         level += 1
         score_area.update_level()
     score_area.changed()
