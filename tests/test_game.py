@@ -9,6 +9,8 @@ from balls import Ball
 from ongoing import FallingBall
 import unittest
 
+from constants import startlevel, balls_per_level
+
 
 class TestTheGame(unittest.TestCase):
 
@@ -17,15 +19,15 @@ class TestTheGame(unittest.TestCase):
 
         self.assertEqual(0, game.score)
         self.assertEqual(0, game.balls_dropped)
-        self.assertEqual(4, game.level)
+        self.assertEqual(startlevel, game.level)
 
     def test_game_levelup(self):
         game.reset()
         # drop 52 balls. Check length of eventQueue. Level should have increased by then.
-        for i in range(52):
+        for i in range(balls_per_level + 2):
             game.drop_ball()
 
-        self.assertEqual(5, game.level)
+        self.assertEqual(startlevel + 1, game.level)
 
     def test_dropped_ball_in_eventQueue(self):
         game.reset()

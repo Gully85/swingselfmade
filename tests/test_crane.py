@@ -11,6 +11,8 @@ from ongoing import FallingBall
 import game
 import unittest
 
+from constants import num_columns
+
 
 class TestTheCrane(unittest.TestCase):
 
@@ -35,7 +37,7 @@ class TestTheCrane(unittest.TestCase):
         with self.assertRaises(ValueError):
             the_crane.move_to_column(-1)
         with self.assertRaises(ValueError):
-            the_crane.move_to_column(8)
+            the_crane.move_to_column(num_columns)
 
         the_crane.move_to_column(0)
         the_crane.move_left()
@@ -43,7 +45,7 @@ class TestTheCrane(unittest.TestCase):
 
         the_crane.move_to_column(7)
         the_crane.move_right()
-        self.assertEqual(the_crane.getx(), 7)
+        self.assertEqual(the_crane.getx(), num_columns - 1)
 
     def test_crane_has_ball(self):
         game.reset()

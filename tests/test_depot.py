@@ -8,6 +8,7 @@ sys.path.append("S:/SwingSelfmade/")
 import game
 from depot import Depot
 from balls import Ball
+from constants import num_columns
 
 import unittest
 
@@ -20,14 +21,14 @@ class TestTheDepot(unittest.TestCase):
         the_depot: Depot = game.depot
 
         # Rows 0..7 must be able to drop a Ball
-        for i in range(8):
+        for i in range(num_columns):
             self.assertIsInstance(the_depot.next_ball(i), Ball)
 
         # Rows -1 and 8 must raise an IndexError
         with self.assertRaises(IndexError):
             the_depot.next_ball(-1)
         with self.assertRaises(IndexError):
-            the_depot.next_ball(8)
+            the_depot.next_ball(num_columns)
 
         # TODO once ball generation can force a certain ball, check if it comes out exactly two drops later
 

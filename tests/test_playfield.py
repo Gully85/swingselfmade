@@ -11,6 +11,7 @@ from balls import generate_starting_ball
 from playfield import Playfield
 from ongoing import FallingBall
 from tests.testing_generals import wait_for_empty_eq
+from constants import num_columns
 
 import unittest
 
@@ -23,7 +24,7 @@ class TestPlayfield(unittest.TestCase):
 
         # at the beginning: The bottom row should be Blocked, the row
         # above that should be EmptySpace
-        for i in range(8):
+        for i in range(num_columns):
             self.assertIsInstance(the_playfield.get_ball_at((i, 0)), BlockedSpace)
             self.assertIsInstance(the_playfield.get_ball_at((i, 1)), EmptySpace)
 
@@ -64,9 +65,9 @@ class TestPlayfield(unittest.TestCase):
         # Drop a ball to the rightmost column, should start a SeesawTilting
         Testball: ColoredBall = generate_starting_ball()
         Testball.setweight(20)
-        the_playfield.land_ball_in_column(Testball, 7)
+        the_playfield.land_ball_in_column(Testball, num_columns - 1)
         self.assertTrue(game.playfield.any_seesaw_is_moving())
-        self.assertTrue(game.playfield.stacks[3].ismoving())
+        self.assertTrue(game.playfield.stacks[(num_columns // 2) - 1].ismoving())
         # the_tilting_event = game.ongoing.get_newest_event()
         # self.assertIsInstance(the_tilting_event, game.ongoing.SeesawTilting)
         # self.assertEqual(the_tilting_event.getsesa(), 3)
@@ -74,7 +75,7 @@ class TestPlayfield(unittest.TestCase):
         # Scoring
         game.reset()
         # Drop two heavy balls on the left side of each seesaw to create a flat ground
-        for sesa in range(4):
+        for sesa in range(num_columns // 2):
             Testball = generate_starting_ball()
             Testball.setweight(100)
             the_playfield.land_ball_in_column(Testball, 2 * sesa)
@@ -103,7 +104,7 @@ class TestPlayfield(unittest.TestCase):
         self.assertTrue(wait_for_empty_eventQueue(4 * constants.scoring_delay))
 
         # same for the rightmost columns and a different color
-        for i in range(5, 8):
+        for i in range(num_columns - 3, num_columns):
             Testball3 = generate_starting_ball()
             Testball3.setcolor(3)
             the_playfield.land_ball_in_column(Testball3, i)

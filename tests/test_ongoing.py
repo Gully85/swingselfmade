@@ -11,6 +11,8 @@ from ongoing import FallingBall, ThrownBall
 from playfield import Seesaw
 import unittest, random
 
+from constants import num_columns, max_height
+
 from tests.testing_generals import wait_for_empty_eq
 
 
@@ -20,7 +22,7 @@ class TestFalling(unittest.TestCase):
         game.reset()
 
         Testball: Ball = generate_starting_ball()
-        chosen_column: int = random.randint(0, 7)
+        chosen_column: int = random.randint(0, num_columns - 1)
         game.ongoing.drop_ball_in_column(Testball, chosen_column)
 
         self.assertEqual(1, game.ongoing.get_number_of_events())
@@ -32,7 +34,9 @@ class TestFalling(unittest.TestCase):
         """create a random ball, drop it in a random column. Assert that it loses height."""
         game.reset()
 
-        game.ongoing.drop_ball_in_column(generate_starting_ball(), random.randint(0, 7))
+        game.ongoing.drop_ball_in_column(
+            generate_starting_ball(), random.randint(0, num_columns - 1)
+        )
         the_falling_event: FallingBall = game.ongoing.get_newest_event()
 
         # make sure it loses height over time
@@ -44,11 +48,15 @@ class TestFalling(unittest.TestCase):
         """create a random ball, drop it in a random column. Assert that it reaches the ground eventually"""
         game.reset()
 
-        game.ongoing.drop_ball_in_column(generate_starting_ball(), random.randint(0, 7))
+        game.ongoing.drop_ball_in_column(
+            generate_starting_ball(), random.randint(0, num_columns - 1)
+        )
 
         # it should land after some time. Maximum number of ticks allowed is 8.0 / falling_speed * max_FPS
         # (it should only need to drop by 7 positions and then trigger a Seesaw Tilting, 8.0 leaves some room)
-        maxticks: int = int(8.0 * constants.max_FPS / constants.falling_per_tick) + 1
+        maxticks: int = (
+            int(max_height * constants.max_FPS / constants.falling_per_tick) + 1
+        )
         self.assertGreater(maxticks, 0)
         self.assertTrue(wait_for_empty_eq(maxticks))
         self.assertFalse(game.ongoing.event_type_exists(FallingBall))
@@ -62,7 +70,7 @@ class TestTilting(unittest.TestCase):
 
         Testball: ColoredBall = generate_starting_ball()
 
-        chosen_column: int = random.randint(0, 7)
+        chosen_column: int = random.randint(0, num_columns - 1)
         chosen_seesaw: int = chosen_column // 2
         Testball.lands_on_empty((chosen_column, 1))
         game.playfield.refresh_status()
@@ -89,7 +97,7 @@ class TestTilting(unittest.TestCase):
                 2.0,
             )
 
-        chosen_col: int = 7
+        chosen_col: int = num_columns - 1
         generate_starting_ball().lands_on_empty((chosen_col, 2))
 
         for _ in range(ticks_for_full_tilt):
@@ -109,7 +117,7 @@ class TestTilting(unittest.TestCase):
         Testball: ColoredBall = generate_starting_ball()
         self.assertNotEqual(0, Testball.getweight())
 
-        chosen_column: int = random.randint(0, 7)
+        chosen_column: int = random.randint(0, num_columns - 1)
         chosen_sesa: int = chosen_column // 2
 
         Testball.lands_on_empty((chosen_column, 2))
@@ -137,7 +145,7 @@ class TestTilting(unittest.TestCase):
         self.assertEqual(1, game.playfield.get_seesaw_state(chosen_column + 1))
 
         # test on the rightmost column, should tilt to the right
-        chosen_column: int = 7
+        chosen_column: int = num_columns - 1
         generate_starting_ball().lands_on_empty((chosen_column, 2))
         game.playfield.refresh_status()
         maxticks: int = int(1.0 / constants.tilting_per_tick) + 1
@@ -188,7 +196,7 @@ class TestThrowing(unittest.TestCase):
                 "ThrownBall was not converted into a FallingBall within expected time."
             )
 
-        the_falling_event = game.ongoing.get_event_of_type(FallingBall)
+        the_falling_event: FallingBall = game.ongoing.get_event_of_type(FallingBall)
         self.assertIsInstance(the_falling_event, FallingBall)
         self.assertIs(the_ball, the_falling_event.getball())
         self.assertEqual(2, the_falling_event.getcolumn())
@@ -206,12 +214,12 @@ class TestThrowing(unittest.TestCase):
         maxticks: int = 2 * int(constants.thrown_ball_totaltime * constants.max_FPS) + 1
         for _ in range(maxticks):
             game.tick()
-            if the_throwing_event.getx() > 6.5:
+            if the_throwing_event.getx() > float(num_columns - 1.5):
                 break
         else:
             self.fail("ThrownBall did not fly-out left within expected time.")
 
-        self.assertEqual(the_throwing_event.getdestination(), 7)
+        self.assertEqual(the_throwing_event.getdestination(), num_columns - 1)
 
     def test_rightflyout_range(self):
         """create a ThrownBall that flies out. Verify that the remaining throwing-range is reduced correctly"""
@@ -220,7 +228,7 @@ class TestThrowing(unittest.TestCase):
         game.reset()
 
         the_ball: ColoredBall = generate_starting_ball()
-        game.ongoing.throw_ball(the_ball, (6, 0), 2)
+        game.ongoing.throw_ball(the_ball, (num_columns - 2, 0), 2)
         the_throwing_event: ThrownBall = game.ongoing.get_event_of_type(ThrownBall)
 
         maxticks: int = 2 * int(constants.thrown_ball_totaltime * constants.max_FPS) + 1
@@ -239,7 +247,7 @@ class TestThrowing(unittest.TestCase):
         from ongoing import ThrownBall
 
         the_ball: ColoredBall = generate_starting_ball()
-        game.ongoing.throw_ball(the_ball, (6, 0), 30)
+        game.ongoing.throw_ball(the_ball, (num_columns - 2, 0), 30)
         the_throwing_event: ThrownBall = game.ongoing.get_event_of_type(ThrownBall)
 
         # ticks per fly-through, not total
@@ -259,7 +267,7 @@ class TestThrowing(unittest.TestCase):
         # Tick() until it reaches the half-way, then until x < 0.5 again. Check that both doesn't take too long
         for _ in range(maxticks):
             game.tick()
-            if the_throwing_event.getx() > 4.0:
+            if the_throwing_event.getx() > float(num_columns) / 2:
                 break
         else:
             self.fail(
@@ -281,7 +289,7 @@ class TestThrowing(unittest.TestCase):
         # Same once more, to verify that a Bomb converts to a Heart
         for _ in range(maxticks):
             game.tick()
-            if the_throwing_event.getx() > 4.0:
+            if the_throwing_event.getx() > float(num_columns) / 2:
                 break
         else:
             self.fail(
@@ -305,7 +313,7 @@ class TestScoring(unittest.TestCase):
     # Helper function, no actual test
     def make_solid_ground(self):
         """Drop heavy (weight=50) balls, color=1, on one side of each seesaw. Wait for tilt to finish."""
-        for sesa in range(4):
+        for sesa in range(num_columns // 2):
             column: int = 2 * sesa
             for _ in range(2):
                 nextball: ColoredBall = generate_starting_ball()
@@ -394,11 +402,12 @@ class TestScoring(unittest.TestCase):
         self.assertTrue(game.ongoing.event_type_exists(Scoring))
 
         # it should take 3 expansions for the Scoring to include all color=2 balls.
+        # plus wait for one at the start, and one at the end
         maxticks: int = 5 * constants.scoring_delay + 1
         self.assertTrue(wait_for_empty_eq(maxticks))
 
-        # There should be 10 balls left: 8 for the solid ground, 2 of the color=3
-        self.assertEqual(game.playfield.get_number_of_balls(), 10)
+        # There should be 2n+2 balls left: 2n for the solid ground, 2 of the color=3
+        self.assertEqual(game.playfield.get_number_of_balls(), 2 * num_columns + 2)
 
     def test_scoring_drops_hanging_balls(self):
         """Tests that balls lieing on a Scored Ball will start to fall"""
@@ -443,7 +452,7 @@ class TestCombining(unittest.TestCase):
     # Helper function, no actual test
     def make_solid_ground(self):
         """Drop heavy (weight=50) balls, color=1, on one side of each seesaw. Wait for tilt to finish."""
-        for sesa in range(4):
+        for sesa in range(num_columns // 2):
             column: int = 2 * sesa
             for _ in range(2):
                 nextball: ColoredBall = generate_starting_ball()
@@ -501,7 +510,7 @@ class TestOngoing(unittest.TestCase):
 
     def make_solid_ground(self):
         """Drop heavy (weight=50) balls, color=1, on one side of each seesaw. Wait for tilt to finish."""
-        for sesa in range(4):
+        for sesa in range(num_columns // 2):
             column: int = 2 * sesa
             for _ in range(2):
                 nextball: ColoredBall = generate_starting_ball()
