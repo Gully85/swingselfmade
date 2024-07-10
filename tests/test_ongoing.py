@@ -406,8 +406,9 @@ class TestScoring(unittest.TestCase):
         maxticks: int = 5 * constants.scoring_delay + 1
         self.assertTrue(wait_for_empty_eq(maxticks))
 
-        # There should be 2n+2 balls left: 2n for the solid ground, 2 of the color=3
-        self.assertEqual(game.playfield.get_number_of_balls(), 2 * num_columns + 2)
+        # There should be n+2 balls left: n for the solid ground
+        # (2 per Seesaw, = 2 per 2 columns), 2 of the color=3
+        self.assertEqual(game.playfield.get_number_of_balls(), num_columns + 2)
 
     def test_scoring_drops_hanging_balls(self):
         """Tests that balls lieing on a Scored Ball will start to fall"""
