@@ -5,8 +5,17 @@ from pygame import Surface
 
 from balls import Ball, generate_starting_ball, generate_ball
 
-from constants import depot_position, depot_ballcoord, depot_ballspacing, num_columns
-from colorschemes import RGB_lightgrey
+from constants import num_columns, column_spacing, window_width, window_height
+
+# Size of area for the depot, relative to screensize
+depot_width_fraction, depot_height_fraction = (0.7, 0.2)
+
+# this must be module-scope, since crane-area and playfield need the depot's size
+# to calculate their position
+depotsize: Tuple[int, int] = (
+    int(window_width * depot_width_fraction),
+    int(window_height * depot_height_fraction),
+)
 
 
 class Depot:
@@ -27,10 +36,16 @@ class Depot:
     content: List[List[Ball]]
 
     # size in pixels is provided by the constructor call. Initial filling with Colored_Balls is done here for now.
-    def __init__(self, size: Tuple[int, int]):
-        self.size_x = size[0]
-        self.size_y = size[1]
-        self.surf = Surface(size)
+    def __init__(self):
+        from constants import window_size
+        from balls import generate_starting_ball
+
+        window_width, window_height = window_size
+
+        self.size_x = depotsize[0]
+        self.size_y = depotsize[1]
+
+        self.surf = Surface(depotsize)
         self.redraw_needed = True
 
         self.content = []
@@ -53,6 +68,8 @@ class Depot:
         self.changed()
 
     def draw_if_changed(self, screen: Surface) -> None:
+        from constants import depot_position
+
         if not self.redraw_needed:
             return
 
@@ -62,6 +79,38 @@ class Depot:
 
     def draw(self) -> None:
         """draws full Depot, calls draw() methods of the Balls in the Depot. Returns self.surf"""
+        from constants import global_xmargin, global_ymargin, window_width
+        from balls import ball_size
+        from colorschemes import RGB_lightgrey
+
+        # Pixel coordinates of the top-left corner of the Depot.
+        depot_position_y: int = global_ymargin
+        depot_position_x: int = int(0.2 * (1.0 - depot_width_fraction) * window_width)
+        depot_position: Tuple[int, int] = (depot_position_x, depot_position_y)
+        # Calculate Pixel coords of the (top-left corner of the) first Ball in the depot, and
+        # distance to second-to-left Ball in the depot.
+        # 8 cols of Balls use 8*ballsize[0] px plus 7*colspacing
+        px_used: int = 8 * ball_size[0] + 7 * column_spacing
+        # Rest of the px is divided equally left and right
+        if px_used > self.size_x + 2 * global_xmargin:
+            raise ValueError("Depot not wide enough.")
+
+        depot_xleft: int = int(0.5 * (self.size_x - px_used))
+        depot_x_perCol: int = ball_size[0] + column_spacing
+        # => x-coord of Ball in col i is depot_left + i*depot_x_perCol
+
+        # same for y-direction. Two rows of Balls use (2*ballsize[1] + colspacing) px.
+        px_used: int = 2 * ball_size[1] + column_spacing
+        if px_used > self.size_y:
+            raise ValueError("Depot not high enough.")
+
+        depot_ytop: int = int(0.5 * (self.size_y - px_used))
+        depot_y_perRow: int = ball_size[1] + column_spacing
+
+        # it should be sufficient to import these two pairs
+        depot_ballcoord: List[int] = [depot_xleft, depot_ytop]
+        depot_ballspacing: List[int] = [depot_x_perCol, depot_y_perRow]
+
         self.surf.fill(RGB_lightgrey)
 
         for row in range(8):

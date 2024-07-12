@@ -4,14 +4,31 @@ from typing import Tuple
 import pygame
 from balls import ColoredBall
 from balls import getnextspecial, getnextspecial_delay
-from constants import ball_size, scoredisplayarea_position, startlevel
-
-from colorschemes import RGB_lightgrey, RGB_black
+from balls import ball_size
+from constants import startlevel, window_size, global_xmargin
+from playfield import playfield_position, playfieldsize
 
 ballsdropped_font = pygame.font.SysFont("Arial", 16)
 score_font = pygame.font.SysFont("Arial", 16)
 
 from pygame import Surface
+
+# area where the score-display is. Located 5px to the right of the playfield-area
+px_used = playfield_position[0] + playfieldsize[0]
+
+scoredisplayarea_position_x: int = px_used + 5
+scoredisplayarea_position_y: int = playfield_position[1]
+scoredisplayarea_position: Tuple[int, int] = (
+    scoredisplayarea_position_x,
+    scoredisplayarea_position_y,
+)
+
+scoredisplayarea_size_x: int = window_size[0] - px_used - global_xmargin
+scoredisplayarea_size_y: int = playfieldsize[1]
+scoredisplayarea_size: Tuple[int, int] = (
+    scoredisplayarea_size_x,
+    scoredisplayarea_size_y,
+)
 
 
 class ScoreArea:
@@ -32,9 +49,10 @@ class ScoreArea:
     redraw_needed: bool
     levelball: ColoredBall
 
-    def __init__(self, size: Tuple[int, int]):
-        self.surf = pygame.Surface(size)
-        self.size = size
+    def __init__(self):
+
+        self.size = scoredisplayarea_size
+        self.surf = pygame.Surface(self.size)
         self.redraw_needed = True
         self.levelball = ColoredBall(startlevel, startlevel)
 
@@ -50,6 +68,7 @@ class ScoreArea:
 
     def draw(self) -> None:
         from game import level, balls_dropped, score
+        from colorschemes import RGB_lightgrey, RGB_black
 
         self.surf.fill(RGB_lightgrey)
 

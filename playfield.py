@@ -13,36 +13,84 @@ from pygame import Surface, Rect
 from pygame.transform import threshold
 from pygame.draw import rect as draw_rect
 import balls, game
-from balls import PlayfieldSpace, Ball
-
-from colorschemes import RGB_lightgrey
+from balls import PlayfieldSpace, Ball, ball_size
 
 import ongoing
 
-# from constants import playfield_ballcoord, playfield_ballspacing
-from constants import pixel_coord_in_playfield
-from constants import playfield_position, ball_size
-
-from constants import num_columns, max_height, tilting_per_tick
+from constants import (
+    num_columns,
+    max_height,
+    tilting_per_tick,
+    window_size,
+    rowspacing,
+    column_spacing,
+)
+from crane import crane_position_y, craneareasize
 
 from pygame.font import SysFont
 
 weightdisplayfont = SysFont("Arial", 12)
+# bottom of playfield area has some space for displaying the current weight of that stack.
+weightdisplayheight: int = 40
+
+# Size of area where the playfield is, including falling Balls, blocked tiles from the seesaws, weightdisplay
+playfieldsize_fraction: Tuple[float, float] = (0.7, 0.6)
+playfieldsize: Tuple[int, int] = (
+    int(window_size[0] * playfieldsize_fraction[0]),
+    int(window_size[1] * playfieldsize_fraction[1]),
+)
+# Pixel coords of the top-left corner of the playfield area. For now, just 3 px below the crane area
+playfield_position_x: int = int(
+    0.2 * (1.0 - playfieldsize_fraction[0]) * window_size[0]
+)
+playfield_position_y: int = crane_position_y + craneareasize[1] + 3
+playfield_position: Tuple[int, int] = (playfield_position_x, playfield_position_y)
+
+
+# Calculate px coords of the top-left Ball in the playfield
+# x direction. The index in theplayfield.content[.][] counts from 1 instead of 0, to make the "dummy row" possible.
+px_used = 8 * ball_size[0] + 7 * column_spacing
+if px_used > playfieldsize[0]:
+    raise ValueError("Playfield not wide enough.")
+playfield_ballcoord_x: int = int(0.5 * (playfieldsize[0] - px_used))
+playfield_ballcoord_perCol: int = ball_size[0] + column_spacing
+# => x-coord of Ball in playfield col i is playfield_ballcoord_x + (i-1)*playfield_ballcoord_perCol
+
+# y direction. The index in theplayfield.content[][.] counts up from bottom instead of down.
+px_used = 8 * ball_size[1] + 7 * rowspacing + weightdisplayheight
+if px_used > playfieldsize[1]:
+    raise ValueError("Playfield not high enough.")
+playfield_ballcoord_y: int = int(0.5 * (playfieldsize[1] - px_used))
+playfield_ballcoord_perRow: int = ball_size[1] + column_spacing
+# => y-coord of Ball in playfield row j is playfield_ballcoord_y + (7-j)*playfield_ballcoord_perRow
+playfield_ballcoord: Tuple[int, int] = [playfield_ballcoord_x, playfield_ballcoord_y]
+playfield_ballspacing: Tuple[int, int] = [
+    playfield_ballcoord_perCol,
+    playfield_ballcoord_perRow,
+]
+
+
+# px position of weightdisplay
+weightdisplay_y: int = playfield_ballcoord_y + 8 * ball_size[1] + 8 * rowspacing
+weightdisplay_x: int = playfield_ballcoord_x + int(0.4 * ball_size[0])
+weightdisplay_x_per_column: int = ball_size[0] + column_spacing
+weightdisplay_coords: List[int] = [weightdisplay_x, weightdisplay_y]
 
 
 class Playfield:
     """Information about the current Playfield.
     Constructor takes size in pixels as (width,height) tuple."""
 
-    def __init__(self, size: Tuple[int, int]):
+    def __init__(self):
+
         numstacks = num_columns // 2
         self.stacks: List[Seesaw] = []
 
         for i in range(numstacks):
             self.stacks.append(Seesaw(2 * i))
 
-        self.size: Tuple[int, int] = size
-        self.surf: Surface = Surface(size)
+        self.size: Tuple[int, int] = playfieldsize
+        self.surf: Surface = Surface(playfieldsize)
         self.redraw_needed: bool = True
         self.alive: bool = True
 
@@ -51,7 +99,7 @@ class Playfield:
             sesa.tick()
 
     def reset(self) -> None:
-        self.__init__(self.size)
+        self.__init__()
 
     def changed(self) -> None:
         """trigger a redraw at next opportunity"""
@@ -74,6 +122,8 @@ class Playfield:
 
     def draw(self) -> Surface:
         """draws the Playfield including all Balls."""
+        from colorschemes import RGB_lightgrey
+
         self.surf.fill(RGB_lightgrey)
 
         for x in range(num_columns // 2):
@@ -219,6 +269,18 @@ class Playfield:
                     ongoing.start_score((x, y))
                     return True
         return False
+
+    def pixel_coord_in_playfield(playfield_coords: Tuple[int]) -> List[int]:
+        """Takes playfield-coordinate (x,y), usually 0..7 (but
+        values outside are allowed), returns pixel coordinate of the
+        top-left corner of that position in playfield."""
+        playfield_x, playfield_y = playfield_coords
+        px_x: int = playfield_ballcoord[0] + playfield_x * playfield_ballspacing[0]
+        px_y: int = (
+            playfield_ballcoord[1] + (7.0 - playfield_y) * playfield_ballspacing[1]
+        )
+
+        return [px_x, px_y]
 
     def check_combining(self) -> bool:
         """Checks the full gameboard for vertical Fives. Only one per stack is possible.
@@ -482,11 +544,13 @@ class Seesaw:
         blocked_height_left: float = 1.0 + self.tilt
         blockedcolor: Tuple[int, int, int] = (0, 0, 0)
 
-        blocked_topleft: Tuple[int, int] = pixel_coord_in_playfield(
+        blocked_topleft: Tuple[int, int] = self.pixel_coord_in_playfield(
             (self.xleft, blocked_height_left - 1.0)
         )
 
-        blocked_botright: Tuple[int, int] = pixel_coord_in_playfield((self.xleft, 0))
+        blocked_botright: Tuple[int, int] = self.pixel_coord_in_playfield(
+            (self.xleft, 0)
+        )
 
         blocked_botright[0] += ball_size[0]
         blocked_botright[1] += ball_size[1]
@@ -497,16 +561,16 @@ class Seesaw:
         draw_rect(surf, blockedcolor, Rect(blocked_topleft, (width, height)))
         # left stack of balls
         for y, ball in enumerate(self.stackleft):
-            coords: Tuple[int, int] = pixel_coord_in_playfield(
+            coords: Tuple[int, int] = self.pixel_coord_in_playfield(
                 (self.xleft, 1 + self.tilt + y)
             )
             ball.draw(surf, coords)
 
         blocked_height_right: float = 1.0 - self.tilt
-        blocked_topleft = pixel_coord_in_playfield(
+        blocked_topleft = self.pixel_coord_in_playfield(
             (self.xleft + 1, blocked_height_right - 1.0)
         )
-        blocked_botright = pixel_coord_in_playfield((self.xleft + 1, 0))
+        blocked_botright = self.pixel_coord_in_playfield((self.xleft + 1, 0))
 
         blocked_botright[0] += ball_size[0]
         blocked_botright[1] += ball_size[1]
@@ -517,7 +581,7 @@ class Seesaw:
         draw_rect(surf, blockedcolor, Rect(blocked_topleft, (width, height)))
         # right stack of balls
         for y, ball in enumerate(self.stackright):
-            coords = pixel_coord_in_playfield((self.xleft + 1, 1 - self.tilt + y))
+            coords = self.pixel_coord_in_playfield((self.xleft + 1, 1 - self.tilt + y))
             ball.draw(surf, coords)
 
     def check_alive(self) -> bool:

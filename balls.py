@@ -13,10 +13,14 @@ from typing import Tuple, Type, List
 import colorschemes
 import pygame
 import random
-from constants import ball_size, balls_per_level, startlevel
+from constants import startlevel
 from abc import ABC, abstractmethod
 from pygame.font import Font
 from pygame import Surface
+
+# size of a drawn ball, in px
+ball_size: Tuple[int, int] = (60, 40)
+
 
 pygame.font.init()
 ball_colors: List[Tuple[int]] = colorschemes.simple_standard_ball_colors
@@ -442,6 +446,8 @@ def generate_ball() -> Ball:
     nextspecial_delay -= 1
 
     # in the first 20% of each level, the new color is more likely
+    from game import balls_per_level
+
     if game.balls_dropped % balls_per_level < int(
         0.2 * balls_per_level
     ) and random.choice([True, False]):

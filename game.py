@@ -3,19 +3,15 @@
 
 
 import depot, crane, playfield, scoreArea, ongoing
-from constants import (
-    depotsize,
-    craneareasize,
-    playfieldsize,
-    scoredisplayarea_size,
-    startlevel,
-    balls_per_level,
-)
+from constants import startlevel
 
-depot = depot.Depot(depotsize)
-crane = crane.Crane(craneareasize)
-playfield = playfield.Playfield(playfieldsize)
-score_area = scoreArea.ScoreArea(scoredisplayarea_size)
+
+balls_per_level = 50
+
+depot = depot.Depot()
+crane = crane.Crane()
+playfield = playfield.Playfield()
+score_area = scoreArea.ScoreArea()
 
 level: int = startlevel
 balls_dropped: int = 0

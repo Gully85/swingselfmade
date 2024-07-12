@@ -1,19 +1,29 @@
 # provides the Crane class. The Crane always holds a Ball and has a position (int, 0 to 7).
 
 # from Balls import *
-from typing import Tuple
+from typing import Tuple, List
 import pygame
 from pygame import Rect, Surface
-from constants import (
-    cranearea_position,
-    cranearea_ballcoord,
-    cranearea_x_perCol,
-    ball_size,
-    num_columns,
-)
+from constants import num_columns, window_size
+
 from colorschemes import RGB_lightgrey, RGB_black
-from balls import Ball
-from balls import generate_starting_ball
+from balls import Ball, generate_starting_ball
+from balls import ball_size
+
+from constants import global_ymargin, column_spacing, window_width, window_height
+from depot import depotsize
+
+craneareasize_fraction: Tuple[int, int] = (0.7, 0.1)
+craneareasize: Tuple[int, int] = (
+    int(window_width * craneareasize_fraction[0]),
+    int(window_height * craneareasize_fraction[1]),
+)
+
+# this needs to be importable by other modules
+# pixel position of the top-left pixel of the crane-area
+crane_position_x: int = int(0.2 * (1.0 - craneareasize_fraction[0]) * window_width)
+crane_position_y: int = global_ymargin + depotsize[1] + 3
+cranearea_position: Tuple[int, int] = (crane_position_x, crane_position_y)
 
 
 class Crane:
@@ -36,11 +46,15 @@ class Crane:
     surf: Surface
     redraw_needed: bool
 
-    def __init__(self, size: Tuple[int, int]):
+    def __init__(self):
+
+        # Size of area where the crane moves, relative to screensize
+        window_width, window_height = window_size
+
         self.x = 0
         self.current_Ball = generate_starting_ball()
-        self.size = size
-        self.surf = Surface(size)
+        self.size = craneareasize
+        self.surf = Surface(self.size)
         self.redraw_needed = True
 
     def changed(self):
@@ -63,6 +77,21 @@ class Crane:
 
     def draw(self):
         """draws the Crane and its current_Ball to surface at position, returns surface"""
+
+        # Calculate pixel coords of the leftmost position where the Crane can be. And spacing to the second-to-left position etc
+        px_used = 8 * ball_size[0] + 7 * column_spacing
+        if px_used > self.size[0]:
+            raise ValueError("Crane Area not wide enough.")
+        cranearea_xleft: int = int(0.5 * (self.size[0] - px_used))
+        cranearea_x_perCol: int = ball_size[0] + column_spacing
+        # => x-coord of Crane in col i is cranearea_xleft + col*cranearea_x_perCol
+
+        if ball_size[1] > self.size[1]:
+            raise ValueError("Crane Area not high enough.")
+        cranearea_ytop: int = int(0.5 * (self.size[1] - ball_size[1]))
+
+        cranearea_ballcoord: List[int] = [cranearea_xleft, cranearea_ytop]
+        cranearea_ballspacing: List[int] = [0, cranearea_x_perCol]
         self.surf.fill(RGB_lightgrey)
 
         xcoord: int = cranearea_ballcoord[0] + self.x * cranearea_x_perCol
