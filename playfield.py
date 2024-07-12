@@ -270,7 +270,8 @@ class Playfield:
                     return True
         return False
 
-    def pixel_coord_in_playfield(playfield_coords: Tuple[int]) -> List[int]:
+    @staticmethod
+    def pixel_coord_in_playfield(playfield_coords: Tuple[int, int]) -> List[int, int]:
         """Takes playfield-coordinate (x,y), usually 0..7 (but
         values outside are allowed), returns pixel coordinate of the
         top-left corner of that position in playfield."""
@@ -544,11 +545,11 @@ class Seesaw:
         blocked_height_left: float = 1.0 + self.tilt
         blockedcolor: Tuple[int, int, int] = (0, 0, 0)
 
-        blocked_topleft: Tuple[int, int] = self.pixel_coord_in_playfield(
+        blocked_topleft: Tuple[int, int] = Playfield.pixel_coord_in_playfield(
             (self.xleft, blocked_height_left - 1.0)
         )
 
-        blocked_botright: Tuple[int, int] = self.pixel_coord_in_playfield(
+        blocked_botright: Tuple[int, int] = Playfield.pixel_coord_in_playfield(
             (self.xleft, 0)
         )
 
@@ -561,16 +562,16 @@ class Seesaw:
         draw_rect(surf, blockedcolor, Rect(blocked_topleft, (width, height)))
         # left stack of balls
         for y, ball in enumerate(self.stackleft):
-            coords: Tuple[int, int] = self.pixel_coord_in_playfield(
+            coords: Tuple[int, int] = Playfield.pixel_coord_in_playfield(
                 (self.xleft, 1 + self.tilt + y)
             )
             ball.draw(surf, coords)
 
         blocked_height_right: float = 1.0 - self.tilt
-        blocked_topleft = self.pixel_coord_in_playfield(
+        blocked_topleft = Playfield.pixel_coord_in_playfield(
             (self.xleft + 1, blocked_height_right - 1.0)
         )
-        blocked_botright = self.pixel_coord_in_playfield((self.xleft + 1, 0))
+        blocked_botright = Playfield.pixel_coord_in_playfield((self.xleft + 1, 0))
 
         blocked_botright[0] += ball_size[0]
         blocked_botright[1] += ball_size[1]
@@ -581,7 +582,9 @@ class Seesaw:
         draw_rect(surf, blockedcolor, Rect(blocked_topleft, (width, height)))
         # right stack of balls
         for y, ball in enumerate(self.stackright):
-            coords = self.pixel_coord_in_playfield((self.xleft + 1, 1 - self.tilt + y))
+            coords = Playfield.pixel_coord_in_playfield(
+                (self.xleft + 1, 1 - self.tilt + y)
+            )
             ball.draw(surf, coords)
 
     def check_alive(self) -> bool:

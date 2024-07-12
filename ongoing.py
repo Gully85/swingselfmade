@@ -110,9 +110,9 @@ class FallingBall(Ongoing):
         self.height = starting_height
 
     def draw(self, surf: Surface) -> None:
-        from constants import pixel_coord_in_playfield
+        from playfield import Playfield
 
-        x, y = pixel_coord_in_playfield((self.column, self.height))
+        x, y = Playfield.pixel_coord_in_playfield((self.column, self.height))
         self.ball.draw(surf, (x, y))
 
     def tick(self) -> None:
@@ -245,7 +245,7 @@ class ThrownBall(Ongoing):
         return self.remaining_range
 
     def draw(self, surf: Surface) -> None:
-        from constants import playfield_ballcoord, playfield_ballspacing
+        from playfield import playfield_ballcoord, playfield_ballspacing
 
         # identical to FallingBall.draw() so far
         px_x: int = playfield_ballcoord[0] + self.x * playfield_ballspacing[0]
@@ -496,12 +496,9 @@ class Combining(Ongoing):
     def draw(self, surf: Surface) -> None:
         # draw an ellipse that contracts in y-direction over time
         from colorschemes import simple_standard_ball_colors
-        from constants import (
-            ball_size,
-            rowspacing,
-            playfield_ballcoord,
-            playfield_ballspacing,
-        )
+        from constants import rowspacing
+        from balls import ball_size
+        from playfield import playfield_ballspacing, playfield_ballcoord
         from pygame.draw import ellipse
         from pygame import Rect
 
@@ -552,9 +549,9 @@ class Explosion(Ongoing):
             game.playfield.changed()
 
     def draw(self, surf: Surface) -> None:
-        from constants import pixel_coord_in_playfield
+        from playfield import Playfield
 
-        drawpos = pixel_coord_in_playfield(self.coords)
+        drawpos = Playfield.pixel_coord_in_playfield(self.coords)
         surf.blit(self.image, drawpos)
 
 

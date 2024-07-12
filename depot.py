@@ -68,10 +68,15 @@ class Depot:
         self.changed()
 
     def draw_if_changed(self, screen: Surface) -> None:
-        from constants import depot_position
+        from constants import global_ymargin
 
         if not self.redraw_needed:
             return
+
+        # Pixel coordinates of the top-left corner of the Depot.
+        depot_position_y: int = global_ymargin
+        depot_position_x: int = int(0.2 * (1.0 - depot_width_fraction) * window_width)
+        depot_position: Tuple[int, int] = (depot_position_x, depot_position_y)
 
         drawn_depot = self.draw()
         screen.blit(drawn_depot, depot_position)
@@ -83,10 +88,6 @@ class Depot:
         from balls import ball_size
         from colorschemes import RGB_lightgrey
 
-        # Pixel coordinates of the top-left corner of the Depot.
-        depot_position_y: int = global_ymargin
-        depot_position_x: int = int(0.2 * (1.0 - depot_width_fraction) * window_width)
-        depot_position: Tuple[int, int] = (depot_position_x, depot_position_y)
         # Calculate Pixel coords of the (top-left corner of the) first Ball in the depot, and
         # distance to second-to-left Ball in the depot.
         # 8 cols of Balls use 8*ballsize[0] px plus 7*colspacing
