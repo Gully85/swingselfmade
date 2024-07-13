@@ -2,16 +2,14 @@
 
 from typing import Tuple
 import pygame
-from balls import ColoredBall
-from balls import getnextspecial, getnextspecial_delay
-from balls import ball_size
+
 from constants import startlevel, window_size, global_xmargin
 from playfield import playfield_position, playfieldsize
+from balls import ColoredBall
 
 ballsdropped_font = pygame.font.SysFont("Arial", 16)
 score_font = pygame.font.SysFont("Arial", 16)
 
-from pygame import Surface
 
 # area where the score-display is. Located 5px to the right of the playfield-area
 px_used = playfield_position[0] + playfieldsize[0]
@@ -44,7 +42,7 @@ class ScoreArea:
     Methods
     """
 
-    surf: Surface
+    surf: pygame.Surface
     size: Tuple[int, int]
     redraw_needed: bool
     levelball: ColoredBall
@@ -67,8 +65,9 @@ class ScoreArea:
             screen.blit(drawn_scorearea, scoredisplayarea_position)
 
     def draw(self) -> None:
-        from game import level, balls_dropped, score
+        from game import balls_dropped, score
         from colorschemes import RGB_lightgrey, RGB_black
+        from balls import ball_size, getnextspecial_delay, getnextspecial
 
         self.surf.fill(RGB_lightgrey)
 
@@ -82,7 +81,7 @@ class ScoreArea:
 
         self.levelball.draw(self.surf, level_position)
 
-        ballsdropped_text: Surface = ballsdropped_font.render(
+        ballsdropped_text: pygame.Surface = ballsdropped_font.render(
             "Balls dropped: " + str(balls_dropped), True, RGB_black
         )
         ballsdropped_position_x: int = int(0.1 * self.size[0])
@@ -93,13 +92,15 @@ class ScoreArea:
         )
         self.surf.blit(ballsdropped_text, ballsdropped_position)
 
-        score_text: Surface = score_font.render("Score: " + str(score), True, RGB_black)
+        score_text: pygame.Surface = score_font.render(
+            "Score: " + str(score), True, RGB_black
+        )
         score_position_x: int = ballsdropped_position_x
         score_position_y: int = 0.8 * self.size[1]
         score_position: Tuple[int, int] = (score_position_x, score_position_y)
         self.surf.blit(score_text, score_position)
 
-        nextspecial_text: Surface = score_font.render(
+        nextspecial_text: pygame.Surface = score_font.render(
             "Next Special in " + str(getnextspecial_delay()), True, RGB_black
         )
         nextspecial_position_x: int = score_position_x

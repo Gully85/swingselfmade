@@ -24,14 +24,6 @@ num_columns: int = 8
 # max allowed height before the game is lost
 max_height: int = 8
 
-# speed of falling Balls, in tiles/sec
-falling_speed: float = 3.0
-# same in tiles/tick
-falling_per_tick: float = falling_speed / max_FPS
-
-# Stop if falling Speed is higher than one tile per tick. This could break the FallingBall mechanic
-if falling_per_tick > 1.0:
-    raise ValueError("Falling Speed too high. Do not fall more than one tile per tick.")
 
 # speed of tilting Seesaws, in 1/sec. For example 4.0 means 0.25sec to tilt to final position
 tilting_speed: float = 2.0
@@ -86,7 +78,7 @@ global_ymargin: int = 10
 # horizontal space between columns in Playfield/Depot
 column_spacing: int = 5
 # vertical space between two stacked Balls
-rowspacing: int = 5
+row_spacing: int = 5
 
 
 finalscore_y: int = 50

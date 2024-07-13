@@ -46,6 +46,8 @@ class TestFalling(unittest.TestCase):
 
     def test_fallingball_reaches_ground(self):
         """create a random ball, drop it in a random column. Assert that it reaches the ground eventually"""
+        from ongoing import falling_per_tick
+
         game.reset()
 
         game.ongoing.drop_ball_in_column(
@@ -54,9 +56,7 @@ class TestFalling(unittest.TestCase):
 
         # it should land after some time. Maximum number of ticks allowed is 8.0 / falling_speed * max_FPS
         # (it should only need to drop by 7 positions and then trigger a Seesaw Tilting, 8.0 leaves some room)
-        maxticks: int = (
-            int(max_height * constants.max_FPS / constants.falling_per_tick) + 1
-        )
+        maxticks: int = int(max_height * constants.max_FPS / falling_per_tick) + 1
         self.assertGreater(maxticks, 0)
         self.assertTrue(wait_for_empty_eq(maxticks))
         self.assertFalse(game.ongoing.event_type_exists(FallingBall))

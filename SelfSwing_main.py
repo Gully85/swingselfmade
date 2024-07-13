@@ -25,7 +25,7 @@ from constants import (
 
 
 import game
-from colorschemes import RGB_lightgrey, RGB_black
+from colorschemes import RGB_lightgrey
 
 game.reset()
 

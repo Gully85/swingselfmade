@@ -1,11 +1,10 @@
 # provides the Depot. The depot holds 8x2 Balls (array of Balls). This file also provides the drawing method for the Depot.
 
 from typing import Tuple, List
-from pygame import Surface
+import pygame
 
-from balls import Ball, generate_starting_ball, generate_ball
-
-from constants import num_columns, column_spacing, window_width, window_height
+from balls import Ball
+from constants import window_size
 
 # Size of area for the depot, relative to screensize
 depot_width_fraction, depot_height_fraction = (0.7, 0.2)
@@ -13,8 +12,8 @@ depot_width_fraction, depot_height_fraction = (0.7, 0.2)
 # this must be module-scope, since crane-area and playfield need the depot's size
 # to calculate their position
 depotsize: Tuple[int, int] = (
-    int(window_width * depot_width_fraction),
-    int(window_height * depot_height_fraction),
+    int(window_size[0] * depot_width_fraction),
+    int(window_size[1] * depot_height_fraction),
 )
 
 
@@ -31,21 +30,19 @@ class Depot:
 
     size_x: int
     size_y: int
-    surf: Surface
+    surf: pygame.Surface
     redraw_needed: bool
     content: List[List[Ball]]
 
     # size in pixels is provided by the constructor call. Initial filling with Colored_Balls is done here for now.
     def __init__(self):
-        from constants import window_size
         from balls import generate_starting_ball
-
-        window_width, window_height = window_size
+        from constants import num_columns
 
         self.size_x = depotsize[0]
         self.size_y = depotsize[1]
 
-        self.surf = Surface(depotsize)
+        self.surf = pygame.Surface(depotsize)
         self.redraw_needed = True
 
         self.content = []
@@ -62,12 +59,14 @@ class Depot:
 
     def reset(self) -> None:
         """puts the depot into the state of game start"""
+        from balls import generate_starting_ball
+
         for i in range(8):
             self.content[i][0] = generate_starting_ball()
             self.content[i][1] = generate_starting_ball()
         self.changed()
 
-    def draw_if_changed(self, screen: Surface) -> None:
+    def draw_if_changed(self, screen: pygame.Surface) -> None:
         from constants import global_ymargin
 
         if not self.redraw_needed:
@@ -75,7 +74,7 @@ class Depot:
 
         # Pixel coordinates of the top-left corner of the Depot.
         depot_position_y: int = global_ymargin
-        depot_position_x: int = int(0.2 * (1.0 - depot_width_fraction) * window_width)
+        depot_position_x: int = int(0.2 * (1.0 - depot_width_fraction) * window_size[0])
         depot_position: Tuple[int, int] = (depot_position_x, depot_position_y)
 
         drawn_depot = self.draw()
@@ -84,7 +83,7 @@ class Depot:
 
     def draw(self) -> None:
         """draws full Depot, calls draw() methods of the Balls in the Depot. Returns self.surf"""
-        from constants import global_xmargin, global_ymargin, window_width
+        from constants import global_xmargin, column_spacing
         from balls import ball_size
         from colorschemes import RGB_lightgrey
 
@@ -132,6 +131,9 @@ class Depot:
     def next_ball(self, column: int) -> Ball:
         """get ball of specified column, move ball down and generate a new one. Raise IndexError if
         the column is not 0..num_columns-1"""
+        from constants import num_columns
+        from balls import generate_ball
+
         if column < 0 or column > num_columns - 1:
             raise IndexError(f"Column index must be 0..{num_columns}")
         ret: Ball = self.content[column][1]

@@ -4,24 +4,20 @@
 from typing import Tuple, List
 import pygame
 from pygame import Rect, Surface
-from constants import num_columns, window_size
 
-from colorschemes import RGB_lightgrey, RGB_black
-from balls import Ball, generate_starting_ball
-from balls import ball_size
-
-from constants import global_ymargin, column_spacing, window_width, window_height
+from balls import Ball
+from constants import window_size, global_ymargin
 from depot import depotsize
-
-craneareasize_fraction: Tuple[int, int] = (0.7, 0.1)
-craneareasize: Tuple[int, int] = (
-    int(window_width * craneareasize_fraction[0]),
-    int(window_height * craneareasize_fraction[1]),
-)
 
 # this needs to be importable by other modules
 # pixel position of the top-left pixel of the crane-area
-crane_position_x: int = int(0.2 * (1.0 - craneareasize_fraction[0]) * window_width)
+craneareasize_fraction: Tuple[int, int] = (0.7, 0.1)
+craneareasize: Tuple[int, int] = (
+    int(window_size[0] * craneareasize_fraction[0]),
+    int(window_size[1] * craneareasize_fraction[1]),
+)
+
+crane_position_x: int = int(0.2 * (1.0 - craneareasize_fraction[0]) * window_size[0])
 crane_position_y: int = global_ymargin + depotsize[1] + 3
 cranearea_position: Tuple[int, int] = (crane_position_x, crane_position_y)
 
@@ -29,7 +25,6 @@ cranearea_position: Tuple[int, int] = (crane_position_x, crane_position_y)
 class Crane:
     """Information about the Crane. Has x (int, 0 <= x <= 7) and current_Ball (Ball).
     Also holds a local var surf, surface to draw on, returned when draw() is called on it.
-    Constructor expects size of that surface.
 
     Methods:
         drop_ball(), drops ball at the current position, gets a new one from the depot
@@ -47,9 +42,7 @@ class Crane:
     redraw_needed: bool
 
     def __init__(self):
-
-        # Size of area where the crane moves, relative to screensize
-        window_width, window_height = window_size
+        from balls import generate_starting_ball
 
         self.x = 0
         self.current_Ball = generate_starting_ball()
@@ -63,6 +56,8 @@ class Crane:
 
     def reset(self):
         """puts the crane into the state of game start"""
+        from balls import generate_starting_ball
+
         self.x = 0
         self.current_Ball = generate_starting_ball()
         self.changed()
@@ -77,6 +72,9 @@ class Crane:
 
     def draw(self):
         """draws the Crane and its current_Ball to surface at position, returns surface"""
+        from balls import ball_size
+        from constants import column_spacing
+        from colorschemes import RGB_lightgrey, RGB_black
 
         # Calculate pixel coords of the leftmost position where the Crane can be. And spacing to the second-to-left position etc
         px_used = 8 * ball_size[0] + 7 * column_spacing
@@ -113,6 +111,7 @@ class Crane:
 
     def move_right(self):
         """moves the Crane one position to the right. Does nothing if already in the rightmost position."""
+        from constants import num_columns
 
         if self.x == num_columns - 1:
             return
@@ -121,6 +120,8 @@ class Crane:
         self.changed()
 
     def move_to_column(self, col: int) -> None:
+        from constants import num_columns
+
         if col < 0 or col > num_columns - 1:
             raise ValueError(
                 f"Crane column must be 0..7, attempted to move it to column {col}"

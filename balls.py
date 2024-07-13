@@ -10,26 +10,25 @@
 
 from __future__ import annotations
 from typing import Tuple, Type, List
-import colorschemes
-import pygame
-import random
-from constants import startlevel
 from abc import ABC, abstractmethod
-from pygame.font import Font
-from pygame import Surface
+import pygame
+
 
 # size of a drawn ball, in px
 ball_size: Tuple[int, int] = (60, 40)
 
 
 pygame.font.init()
-ball_colors: List[Tuple[int]] = colorschemes.simple_standard_ball_colors
-text_colors: List[Tuple[int]] = colorschemes.simple_standard_text_colors
-ballfont: Font = pygame.font.SysFont("monospace", 24)
 
-RGB_scoringcolor: Tuple[int, int, int] = (65, 174, 118)
+from colorschemes import (
+    simple_standard_ball_colors,
+    simple_standard_text_colors,
+    RGB_scoringcolor,
+)
 
-from constants import num_columns, min_balls_between_Specials
+ball_colors: List[Tuple[int]] = simple_standard_ball_colors
+text_colors: List[Tuple[int]] = simple_standard_text_colors
+ballfont: pygame.font.Font = pygame.font.SysFont("monospace", 24)
 
 
 class PlayfieldSpace(ABC):
@@ -38,7 +37,7 @@ class PlayfieldSpace(ABC):
     seesaw). Must have draw(), getweight() and getcolor() methods."""
 
     @abstractmethod
-    def draw(self, surf: pygame.Surface, drawpos: Tuple[int]) -> None:
+    def draw(self, surf: pygame.Surface, drawpos: Tuple[int, int]) -> None:
         """draw yourself on given surf to given pixel position"""
         pass
 
@@ -91,8 +90,10 @@ class BlockedSpace(PlayfieldSpace):
         pass
 
     def draw(self, surf: pygame.Surface, drawpos: Tuple[int]) -> None:
+        from colorschemes import RGB_black
+
         # just a black rectangle for now
-        pygame.draw.rect(surf, colorschemes.RGB_black, pygame.Rect(drawpos, ball_size))
+        pygame.draw.rect(surf, RGB_black, pygame.Rect(drawpos, ball_size))
 
     def getweight(self) -> int:
         return 0
@@ -266,7 +267,7 @@ class Bomb(SpecialBall):
     """
 
     level_required: int = 4
-    image: Surface = pygame.image.load("specials/bombe-selbstgemalt.png")
+    image: pygame.Surface = pygame.image.load("specials/bombe-selbstgemalt.png")
 
     def __init__(self):
         pass
@@ -283,6 +284,7 @@ class Bomb(SpecialBall):
     def explode(self, coords: Tuple[int, int]) -> None:
         import game
         from playfield import Playfield
+        from constants import num_columns
 
         the_playfield: Playfield = game.playfield
         # TODO in 3x3 area: Display explosion sprite (ongoing), explode bombs, remove other balls
@@ -326,7 +328,7 @@ class Cutter(SpecialBall):
     height 0, it disappears."""
 
     level_required: int = 5
-    image: Surface = pygame.image.load("specials/bohrer-selbstgemalt.png")
+    image: pygame.Surface = pygame.image.load("specials/bohrer-selbstgemalt.png")
 
     def __init__(self):
         pass
@@ -365,7 +367,7 @@ class Heart(SpecialBall):
     score factor by 0.1*(number of Hearts scored)"""
 
     level_required: int = 4
-    image: Surface = pygame.image.load("specials/Herz-selbstgemalt.png")
+    image: pygame.Surface = pygame.image.load("specials/Herz-selbstgemalt.png")
 
     def __init__(self):
         self.scoring = False
@@ -406,7 +408,8 @@ nextspecial_delay = 5
 def regenerate_nextspecial() -> None:
     """Resets the upcoming special and timer
     to new randomly generated ones"""
-    import game
+    import game, random
+    from constants import min_balls_between_Specials
 
     random_pool: Type[SpecialBall] = [Bomb, Cutter, Heart]
     pick: Type[SpecialBall] = random.choice(random_pool)
@@ -433,7 +436,8 @@ def getnextspecial_delay() -> int:
 
 
 def generate_ball() -> Ball:
-    import game
+    from game import balls_dropped, balls_per_level, level
+    import random
 
     # TODO Star at levelup
 
@@ -446,20 +450,22 @@ def generate_ball() -> Ball:
     nextspecial_delay -= 1
 
     # in the first 20% of each level, the new color is more likely
-    from game import balls_per_level
-
-    if game.balls_dropped % balls_per_level < int(
-        0.2 * balls_per_level
-    ) and random.choice([True, False]):
-        color = game.level - 1
+    # more precisely, each ball has the new color with 50% probability
+    if balls_dropped % balls_per_level < int(0.2 * balls_per_level) and random.choice(
+        [True, False]
+    ):
+        color = level - 1
     else:
-        color = random.randint(1, game.level - 1)
-    weight = random.randint(1, game.level)
+        color = random.randint(1, level - 2)
+    weight = random.randint(1, level)
     return ColoredBall(color, weight)
 
 
 def generate_starting_ball():
     """This will always generate a ColoredBall."""
+    import random
+    from constants import startlevel
+
     color = random.randint(0, startlevel - 1)
     weight = random.randint(1, startlevel)
     return ColoredBall(color, weight)

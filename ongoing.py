@@ -14,14 +14,19 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Tuple, List, Type
+import pygame
 
 import game
-from balls import Ball, SpecialBall, Bomb, Heart, ColoredBall
+from constants import max_FPS
+from balls import Ball
 
-from pygame import Surface
-from pygame.image import load
-
-from constants import num_columns, max_height, falling_per_tick
+# speed of falling Balls, in tiles/sec
+falling_speed: float = 3.0
+# same in tiles/tick
+falling_per_tick: float = falling_speed / max_FPS
+# Stop if falling Speed is higher than one tile per tick. This would break the FallingBall mechanic
+if falling_per_tick > 1.0:
+    raise ValueError("Falling Speed too high. Do not fall more than one tile per tick.")
 
 
 # this is a local variable of the module ongoing. Other files, if they import this,
@@ -66,7 +71,7 @@ class Ongoing(ABC):
         pass
 
     @abstractmethod
-    def draw(self, surf: Surface) -> None:
+    def draw(self, surf: pygame.Surface) -> None:
         pass
 
 
@@ -98,6 +103,9 @@ class FallingBall(Ongoing):
         if the Ball drops from Playfield instead of Crane/Thrown
     """
 
+    from balls import Ball
+    from constants import max_height
+
     ball: Ball
     column: int
     height: float
@@ -109,7 +117,7 @@ class FallingBall(Ongoing):
         self.column = column
         self.height = starting_height
 
-    def draw(self, surf: Surface) -> None:
+    def draw(self, surf: pygame.Surface) -> None:
         from playfield import Playfield
 
         x, y = Playfield.pixel_coord_in_playfield((self.column, self.height))
@@ -186,6 +194,7 @@ class ThrownBall(Ongoing):
 
     def __init__(self, ball, coords: Tuple[int], throwing_range: int):
         from constants import thrown_ball_maxheight, thrown_ball_dropheight
+        from constants import num_columns
 
         self.ball = ball
         self.origin = coords
@@ -245,7 +254,7 @@ class ThrownBall(Ongoing):
         return self.remaining_range
 
     def draw(self, surf: Surface) -> None:
-        from playfield import playfield_ballcoord, playfield_ballspacing
+        from playfield import playfield_ballcoord, playfield_ballspacing, max_height
 
         # identical to FallingBall.draw() so far
         px_x: int = playfield_ballcoord[0] + self.x * playfield_ballspacing[0]
@@ -262,6 +271,7 @@ class ThrownBall(Ongoing):
             thrown_ball_dt,
             thrown_ball_maxheight,
             thrown_ball_dropheight,
+            num_columns,
         )
 
         if self.t < 0:
@@ -312,7 +322,9 @@ class ThrownBall(Ongoing):
             thrown_ball_flyover_height,
             thrown_ball_maxheight,
             thrown_ball_dropheight,
+            num_columns,
         )
+        from balls import SpecialBall, Bomb, Heart
 
         # convert into Heart or Bomb
         if isinstance(self.ball, SpecialBall) and not isinstance(self.ball, Bomb):
@@ -399,6 +411,7 @@ class Scoring(Ongoing):
 
         import game
         from constants import scoring_delay
+        from balls import ColoredBall, Heart
 
         self.delay -= 1
         if self.delay > 0:
@@ -414,11 +427,8 @@ class Scoring(Ongoing):
                 self.weight_so_far * len(self.past) * game.level * game.getscorefactor()
             )
             game.addscore(score_from_this)
-            # print("Score from this: ", game.addscore(score_from_this))
-            # print("Total score: ", game.getscore())
         elif isinstance(self.ball, Heart):
             game.increase_score_factor(len(self.past))
-            # print("Global score factor is now ", game.getscorefactor())
 
         game.playfield.finalize_scoring(self.past)
         game.score_area.changed()
@@ -430,6 +440,7 @@ class Scoring(Ongoing):
         self.next for the next expand() call. Returns True if the Scoring grew.
         """
         from balls import PlayfieldSpace
+        from constants import num_columns, max_height
 
         now: List[Tuple[int, int]] = self.next
         self.next = []
@@ -493,17 +504,17 @@ class Combining(Ongoing):
             eventQueue.remove(self)
             game.playfield.changed()
 
-    def draw(self, surf: Surface) -> None:
+    def draw(self, surf: pygame.Surface) -> None:
         # draw an ellipse that contracts in y-direction over time
         from colorschemes import simple_standard_ball_colors
-        from constants import rowspacing
+        from constants import row_spacing
         from balls import ball_size
-        from playfield import playfield_ballspacing, playfield_ballcoord
+        from playfield import playfield_ballspacing, playfield_ballcoord, max_height
         from pygame.draw import ellipse
         from pygame import Rect
 
         the_color: Tuple[int, int, int] = simple_standard_ball_colors[self.color]
-        starting_ysize: int = 5 * ball_size[1] + 4 * rowspacing
+        starting_ysize: int = 5 * ball_size[1] + 4 * row_spacing
         final_ysize: int = ball_size[1]
         current_ysize: int = starting_ysize + int(
             self.t * (final_ysize - starting_ysize)
@@ -532,13 +543,13 @@ class Explosion(Ongoing):
 
     coords: Tuple[int, int]
     progress: float  # from 0.0 to 1.0
-    image: Surface
+    image: pygame.Surface
 
     def __init__(self, coords: Tuple[int, int]):
         x, y = coords
         self.coords = (x - 1, y + 1)
         self.progress = 0.0
-        self.image = load("specials/explosion_zugeschnitten.png")
+        self.image = pygame.image.load("specials/explosion_zugeschnitten.png")
 
     def tick(self) -> None:
         from constants import explosion_numticks
@@ -548,7 +559,7 @@ class Explosion(Ongoing):
             eventQueue.remove(self)
             game.playfield.changed()
 
-    def draw(self, surf: Surface) -> None:
+    def draw(self, surf: pygame.Surface) -> None:
         from playfield import Playfield
 
         drawpos = Playfield.pixel_coord_in_playfield(self.coords)

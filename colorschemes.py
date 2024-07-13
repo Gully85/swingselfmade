@@ -29,3 +29,5 @@ RGB_black: Tuple[int, int, int] = (0, 0, 0)
 RGB_lightgrey: Tuple[int, int, int] = (217, 217, 217)
 
 RGB_red: Tuple[int, int, int] = (255, 0, 0)
+
+RGB_scoringcolor: Tuple[int, int, int] = (65, 174, 118)
