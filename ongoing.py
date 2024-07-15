@@ -254,7 +254,8 @@ class ThrownBall(Ongoing):
         return self.remaining_range
 
     def draw(self, surf: Surface) -> None:
-        from playfield import playfield_ballcoord, playfield_ballspacing, max_height
+        from playfield import playfield_ballcoord, playfield_ballspacing
+        from constants import max_height
 
         # identical to FallingBall.draw() so far
         px_x: int = playfield_ballcoord[0] + self.x * playfield_ballspacing[0]
