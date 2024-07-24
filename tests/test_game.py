@@ -6,7 +6,7 @@ sys.path.append("S:/SwingSelfmade/")
 
 import game
 from balls import Ball
-from ongoing import FallingBall
+from fallingball import FallingBall
 import unittest
 
 from constants import startlevel, balls_per_level

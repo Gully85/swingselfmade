@@ -9,7 +9,7 @@ import game, constants
 from balls import Ball, BlockedSpace, EmptySpace, ColoredBall
 from balls import generate_starting_ball
 from playfield import Playfield
-from ongoing import FallingBall
+from fallingball import FallingBall
 from tests.testing_generals import wait_for_empty_eq
 from constants import num_columns
 

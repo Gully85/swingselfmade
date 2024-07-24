@@ -7,7 +7,8 @@ sys.path.append("S:/SwingSelfmade/")
 import game, constants
 from balls import Ball, ColoredBall, Heart, Bomb
 from balls import generate_starting_ball
-from ongoing import FallingBall, ThrownBall
+from ongoing import ThrownBall
+from fallingball import FallingBall
 from playfield import Seesaw
 import unittest, random
 
