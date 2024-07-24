@@ -58,6 +58,8 @@ class TestPlayfield(unittest.TestCase):
 
     # Test all outcomes of refresh_status
     def test_refresh_status(self):
+        from scoring import Scoring
+
         game.reset()
         the_playfield = game.playfield
 
@@ -100,7 +102,7 @@ class TestPlayfield(unittest.TestCase):
             the_playfield.land_ball_in_column(Testball2, i)
         the_playfield.refresh_status()
         game.tick()
-        self.assertIsInstance(game.ongoing.get_newest_event(), game.ongoing.Scoring)
+        self.assertIsInstance(game.ongoing.get_newest_event(), Scoring)
         self.assertTrue(wait_for_empty_eventQueue(4 * constants.scoring_delay))
 
         # same for the rightmost columns and a different color
@@ -109,7 +111,7 @@ class TestPlayfield(unittest.TestCase):
             Testball3.setcolor(3)
             the_playfield.land_ball_in_column(Testball3, i)
         game.tick()
-        self.assertIsInstance(game.ongoing.get_newest_event(), game.ongoing.Scoring)
+        self.assertIsInstance(game.ongoing.get_newest_event(), Scoring)
         self.assertTrue(wait_for_empty_eventQueue(4 * constants.scoring_delay))
 
         # Combining. Skipped for now. TODO

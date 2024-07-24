@@ -332,7 +332,7 @@ class TestScoring(unittest.TestCase):
         """make solid ground, then land 3 same-colored ColoredBalls.
         Two must not score, the third must start a Scoring. Verify that
         it finishes and that it gives the correct amount of points."""
-        from ongoing import Scoring
+        from scoring import Scoring
 
         game.reset()
         self.make_solid_ground()
@@ -372,7 +372,7 @@ class TestScoring(unittest.TestCase):
     def test_scoring_extends_up_and_down(self):
         """Make solid ground. Then drop ColoredBalls to create a shape of Scoring that extends
         over multiple rows. Make sure it scores all connected balls."""
-        from ongoing import Scoring
+        from scoring import Scoring
 
         game.reset()
         self.make_solid_ground()
@@ -414,7 +414,7 @@ class TestScoring(unittest.TestCase):
 
     def test_scoring_drops_hanging_balls(self):
         """Tests that balls lieing on a Scored Ball will start to fall"""
-        from ongoing import Scoring
+        from scoring import Scoring
 
         game.reset()
         self.make_solid_ground()

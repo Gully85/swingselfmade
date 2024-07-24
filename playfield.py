@@ -256,7 +256,7 @@ class Playfield:
         Checks bottom-up, only the lowest row with a horizontal-three is checked, only the leftmost Three is found.
         """
         from constants import num_columns
-        from balls import PlayfieldSpace
+        from scoring import Scoring
 
         # lowest row can never Score. Start at height 1
         for y in range(1, num_columns):
@@ -273,7 +273,8 @@ class Playfield:
                     continue
                 right_neighbor: PlayfieldSpace = self.get_ball_at((x + 1, y))
                 if right_neighbor.matches_color(the_ball):
-                    ongoing.start_score((x, y))
+                    Scoring.start_score((x, y))
+
                     return True
         return False
 
