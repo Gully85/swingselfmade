@@ -54,7 +54,7 @@ class ScoreArea:
         self.redraw_needed = True
         self.levelball = ColoredBall(startlevel, startlevel)
 
-    def changed(self) -> None:
+    def _changed(self) -> None:
         self.redraw_needed = True
 
     def draw_if_changed(self, screen: pygame.Surface) -> None:

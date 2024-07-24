@@ -44,7 +44,6 @@ def drop_ball() -> None:
     if balls_dropped % balls_per_level == 0:
         level += 1
         score_area.update_level()
-    score_area.changed()
 
 
 def getscorefactor() -> float:
@@ -61,6 +60,7 @@ def addscore(a: int) -> None:
     """adds to total score, returns new score"""
     global score
     score += a
+    score_area._changed()
     return score
 
 

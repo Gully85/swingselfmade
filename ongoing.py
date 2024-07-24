@@ -280,7 +280,7 @@ class ThrownBall(Ongoing):
         else:
             self.t += thrown_ball_dt * self.speedup_pastmax
 
-        game.playfield.changed()
+        game.playfield._changed()
 
         # is the destination reached? If yes, it can become a FallingBall or it can fly out
         if self.t > 1.0:
@@ -432,7 +432,6 @@ class Scoring(Ongoing):
             game.increase_score_factor(len(self.past))
 
         game.playfield.finalize_scoring(self.past)
-        game.score_area.changed()
         eventQueue.remove(self)
         game.playfield.refresh_status()
 
@@ -470,7 +469,6 @@ class Scoring(Ongoing):
                 self.next.append((x2, y2))
 
         # print("more matching Balls found: next=",self.next)
-        game.playfield.changed()
         return len(self.next) > 0
 
 

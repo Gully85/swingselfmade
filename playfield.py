@@ -92,7 +92,7 @@ class Playfield:
     def reset(self) -> None:
         self.__init__()
 
-    def changed(self) -> None:
+    def _changed(self) -> None:
         """trigger a redraw at next opportunity"""
         self.redraw_needed = True
 
@@ -133,6 +133,8 @@ class Playfield:
         x, y = coords
         if x < 0 or x > num_columns - 1 or y < 0 or y > num_columns - 1:
             raise IndexError("can't get Ball from position ({},{})".format(x, y))
+
+        self._changed()
 
         return self.stacks[x // 2].get_ball_at_height(y, x % 2 == 0)
 
@@ -326,7 +328,7 @@ class Playfield:
 
         if ret:
             self.check_hanging_balls()
-            self.changed()
+            self._changed()
 
         return ret
 
@@ -522,7 +524,6 @@ class Seesaw:
         if not self.moving:
             return
 
-        game.playfield.changed()
         # if left is heavier, reduce tilt
         if self.weightleft > self.weightright:
             self.tilt -= tilting_per_tick

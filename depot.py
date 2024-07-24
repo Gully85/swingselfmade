@@ -53,7 +53,7 @@ class Depot:
             one_row.append(generate_starting_ball())
             self.content.append(one_row)
 
-    def changed(self) -> None:
+    def _changed(self) -> None:
         """trigger a redraw"""
         self.redraw_needed = True
 
@@ -64,7 +64,7 @@ class Depot:
         for i in range(8):
             self.content[i][0] = generate_starting_ball()
             self.content[i][1] = generate_starting_ball()
-        self.changed()
+        self._changed()
 
     def draw_if_changed(self, screen: pygame.Surface) -> None:
         from constants import global_ymargin
@@ -139,5 +139,5 @@ class Depot:
         ret: Ball = self.content[column][1]
         self.content[column][1] = self.content[column][0]
         self.content[column][0] = generate_ball()
-        self.changed()
+        self._changed()
         return ret
