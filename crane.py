@@ -139,8 +139,9 @@ class Crane:
 
     def drop_ball(self):
         """drops ball at the current position, gets a new one from the depot"""
-        import ongoing, game
+        import game
+        from fallingball import FallingBall
 
-        ongoing.drop_ball_in_column(self.current_Ball, self.x)
+        FallingBall.drop_ball(self.current_Ball, self.x)
         self.current_Ball = game.depot.next_ball(self.x)
         self._changed()

@@ -7,7 +7,7 @@ sys.path.append("S:/SwingSelfmade/")
 import game, constants
 from balls import Ball, ColoredBall, Heart, Bomb
 from balls import generate_starting_ball
-from ongoing import ThrownBall
+from thrownball import ThrownBall
 from fallingball import FallingBall
 from playfield import Seesaw
 import unittest, random
@@ -20,22 +20,23 @@ from tests.testing_generals import wait_for_empty_eq
 class TestFalling(unittest.TestCase):
     def test_dropping(self):
         """create a random ball, drop it in a random column. Assert it is inserted into EventQueue"""
+
         game.reset()
 
         Testball: Ball = generate_starting_ball()
         chosen_column: int = random.randint(0, num_columns - 1)
-        game.ongoing.drop_ball_in_column(Testball, chosen_column)
+        FallingBall.drop_ball(Testball, chosen_column)
 
         self.assertEqual(1, game.ongoing.get_number_of_events())
         the_falling_event: FallingBall = game.ongoing.get_newest_event()
-        self.assertIsInstance(the_falling_event, game.ongoing.FallingBall)
+        self.assertIsInstance(the_falling_event, FallingBall)
         self.assertEqual(the_falling_event.getcolumn(), chosen_column)
 
     def test_falling(self):
         """create a random ball, drop it in a random column. Assert that it loses height."""
         game.reset()
 
-        game.ongoing.drop_ball_in_column(
+        FallingBall.drop_ball(
             generate_starting_ball(), random.randint(0, num_columns - 1)
         )
         the_falling_event: FallingBall = game.ongoing.get_newest_event()
@@ -47,11 +48,11 @@ class TestFalling(unittest.TestCase):
 
     def test_fallingball_reaches_ground(self):
         """create a random ball, drop it in a random column. Assert that it reaches the ground eventually"""
-        from ongoing import falling_per_tick
+        from fallingball import falling_per_tick
 
         game.reset()
 
-        game.ongoing.drop_ball_in_column(
+        FallingBall.drop_ball(
             generate_starting_ball(), random.randint(0, num_columns - 1)
         )
 
@@ -180,11 +181,11 @@ class TestThrowing(unittest.TestCase):
 
     def test_thrown_ball_falls(self):
         """create a ThrownBall, assert that it converts to a FallingBall eventually"""
-        from ongoing import ThrownBall
+        from thrownball import ThrownBall
 
         game.reset()
         the_ball: ColoredBall = generate_starting_ball()
-        game.ongoing.throw_ball(the_ball, (0, 0), 2)
+        ThrownBall.throw_ball(the_ball, (0, 0), 2)
 
         maxticks: int = int(constants.thrown_ball_totaltime * constants.max_FPS) + 1
         for _ in range(maxticks):
@@ -204,12 +205,12 @@ class TestThrowing(unittest.TestCase):
 
     def test_leftflyout_range(self):
         """create a ThrownBall that flies out. Verify that the remaining throwing-range is reduced correctly"""
-        from ongoing import ThrownBall
+        from thrownball import ThrownBall
 
         game.reset()
 
         the_ball: ColoredBall = generate_starting_ball()
-        game.ongoing.throw_ball(the_ball, (1, 0), -2)
+        ThrownBall.throw_ball(the_ball, (1, 0), -2)
         the_throwing_event: ThrownBall = game.ongoing.get_event_of_type(ThrownBall)
 
         maxticks: int = 2 * int(constants.thrown_ball_totaltime * constants.max_FPS) + 1
@@ -224,12 +225,12 @@ class TestThrowing(unittest.TestCase):
 
     def test_rightflyout_range(self):
         """create a ThrownBall that flies out. Verify that the remaining throwing-range is reduced correctly"""
-        from ongoing import ThrownBall
+        from thrownball import ThrownBall
 
         game.reset()
 
         the_ball: ColoredBall = generate_starting_ball()
-        game.ongoing.throw_ball(the_ball, (num_columns - 2, 0), 2)
+        ThrownBall.throw_ball(the_ball, (num_columns - 2, 0), 2)
         the_throwing_event: ThrownBall = game.ongoing.get_event_of_type(ThrownBall)
 
         maxticks: int = 2 * int(constants.thrown_ball_totaltime * constants.max_FPS) + 1
@@ -245,10 +246,10 @@ class TestThrowing(unittest.TestCase):
     def test_flyout_conversions(self):
         """Throw a ColoredBall with high throwing range. It should convert to a Heart on the
         first fly-out, then Bomb, then Heart"""
-        from ongoing import ThrownBall
+        from thrownball import ThrownBall
 
         the_ball: ColoredBall = generate_starting_ball()
-        game.ongoing.throw_ball(the_ball, (num_columns - 2, 0), 30)
+        ThrownBall.throw_ball(the_ball, (num_columns - 2, 0), 30)
         the_throwing_event: ThrownBall = game.ongoing.get_event_of_type(ThrownBall)
 
         # ticks per fly-through, not total

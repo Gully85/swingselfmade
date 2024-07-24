@@ -633,6 +633,8 @@ class Seesaw:
     def throw_top_ball(self) -> None:
         """if weights differ, throw top ball of lighter side.
         Weights are expected to already be updated"""
+        from thrownball import ThrownBall
+
         weightdiff: int = self.weightright - self.weightleft
         if 0 == weightdiff:
             return
@@ -647,7 +649,7 @@ class Seesaw:
         if 0 == len(lightstack):
             return
 
-        ongoing.throw_ball(lightstack.pop(), (origin_x, origin_y), weightdiff)
+        ThrownBall.throw_ball(lightstack.pop(), (origin_x, origin_y), weightdiff)
 
     def get_number_of_balls(self) -> int:
         """Returns total number of balls on both sides of the seesaw. Not
@@ -659,6 +661,7 @@ class Seesaw:
         one are converted into FallingBalls.
         If there is no ball at coords, do nothing."""
         from constants import max_height
+        from fallingball import FallingBall
 
         x, y = coords
         # x should be either self.xleft or self.xleft+1. If not,
@@ -685,18 +688,19 @@ class Seesaw:
         # Convert any above the removed one into FallingBalls
 
         stack.pop(height_to_remove)
-        for height, ball in enumerate(
-            stack[height_to_remove - 1 :]
-        ):  # this iterates over a copy
+        for height, ball in enumerate(stack[height_to_remove - 1 :]):
+            # this iterates over a copy
             # so modifying is ok
             stack.remove(ball)
-            ongoing.ball_falls_from_height(ball, x, height + blocked_height + 1)
+            FallingBall.drop_ball(ball, x, starting_height=height + blocked_height + 1)
         # if moving, do nothing for now.
         else:
             pass
 
     def remove_scored_balls(self, list_to_remove: list) -> None:
         """Remove marked balls that are in the list, drop hanging balls"""
+        from fallingball import FallingBall
+
         # left
         blocked_height: float = self.get_blocked_height(True)
         # bottom-up
@@ -723,6 +727,6 @@ class Seesaw:
                 extra_height += 1
             elif extra_height > 0:
                 self.stackright.remove(ball)
-                ongoing.ball_falls_from_height(
+                FallingBall.drop_ball(
                     ball, self.xleft + 1, blocked_height + y + extra_height
                 )
