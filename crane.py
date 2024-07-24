@@ -50,7 +50,7 @@ class Crane:
         self.surf = Surface(self.size)
         self.redraw_needed = True
 
-    def changed(self):
+    def _changed(self):
         """trigger a redraw at next opportunity"""
         self.redraw_needed = True
 
@@ -60,7 +60,7 @@ class Crane:
 
         self.x = 0
         self.current_Ball = generate_starting_ball()
-        self.changed()
+        self._changed()
 
     def draw_if_changed(self, screen: pygame.Surface):
         if not self.redraw_needed:
@@ -107,7 +107,7 @@ class Crane:
             return
 
         self.x -= 1
-        self.changed()
+        self._changed()
 
     def move_right(self):
         """moves the Crane one position to the right. Does nothing if already in the rightmost position."""
@@ -117,7 +117,7 @@ class Crane:
             return
 
         self.x += 1
-        self.changed()
+        self._changed()
 
     def move_to_column(self, col: int) -> None:
         from constants import num_columns
@@ -127,7 +127,7 @@ class Crane:
                 f"Crane column must be 0..7, attempted to move it to column {col}"
             )
         self.x = col
-        self.changed()
+        self._changed()
 
     def getx(self):
         """position of the crane. Always returns an int, possible values are 0..7"""
@@ -143,4 +143,4 @@ class Crane:
 
         ongoing.drop_ball_in_column(self.current_Ball, self.x)
         self.current_Ball = game.depot.next_ball(self.x)
-        self.changed()
+        self._changed()
