@@ -4,8 +4,9 @@
 from typing import Tuple, List
 import pygame
 from pygame import Rect, Surface
+from dataclasses import dataclass, field
 
-from balls import Ball
+from balls import Ball, generate_starting_ball
 from constants import window_size, global_ymargin
 from depot import depotsize
 
@@ -22,6 +23,7 @@ crane_position_y: int = global_ymargin + depotsize[1] + 3
 cranearea_position: Tuple[int, int] = (crane_position_x, crane_position_y)
 
 
+@dataclass
 class Crane:
     """Information about the Crane. Has x (int, 0 <= x <= 7) and current_Ball (Ball).
     Also holds a local var surf, surface to draw on, returned when draw() is called on it.
@@ -35,20 +37,11 @@ class Crane:
         getball(), returns the current ball
         drop_ball(), drops current ball"""
 
-    x: int
-    current_Ball: Ball
-    size: Tuple[int, int]
-    surf: Surface
-    redraw_needed: bool
-
-    def __init__(self):
-        from balls import generate_starting_ball
-
-        self.x = 0
-        self.current_Ball = generate_starting_ball()
-        self.size = craneareasize
-        self.surf = Surface(self.size)
-        self.redraw_needed = True
+    x: int = 0
+    current_Ball: Ball = field(default_factory=generate_starting_ball)
+    size: Tuple[int, int] = craneareasize
+    surf: Surface = Surface(craneareasize)
+    redraw_needed: bool = True
 
     def _changed(self):
         """trigger a redraw at next opportunity"""

@@ -1,6 +1,7 @@
 # Class file to hold the FallingBall class
 
 import pygame
+from dataclasses import dataclass
 
 
 from ongoing import Ongoing, remove_from_EQ, add_to_EQ
@@ -16,6 +17,7 @@ if falling_per_tick > 1.0:
     raise ValueError("Falling Speed too high. Do not fall more than one tile per tick.")
 
 
+@dataclass
 class FallingBall(Ongoing):
     """a Ball that is being dropped, falling after being thrown, or the Ball below it vanished somehow. Vars:
 
@@ -27,14 +29,7 @@ class FallingBall(Ongoing):
 
     ball: Ball
     column: int
-    height: float
-
-    def __init__(
-        self, ball: Ball, column: int, starting_height: float = float(max_height)
-    ):
-        self.ball = ball
-        self.column = column
-        self.height = starting_height
+    height: float = float(max_height)
 
     def draw(self, surf: pygame.Surface) -> None:
         from playfield import Playfield
@@ -69,4 +64,4 @@ class FallingBall(Ongoing):
 
     @staticmethod
     def drop_ball(ball: Ball, column: int, starting_height=max_height) -> None:
-        add_to_EQ(FallingBall(ball, column, starting_height=starting_height))
+        add_to_EQ(FallingBall(ball, column, height=starting_height))

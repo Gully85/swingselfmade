@@ -2,8 +2,7 @@ https://online.visual-paradigm.com/app/diagrams/#diagram:proj=0&id=1&type=ClassD
 
 Current TODO List:
 
-- Code Cleanup: Move all magic numbers to constants
-- Code Cleanup: Move module-wide vars to classes
+- for Ongoings, implement the "is_finished" mechanic and let the Ongoings decide if done
 - Code Cleanup: Disentangle classes. Have ONE landing method in the playfield class
 - Code Cleanup: Split ThrownBall into FlyoutBall and InboundFlyingBall. Maybe even split
     into flying right and flying left.
@@ -18,7 +17,7 @@ Current TODO List:
     updates (at each level?) for the full game state. Track all Ongoing_Events in there. 
     While at it, remove unneccessary console output.
 - expand Colorscheme to more than 10 Ball colors. Can just use 5 different shapes (ellipse, 
-    rectangle, circle, ?), thats enough for 50 levels. The original SWING had 54 levels, beyond 
+    rectangle, circle, triangle, ?), thats enough for 50 levels. The original SWING had 54 levels, beyond 
     that no new colors were coming.
 - after Scoring, show the score added for a few frames. Can use an Ongoing Event for this.
 - draw seesaws in a way that shows which ones are connected

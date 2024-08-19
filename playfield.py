@@ -4,14 +4,14 @@
 
 from __future__ import annotations
 from typing import Tuple, List
+from dataclasses import dataclass, field
 
 import pygame
 
-import game
 from balls import Ball, PlayfieldSpace, ball_size
 import balls
 import ongoing
-
+from constants import num_columns
 
 weightdisplayfont = pygame.font.SysFont("Arial", 12)
 # bottom of playfield area has some space for displaying the current weight of that stack.
@@ -67,23 +67,24 @@ weightdisplay_x_per_column: int = ball_size[0] + column_spacing
 weightdisplay_coords: List[int] = [weightdisplay_x, weightdisplay_y]
 
 
+def initial_stacks() -> list[Seesaw]:
+    ret: list[Seesaw] = []
+    for i in range(num_columns // 2):
+        new_sesa: Seesaw = Seesaw(2 * i)
+        ret.append(new_sesa)
+    return ret
+
+
+@dataclass
 class Playfield:
-    """Information about the current Playfield.
-    Constructor takes size in pixels as (width,height) tuple."""
+    """Information about the current Playfield."""
 
-    def __init__(self):
-        from constants import num_columns
-
-        numstacks = num_columns // 2
-        self.stacks: List[Seesaw] = []
-
-        for i in range(numstacks):
-            self.stacks.append(Seesaw(2 * i))
-
-        self.size: Tuple[int, int] = playfieldsize
-        self.surf: pygame.Surface = pygame.Surface(playfieldsize)
-        self.redraw_needed: bool = True
-        self.alive: bool = True
+    stacks: list[Seesaw] = field(default_factory=initial_stacks)
+    # leftmoststack: Seesaw = field(default_factory=one_stack)
+    size: Tuple[int, int] = playfieldsize
+    surf: pygame.Surface = pygame.Surface(playfieldsize)
+    redraw_needed: bool = True
+    alive: bool = True
 
     def tick(self) -> None:
         for sesa in self.stacks:
@@ -98,6 +99,7 @@ class Playfield:
 
     def draw_if_changed(self, screen: pygame.Surface) -> None:
         """draws Playfield if it changed or if any event is ongoing"""
+        import game
 
         trigger_redraw: bool = self.redraw_needed
         trigger_redraw |= game.ongoing.get_number_of_events() > 0
@@ -393,19 +395,26 @@ class Playfield:
             return self.stacks[column // 2].get_top_ball(column % 2 == 0)
 
 
+@dataclass
 class Seesaw:
     """A pair of two connected stacks in the playfield."""
 
-    def __init__(self, xleft):
-        # 0 for balanced, #-1 for heavier left
-        # side, +1 for heavier right side
-        self.tilt: float = 0.0
-        self.weightleft: int = 0
-        self.weightright: int = 0
-        self.stackleft: List[Ball] = []  # first is lowest, last is highest Ball
-        self.stackright: List[Ball] = []  # first is lowest, last is highest Ball
-        self.moving: bool = False
-        self.xleft: int = xleft  # should always be an even number
+    xleft: int
+    tilt: float = 0.0
+    weightleft: int = 0
+    weightright: int = 0
+    stackleft: list[Ball] = field(default_factory=[])
+    stackright: list[Ball] = field(default_factory=[])
+    moving: bool = False
+
+    def __init__(self, xleft: int) -> None:
+        self.xleft = xleft
+        self.tilt = 0.0
+        self.weightleft = 0
+        self.weightright = 0
+        self.stackleft = []
+        self.stackright = []
+        self.moving = False
 
     def ismoving(self) -> bool:
         return self.moving
@@ -552,6 +561,8 @@ class Seesaw:
                 self.finalize_tilting()
 
     def finalize_tilting(self) -> None:
+        import game
+
         self.moving = False
         game.playfield.refresh_status()
 

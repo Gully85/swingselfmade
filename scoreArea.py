@@ -2,6 +2,7 @@
 
 from typing import Tuple
 import pygame
+from dataclasses import dataclass, field
 
 from constants import startlevel, window_size, global_xmargin
 from playfield import playfield_position, playfieldsize
@@ -29,6 +30,11 @@ scoredisplayarea_size: Tuple[int, int] = (
 )
 
 
+def initial_levelball() -> ColoredBall:
+    return ColoredBall(startlevel, startlevel)
+
+
+@dataclass
 class ScoreArea:
     """Information about the score display area. Stores a local pygame.Surface.
     Stores a Colored_Ball to show the current level
@@ -42,23 +48,16 @@ class ScoreArea:
     Methods
     """
 
-    surf: pygame.Surface
-    size: Tuple[int, int]
-    redraw_needed: bool
-    levelball: ColoredBall
-
-    def __init__(self):
-
-        self.size = scoredisplayarea_size
-        self.surf = pygame.Surface(self.size)
-        self.redraw_needed = True
-        self.levelball = ColoredBall(startlevel, startlevel)
+    surf: pygame.Surface = pygame.Surface(scoredisplayarea_size)
+    size: Tuple[int, int] = scoredisplayarea_size
+    _redraw_needed: bool = True
+    levelball: ColoredBall = field(default_factory=initial_levelball)
 
     def _changed(self) -> None:
-        self.redraw_needed = True
+        self._redraw_needed = True
 
     def draw_if_changed(self, screen: pygame.Surface) -> None:
-        if not self.redraw_needed:
+        if not self._redraw_needed:
             return
         else:
             drawn_scorearea = self.draw()

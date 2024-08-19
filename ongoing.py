@@ -15,10 +15,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Tuple, List, Type
 import pygame
-
-import game
-from constants import max_FPS
-from balls import Ball
+from dataclasses import dataclass, field
 
 
 # this is a local variable of the module ongoing. Other files, if they import this,
@@ -119,6 +116,7 @@ class Combining(Ongoing):
 
     def tick(self) -> None:
         from constants import combining_dt
+        import game
 
         self.t += combining_dt
         if self.t > 1.0:
@@ -159,26 +157,27 @@ class Combining(Ongoing):
         return self.coords
 
 
+@dataclass
 class Explosion(Ongoing):
     """A Bomb has recently exploded here, the sprite is drawn for a few frames."""
 
     coords: Tuple[int, int]
-    progress: float  # from 0.0 to 1.0
-    image: pygame.Surface
+    # progress: float  # from 0.0 to 1.0
+    image: pygame.Surface = pygame.image.load("specials/explosion_zugeschnitten.png")
+    progress: float = 0.0
 
-    def __init__(self, coords: Tuple[int, int]):
-        x, y = coords
+    def __post_init__(self) -> None:
+        x, y = self.coords
         self.coords = (x - 1, y + 1)
-        self.progress = 0.0
-        self.image = pygame.image.load("specials/explosion_zugeschnitten.png")
 
     def tick(self) -> None:
         from constants import explosion_numticks
+        import game
 
         self.progress += 1.0 / explosion_numticks
         if self.progress > 1.0:
             eventQueue.remove(self)
-            game.playfield.changed()
+            game.playfield._changed()
 
     def draw(self, surf: pygame.Surface) -> None:
         from playfield import Playfield

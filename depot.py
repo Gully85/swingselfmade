@@ -2,6 +2,7 @@
 
 from typing import Tuple, List
 import pygame
+from dataclasses import dataclass, field
 
 from balls import Ball
 from constants import window_size
@@ -17,6 +18,18 @@ depotsize: Tuple[int, int] = (
 )
 
 
+def generate_starting_content() -> list[list[Ball]]:
+    from balls import generate_starting_ball
+    from constants import num_columns
+
+    ret: list[list[Ball]] = []
+    for _ in range(num_columns):
+        one_row: list[Ball] = [generate_starting_ball(), generate_starting_ball()]
+        ret.append(one_row)
+    return ret
+
+
+@dataclass
 class Depot:
     """Information about the Depot state. Balls stored here, and drawing procedure.
     Vars:
@@ -28,34 +41,15 @@ class Depot:
         next_ball(int), get ball of specified column, move ball down and generate a new one
     """
 
-    size_x: int
-    size_y: int
-    surf: pygame.Surface
-    redraw_needed: bool
-    content: List[List[Ball]]
-
-    # size in pixels is provided by the constructor call. Initial filling with Colored_Balls is done here for now.
-    def __init__(self):
-        from balls import generate_starting_ball
-        from constants import num_columns
-
-        self.size_x = depotsize[0]
-        self.size_y = depotsize[1]
-
-        self.surf = pygame.Surface(depotsize)
-        self.redraw_needed = True
-
-        self.content = []
-
-        for _ in range(num_columns):
-            one_row: List[Ball] = []
-            one_row.append(generate_starting_ball())
-            one_row.append(generate_starting_ball())
-            self.content.append(one_row)
+    size_x: int = depotsize[0]
+    size_y: int = depotsize[1]
+    surf: pygame.Surface = pygame.Surface(depotsize)
+    _redraw_needed: bool = True
+    content: list[list[Ball]] = field(default_factory=generate_starting_content)
 
     def _changed(self) -> None:
         """trigger a redraw"""
-        self.redraw_needed = True
+        self._redraw_needed = True
 
     def reset(self) -> None:
         """puts the depot into the state of game start"""
@@ -69,7 +63,7 @@ class Depot:
     def draw_if_changed(self, screen: pygame.Surface) -> None:
         from constants import global_ymargin
 
-        if not self.redraw_needed:
+        if not self._redraw_needed:
             return
 
         # Pixel coordinates of the top-left corner of the Depot.
@@ -79,7 +73,7 @@ class Depot:
 
         drawn_depot = self.draw()
         screen.blit(drawn_depot, depot_position)
-        self.redraw_needed = False
+        self._redraw_needed = False
 
     def draw(self) -> None:
         """draws full Depot, calls draw() methods of the Balls in the Depot. Returns self.surf"""

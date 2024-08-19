@@ -1,33 +1,40 @@
 # Class file to hold the Scoring class
 
 from typing import List, Tuple
+from dataclasses import dataclass, field
 
 from balls import Ball
 
 from ongoing import Ongoing, remove_from_EQ
+from constants import scoring_delay
 
 
+@dataclass
 class Scoring(Ongoing):
     """Balls currently scoring points. Expands every few ticks to connected
     Balls of the same color, when finished all the Balls are removed.
     Constructor: Scoring((x,y), ball)
     """
 
-    past: List[Ball]
-    next: List[Tuple[int]]
-    delay: int
-    weight_so_far: int
-    ball: Ball  # used in expansion to check if the color matches
+    coords: Tuple[int, int]
+    ball: Ball
+    past: List[Ball] = field(default_factory=[])
+    next: List[Tuple[int]] = field(default_factory=[])
+    delay: int = scoring_delay
+    weight_so_far: int = 0
 
     def __init__(self, coords: Tuple[int, int], ball: Ball):
         from constants import scoring_delay
 
-        self.past = []  # list of ScoringColoredBalls
+        self.past = []  # list of ColoredBalls with scoring=True
         self.next = [coords]  # list of (int,int) coords in the playfield
         self.delay = scoring_delay
         self.weight_so_far = 0
         self.ball = ball  # this is used to match colors when deciding
         # whether to expand. Should be a ColoredBall or Heart
+
+    def __post_init__(self) -> None:
+        pass
 
     @staticmethod
     def start_score(coords) -> None:
