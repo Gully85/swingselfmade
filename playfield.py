@@ -403,18 +403,9 @@ class Seesaw:
     tilt: float = 0.0
     weightleft: int = 0
     weightright: int = 0
-    stackleft: list[Ball] = field(default_factory=[])
-    stackright: list[Ball] = field(default_factory=[])
+    stackleft: list[Ball] = field(default_factory=list)
+    stackright: list[Ball] = field(default_factory=list)
     moving: bool = False
-
-    def __init__(self, xleft: int) -> None:
-        self.xleft = xleft
-        self.tilt = 0.0
-        self.weightleft = 0
-        self.weightright = 0
-        self.stackleft = []
-        self.stackright = []
-        self.moving = False
 
     def ismoving(self) -> bool:
         return self.moving

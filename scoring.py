@@ -17,8 +17,8 @@ class Scoring(Ongoing):
     """
 
     ball: Ball
-    past: List[Ball] = field(default_factory=[])
-    next: List[Tuple[int]] = field(default_factory=[])
+    past: List[Ball] = field(default_factory=list)
+    next: List[Tuple[int]] = field(default_factory=list)
     delay: int = scoring_delay
     weight_so_far: int = 0
 
