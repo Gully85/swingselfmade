@@ -31,6 +31,8 @@ game.reset()
 
 
 import balls
+from fallingball import FallingBall
+from thrownball import ThrownBall
 
 
 # used to ensure max number of ticks calculated per second
@@ -62,8 +64,8 @@ def main():
         process_user_input()
 
         ### Step 1.5, auto-drop if no balls are Falling/Thrown atm
-        if not game.ongoing.event_type_exists(game.ongoing.FallingBall) and (
-            not game.ongoing.event_type_exists(game.ongoing.ThrownBall)
+        if not game.ongoing.event_type_exists(FallingBall) and (
+            not game.ongoing.event_type_exists(ThrownBall)
         ):
             game.drop_ball()
 

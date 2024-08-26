@@ -716,7 +716,10 @@ class Seesaw:
             elif extra_height > 0:  # once something was removed, all above
                 # must fall if not removed
                 self.stackleft.remove(ball)
-                ongoing.ball_falls_from_height(
+                # ongoing.ball_falls_from_height(
+                #    ball, self.xleft, blocked_height + y + extra_height
+                # )
+                FallingBall.drop_ball(
                     ball, self.xleft, blocked_height + y + extra_height
                 )
 
