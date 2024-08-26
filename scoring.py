@@ -16,7 +16,6 @@ class Scoring(Ongoing):
     Constructor: Scoring((x,y), ball)
     """
 
-    coords: Tuple[int, int]
     ball: Ball
     past: List[Ball] = field(default_factory=[])
     next: List[Tuple[int]] = field(default_factory=[])
