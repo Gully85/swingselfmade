@@ -43,6 +43,7 @@ def tick() -> None:
         event.tick()
 
     if any([ev.is_finished for ev in eventQueue]):
+        game.playfield.refresh_status()
         game.playfield._changed()
         newEQ: list[Ongoing] = [ev for ev in eventQueue if not ev.is_finished]
         eventQueue = newEQ

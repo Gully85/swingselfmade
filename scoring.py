@@ -84,8 +84,7 @@ class Scoring(Ongoing):
             game.increase_score_factor(len(self.past))
 
         game.playfield.finalize_scoring(self.past)
-        remove_from_EQ(self)
-        game.playfield.refresh_status()
+        self._is_finished = True
 
     def expand(self) -> None:
         """checks if neighboring balls are same color, removes them and saves their coords in

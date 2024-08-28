@@ -57,10 +57,6 @@ class FallingBall(Ongoing):
             self.ball.lands_on_empty((self.column, int(self.height)))
         self._is_finished = True
 
-        # TODO move this to the EQ logic. Check whether any Ongoings are finished. If
-        # yes, remove them from the EQ and trigger refresh
-        game.playfield.refresh_status()
-
     def getheight(self) -> float:
         return self.height
 
