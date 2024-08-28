@@ -21,6 +21,7 @@ class Scoring(Ongoing):
     next: List[Tuple[int]] = field(default_factory=list)
     delay: int = scoring_delay
     weight_so_far: int = 0
+    _is_finished: bool = False
 
     def __init__(self, coords: Tuple[int, int], ball: Ball):
         from constants import scoring_delay
@@ -42,6 +43,10 @@ class Scoring(Ongoing):
 
         first_ball: Ball = game.playfield.get_ball_at(coords)
         add_to_EQ(Scoring(coords, first_ball))
+
+    @property
+    def is_finished(self) -> bool:
+        return self._is_finished
 
     def draw(self, surf) -> None:
         # placeholder: Rectangles. Green (65,174,118) for past and slightly

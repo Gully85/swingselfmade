@@ -15,7 +15,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Tuple, List, Type
 import pygame
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 
 # this is a local variable of the module ongoing. Other files, if they import this,
@@ -36,8 +36,16 @@ def add_to_EQ(event: Ongoing) -> None:
 
 def tick() -> None:
     """perform update of all ongoing events. Called periodically as time passes."""
+    import game
+
+    global eventQueue
     for event in eventQueue:
         event.tick()
+
+    if any([ev.is_finished for ev in eventQueue]):
+        game.playfield._changed()
+        newEQ: list[Ongoing] = [ev for ev in eventQueue if not ev.is_finished]
+        eventQueue = newEQ
 
 
 def reset() -> None:
@@ -62,12 +70,18 @@ def get_newest_event() -> Ongoing:
 
 
 class Ongoing(ABC):
-    """abstract Parent class, should not be instanciated.
-    Any child class must have a tick(self, playfield) method and a draw(self,surf) method.
+    """abstract Parent class.
+    Any child class must have a tick(self, playfield) method and a draw(self,surf) method. And bool is_finished,
+    probably implemented as a @property, that tells whether the instance can be removed from the event-queue
     """
 
     @abstractmethod
     def tick(self) -> None:
+        pass
+
+    @abstractmethod
+    def is_finished(self) -> bool:
+        """True if nothing will happen in future tick()s from this Ongoing any more."""
         pass
 
     @abstractmethod
@@ -113,15 +127,18 @@ class Combining(Ongoing):
         self.color = color
         self.weight = weight
         self.t = 0.0
+        self._is_finished: bool = False
+
+    @property
+    def is_finished(self) -> bool:
+        return self.t > 1.0
 
     def tick(self) -> None:
         from constants import combining_dt
-        import game
 
         self.t += combining_dt
         if self.t > 1.0:
-            eventQueue.remove(self)
-            game.playfield.changed()
+            self._is_finished = True
 
     def draw(self, surf: pygame.Surface) -> None:
         # draw an ellipse that contracts in y-direction over time
@@ -164,20 +181,20 @@ class Explosion(Ongoing):
     coords: Tuple[int, int]
     # progress: float  # from 0.0 to 1.0
     image: pygame.Surface = pygame.image.load("specials/explosion_zugeschnitten.png")
-    progress: float = 0.0
+    ticks: int = 0
 
     def __post_init__(self) -> None:
         x, y = self.coords
         self.coords = (x - 1, y + 1)
 
-    def tick(self) -> None:
+    @property
+    def is_finished(self) -> bool:
         from constants import explosion_numticks
-        import game
 
-        self.progress += 1.0 / explosion_numticks
-        if self.progress > 1.0:
-            eventQueue.remove(self)
-            game.playfield._changed()
+        return self.ticks > explosion_numticks
+
+    def tick(self) -> None:
+        self.ticks += 1
 
     def draw(self, surf: pygame.Surface) -> None:
         from playfield import Playfield

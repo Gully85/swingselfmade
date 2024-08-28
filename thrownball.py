@@ -43,6 +43,11 @@ class ThrownBall(Ongoing):
     t: float
     # behind the highest point, it speeds up by this factor.
     speedup_pastmax: float
+    _is_finished: bool = False
+
+    @property
+    def is_finished(self) -> bool:
+        return self._is_finished
 
     def __init__(self, ball, coords: Tuple[int], throwing_range: int):
         from constants import thrown_ball_maxheight, thrown_ball_dropheight
@@ -153,7 +158,7 @@ class ThrownBall(Ongoing):
                     self.destination,
                     starting_height=thrown_ball_dropheight - 2.0,
                 )
-                remove_from_EQ(self)
+                self._is_finished = True
 
             return
 

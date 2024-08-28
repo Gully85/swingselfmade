@@ -30,12 +30,17 @@ class FallingBall(Ongoing):
     ball: Ball
     column: int
     height: float = float(max_height)
+    _is_finished: bool = False
 
     def draw(self, surf: pygame.Surface) -> None:
         from playfield import Playfield
 
         x, y = Playfield.pixel_coord_in_playfield((self.column, self.height))
         self.ball.draw(surf, (x, y))
+
+    @property
+    def is_finished(self) -> bool:
+        return self._is_finished
 
     def tick(self) -> None:
 
@@ -50,7 +55,10 @@ class FallingBall(Ongoing):
             self.ball.lands_on_ball((self.column, int(self.height)), ball_below)
         else:
             self.ball.lands_on_empty((self.column, int(self.height)))
-        remove_from_EQ(self)
+        self._is_finished = True
+
+        # TODO move this to the EQ logic. Check whether any Ongoings are finished. If
+        # yes, remove them from the EQ and trigger refresh
         game.playfield.refresh_status()
 
     def getheight(self) -> float:
