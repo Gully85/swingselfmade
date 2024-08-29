@@ -117,7 +117,7 @@ class TestTilting(unittest.TestCase):
         game.reset()
 
         Testball: ColoredBall = generate_starting_ball()
-        self.assertNotEqual(0, Testball.getweight())
+        self.assertNotEqual(0, Testball.weight)
 
         chosen_column: int = random.randint(0, num_columns - 1)
         chosen_sesa: int = chosen_column // 2
@@ -342,7 +342,7 @@ class TestScoring(unittest.TestCase):
         for col in range(2):
             nextball: ColoredBall = generate_starting_ball()
             nextball.setcolor(2)
-            totalweight += nextball.getweight()
+            totalweight += nextball.weight
             nextball.lands_on_empty((col, 3))
         game.playfield.refresh_status()
 
@@ -351,7 +351,7 @@ class TestScoring(unittest.TestCase):
         # drop third ball, this should start a Scoring
         nextball = generate_starting_ball()
         nextball.setcolor(2)
-        totalweight += nextball.getweight()
+        totalweight += nextball.weight
         nextball.lands_on_empty((2, 3))
         game.playfield.refresh_status()
 
@@ -484,14 +484,14 @@ class TestCombining(unittest.TestCase):
         for i in range(4):
             nextball = generate_starting_ball()
             nextball.setcolor(2)
-            totalweight += nextball.getweight()
+            totalweight += nextball.weight
             nextball.lands_on_empty((0, i + 2))
         # the eventQueue should be empty at this point
         self.assertEqual(0, game.ongoing.get_number_of_events())
         # the fifth ball should trigger the Combining
         triggerball = generate_starting_ball()
         triggerball.setcolor(2)
-        totalweight += triggerball.getweight()
+        totalweight += triggerball.weight
         triggerball.lands_on_empty((0, 6))
         game.playfield.refresh_status()
 
@@ -506,7 +506,7 @@ class TestCombining(unittest.TestCase):
 
         resulting_ball = game.playfield.get_ball_at((0, 2))
         self.assertIsInstance(resulting_ball, ColoredBall)
-        self.assertEqual(totalweight, resulting_ball.getweight())
+        self.assertEqual(totalweight, resulting_ball.weight)
 
 
 class TestOngoing(unittest.TestCase):

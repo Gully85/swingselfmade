@@ -35,15 +35,16 @@ ballfont: pygame.font.Font = pygame.font.SysFont("monospace", 24)
 class PlayfieldSpace(ABC):
     """Abstract Base Class for a position in the playfield. It can either be a ball
     (whatever kind) or an EmptySpace or BlockedSpace. (BlockedSpace means, blocked by
-    seesaw). Must have draw(), getweight() and getcolor() methods."""
+    seesaw). Must have draw(), and getcolor() methods, and a weight property."""
 
     @abstractmethod
     def draw(self, surf: pygame.Surface, drawpos: Tuple[int, int]) -> None:
         """draw yourself on given surf to given pixel position"""
         pass
 
+    @property
     @abstractmethod
-    def getweight(self) -> int:
+    def weight(self) -> int:
         pass
 
     @abstractmethod
@@ -71,7 +72,8 @@ class EmptySpace(PlayfieldSpace):
     def draw(self, surf: pygame.Surface, drawpos: Tuple[int]) -> None:
         pass
 
-    def getweight(self) -> int:
+    @property
+    def weight(self) -> int:
         return 0
 
     def getcolor(self) -> int:
@@ -96,7 +98,8 @@ class BlockedSpace(PlayfieldSpace):
         # just a black rectangle for now
         pygame.draw.rect(surf, RGB_black, pygame.Rect(drawpos, ball_size))
 
-    def getweight(self) -> int:
+    @property
+    def weight(self) -> int:
         return 0
 
     def getcolor(self) -> int:
@@ -117,8 +120,9 @@ class Ball(PlayfieldSpace):
     def draw(self, surf: pygame.Surface, drawpos: Tuple[int]) -> None:
         pass
 
+    @property
     @abstractmethod
-    def getweight(self) -> int:
+    def weight(self) -> int:
         return 0
 
     @abstractmethod
@@ -156,7 +160,7 @@ class ColoredBall(Ball):
     and a weight (int, 0 or greater). Constructor is Colored_Ball(color, weight)."""
 
     color: int
-    weight: int
+    _weight: int
     scoring: bool = False
 
     def draw(self, surf: pygame.Surface, drawpos: Tuple[int]) -> None:
@@ -179,15 +183,20 @@ class ColoredBall(Ball):
         """sets the weight of the ball to given weight"""
         self.weight = newweight
 
-    def getweight(self) -> int:
+    @property
+    def weight(self) -> int:
         """gets weight of the ball"""
-        return self.weight
+        return self._weight
 
-    def setcolor(self, newcolor: int) -> None:
-        self.color = newcolor
+    @weight.setter
+    def weight(self, newweight: int) -> None:
+        self._weight = newweight
 
     def getcolor(self) -> int:
         return self.color
+
+    def setcolor(self, newcolor: int) -> None:
+        self.color = newcolor
 
     def matches_color(self, ball: Ball) -> bool:
         # TODO Joker
@@ -225,7 +234,8 @@ class SpecialBall(Ball):
     def __init__(self):
         pass
 
-    def getweight(self) -> int:
+    @property
+    def weight(self) -> int:
         return 0
 
     def getcolor(self) -> int:

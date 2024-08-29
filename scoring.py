@@ -104,7 +104,7 @@ class Scoring(Ongoing):
                 continue
 
             new_ball.mark_for_scoring()
-            self.weight_so_far += new_ball.getweight()
+            self.weight_so_far += new_ball.weight
             self.past.append(new_ball)
 
             x, y = coords

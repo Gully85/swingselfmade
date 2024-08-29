@@ -307,7 +307,7 @@ class Playfield:
                     continue
                 # if this point is reached, the current ball is a Colored_Ball. All others have the
                 # attribute color==-1
-                total_weight = self.content[x][y].getweight()
+                total_weight = self.content[x][y].weight
 
                 # five balls are needed: y, y+1, ..., y+4. If this loop reaches y+5, do not check
                 # the (y+5)-position, but Combine instead
@@ -327,7 +327,7 @@ class Playfield:
                     if self.content[x][check_height].getcolor() != this_color:
                         break
 
-                    total_weight += self.content[x][check_height].getweight()
+                    total_weight += self.content[x][check_height].weight
 
         if ret:
             self.check_hanging_balls()
@@ -513,10 +513,10 @@ class Seesaw:
         updates internal weight variable"""
         self.weightleft = 0
         for ball in self.stackleft:
-            self.weightleft += ball.getweight()
+            self.weightleft += ball.weight
         self.weightright = 0
         for ball in self.stackright:
-            self.weightright += ball.getweight()
+            self.weightright += ball.weight
 
     def tick(self) -> None:
         """if moving, tilt further. Check if tilting is done."""

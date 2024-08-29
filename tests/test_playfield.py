@@ -43,7 +43,7 @@ class TestPlayfield(unittest.TestCase):
         # land a ball of equal weight in the neighboring column, wait for empty EventQueue,
         # should lead to balanced seesaws. Check that both balls are in the correct positions.
         Testball2: ColoredBall = generate_starting_ball()
-        Testball2.setweight(Testball.getweight())
+        Testball2.setweight(Testball.weight)
         the_playfield.land_ball_in_column(Testball2, 1)
         maxticks: int = int(constants.max_FPS // constants.tilting_per_tick)
         self.assertTrue(wait_for_empty_eq(maxticks))
@@ -53,8 +53,8 @@ class TestPlayfield(unittest.TestCase):
 
         # Test get_weight_of_column
         the_playfield.update_weights()
-        self.assertEqual(the_playfield.get_weight_of_column(0), Testball.getweight())
-        self.assertEqual(the_playfield.get_weight_of_column(1), Testball.getweight())
+        self.assertEqual(the_playfield.get_weight_of_column(0), Testball.weight)
+        self.assertEqual(the_playfield.get_weight_of_column(1), Testball.weight)
 
     # Test all outcomes of refresh_status
     def test_refresh_status(self):
@@ -66,7 +66,8 @@ class TestPlayfield(unittest.TestCase):
         # Tilting
         # Drop a ball to the rightmost column, should start a SeesawTilting
         Testball: ColoredBall = generate_starting_ball()
-        Testball.setweight(20)
+        Testball.weight = 20
+
         the_playfield.land_ball_in_column(Testball, num_columns - 1)
         self.assertTrue(game.playfield.any_seesaw_is_moving())
         self.assertTrue(game.playfield.stacks[(num_columns // 2) - 1].ismoving())
@@ -135,7 +136,7 @@ class TestPlayfield(unittest.TestCase):
             resulting_ball = the_playfield.get_ball_at((4, 2))
             self.assertIsInstance(resulting_ball, balls.ColoredBall)
             self.assertEqual(resulting_ball.getcolor(), 2)
-            self.assertEqual(resulting_ball.getweight(), 15)
+            self.assertEqual(resulting_ball.weight, 15)
 
         # Hanging Balls
         game.reset()
