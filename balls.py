@@ -238,6 +238,10 @@ class SpecialBall(Ball):
     def weight(self) -> int:
         return 0
 
+    @weight.setter
+    def weight(self, newweight) -> None:
+        pass
+
     def getcolor(self) -> int:
         return -1
 
