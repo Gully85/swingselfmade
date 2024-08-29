@@ -43,7 +43,7 @@ class TestPlayfield(unittest.TestCase):
         # land a ball of equal weight in the neighboring column, wait for empty EventQueue,
         # should lead to balanced seesaws. Check that both balls are in the correct positions.
         Testball2: ColoredBall = generate_starting_ball()
-        Testball2.setweight(Testball.weight)
+        Testball2.weight = Testball.weight
         the_playfield.land_ball_in_column(Testball2, 1)
         maxticks: int = int(constants.max_FPS // constants.tilting_per_tick)
         self.assertTrue(wait_for_empty_eq(maxticks))
@@ -80,11 +80,11 @@ class TestPlayfield(unittest.TestCase):
         # Drop two heavy balls on the left side of each seesaw to create a flat ground
         for sesa in range(num_columns // 2):
             Testball = generate_starting_ball()
-            Testball.setweight(100)
+            Testball.weight = 100
             the_playfield.land_ball_in_column(Testball, 2 * sesa)
             Testball = generate_starting_ball()
-            Testball.setweight(100)
-            Testball.setcolor(1)
+            Testball.weight = 100
+            Testball.color = 1
             the_playfield.land_ball_in_column(Testball, 2 * sesa)
 
         # wait for all tilts
@@ -99,7 +99,7 @@ class TestPlayfield(unittest.TestCase):
         # put equal-colored balls in the three leftmost columns. This should start a Scoring.
         for i in range(3):
             Testball2 = generate_starting_ball()
-            Testball2.setcolor(2)
+            Testball2.color = 2
             the_playfield.land_ball_in_column(Testball2, i)
         the_playfield.refresh_status()
         game.tick()
@@ -109,7 +109,7 @@ class TestPlayfield(unittest.TestCase):
         # same for the rightmost columns and a different color
         for i in range(num_columns - 3, num_columns):
             Testball3 = generate_starting_ball()
-            Testball3.setcolor(3)
+            Testball3.color = 3
             the_playfield.land_ball_in_column(Testball3, i)
         game.tick()
         self.assertIsInstance(game.ongoing.get_newest_event(), Scoring)
@@ -120,8 +120,8 @@ class TestPlayfield(unittest.TestCase):
             # land 5 equal balls in column 4, they should combine
             for i in range(5):
                 Testball4 = balls.generate_starting_ball()
-                Testball4.setcolor(2)
-                Testball4.setweight(3)
+                Testball4.color = 2
+                Testball4.weight = 3
                 the_playfield.land_ball_in_column(Testball4, 4)
             game.tick()
             self.assertIsInstance(
@@ -135,7 +135,7 @@ class TestPlayfield(unittest.TestCase):
             # The resulting ball should be at position (4,2), color=2, weight=15
             resulting_ball = the_playfield.get_ball_at((4, 2))
             self.assertIsInstance(resulting_ball, balls.ColoredBall)
-            self.assertEqual(resulting_ball.getcolor(), 2)
+            self.assertEqual(resulting_ball.color, 2)
             self.assertEqual(resulting_ball.weight, 15)
 
         # Hanging Balls

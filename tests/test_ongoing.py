@@ -319,8 +319,8 @@ class TestScoring(unittest.TestCase):
             column: int = 2 * sesa
             for _ in range(2):
                 nextball: ColoredBall = generate_starting_ball()
-                nextball.setcolor(1)
-                nextball.setweight(50)
+                nextball.color = 1
+                nextball.weight = 50
                 nextball.lands_on_empty((column, 1))
                 game.playfield.refresh_status()
 
@@ -341,7 +341,7 @@ class TestScoring(unittest.TestCase):
         totalweight: int = 0
         for col in range(2):
             nextball: ColoredBall = generate_starting_ball()
-            nextball.setcolor(2)
+            nextball.color = 2
             totalweight += nextball.weight
             nextball.lands_on_empty((col, 3))
         game.playfield.refresh_status()
@@ -350,7 +350,7 @@ class TestScoring(unittest.TestCase):
 
         # drop third ball, this should start a Scoring
         nextball = generate_starting_ball()
-        nextball.setcolor(2)
+        nextball.color = 2
         totalweight += nextball.weight
         nextball.lands_on_empty((2, 3))
         game.playfield.refresh_status()
@@ -459,8 +459,8 @@ class TestCombining(unittest.TestCase):
             column: int = 2 * sesa
             for _ in range(2):
                 nextball: ColoredBall = generate_starting_ball()
-                nextball.setcolor(1)
-                nextball.setweight(50)
+                nextball.color = 1
+                nextball.weight = 50
                 nextball.lands_on_empty((column, 1))
                 game.playfield.refresh_status()
 
@@ -483,14 +483,14 @@ class TestCombining(unittest.TestCase):
         totalweight: int = 0
         for i in range(4):
             nextball = generate_starting_ball()
-            nextball.setcolor(2)
+            nextball.color = 2
             totalweight += nextball.weight
             nextball.lands_on_empty((0, i + 2))
         # the eventQueue should be empty at this point
         self.assertEqual(0, game.ongoing.get_number_of_events())
         # the fifth ball should trigger the Combining
         triggerball = generate_starting_ball()
-        triggerball.setcolor(2)
+        triggerball.color = 2
         totalweight += triggerball.weight
         triggerball.lands_on_empty((0, 6))
         game.playfield.refresh_status()
@@ -517,8 +517,8 @@ class TestOngoing(unittest.TestCase):
             column: int = 2 * sesa
             for _ in range(2):
                 nextball: ColoredBall = generate_starting_ball()
-                nextball.setcolor(1)
-                nextball.setweight(50)
+                nextball.color = 1
+                nextball.weight = 50
                 nextball.lands_on_empty((column, 1))
                 game.playfield.refresh_status()
 

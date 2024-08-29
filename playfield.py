@@ -302,7 +302,7 @@ class Playfield:
         # print("Entering full Combining check")
         for x in range(8):
             for y in range(0, 4):
-                this_color = self.content[x][y].getcolor()
+                this_color = self.content[x][y].color
                 if this_color == -1:
                     continue
                 # if this point is reached, the current ball is a Colored_Ball. All others have the
@@ -324,7 +324,7 @@ class Playfield:
                         self.content[x][y + 4] = EmptySpace()
                         break
 
-                    if self.content[x][check_height].getcolor() != this_color:
+                    if self.content[x][check_height].color != this_color:
                         break
 
                     total_weight += self.content[x][check_height].weight
