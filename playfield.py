@@ -12,6 +12,7 @@ from balls import Ball, PlayfieldSpace, ball_size
 import balls
 import ongoing
 from constants import num_columns
+from landingeffect import LandingEffect, BallIsThrown
 
 weightdisplayfont = pygame.font.SysFont("Arial", 12)
 # bottom of playfield area has some space for displaying the current weight of that stack.
@@ -187,6 +188,29 @@ class Playfield:
         Does not trigger on-land effects."""
         self.stacks[x // 2].add_on_top(ball, x % 2 == 0)
         self.refresh_status()
+
+    def rewritten_land_ball_in_column(
+        self, ball: Ball, col: int
+    ) -> LandingEffect | None:
+        sesa: int = col // 2
+        left: bool = col % 2 == 0
+        neighborcol: int = col + 1 if left else col - 1
+        self.stacks[col // 2].add_on_top(ball, left)
+        self.stacks[sesa].update_weight()
+
+        # check whether to throw a ball
+        if self.stacks[sesa].ball_about_to_be_thrown():
+            self.stacks[sesa].start_tilting()
+            return BallIsThrown(
+                (col, self.stacks[sesa].landing_height(left)),
+                landed_ball=ball,
+                ball_to_throw=self.stacks[sesa].get_top_ball(not left),  # ugly
+                throw_origin_coords=(0, 0),  # dummy
+                throwing_range=1,  # dummy
+            )
+
+        if self.gravity_moves():
+            return
 
     def trigger_explosion(self, coords: Tuple[int, int]) -> None:
         """Trigger an explosion centered at given position."""
