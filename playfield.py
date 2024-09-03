@@ -76,16 +76,36 @@ def initial_stacks() -> list[Seesaw]:
     return ret
 
 
+def initial_balls() -> list[list[Ball]]:
+    ret: list[list[Ball]] = []
+    for i in range(num_columns):
+        ret.append([])
+
+    return ret
+
+
+def initial_tilts() -> list[float]:
+    return [0.0] * (num_columns // 2)
+
+
+def initial_movings() -> list[bool]:
+    return [False] * (num_columns // 2)
+
+
 @dataclass
 class Playfield:
     """Information about the current Playfield."""
 
     stacks: list[Seesaw] = field(default_factory=initial_stacks)
     # leftmoststack: Seesaw = field(default_factory=one_stack)
+
     size: Tuple[int, int] = playfieldsize
     surf: pygame.Surface = pygame.Surface(playfieldsize)
-    redraw_needed: bool = True
     alive: bool = True
+    _redraw_needed: bool = True
+    _balls: list[Ball] = field(default_factory=initial_balls)
+    _movings: list[bool] = field(default_factory=initial_movings)
+    _tilts: list[float] = field(default_factory=initial_tilts)
 
     def tick(self) -> None:
         for sesa in self.stacks:
@@ -96,13 +116,13 @@ class Playfield:
 
     def _changed(self) -> None:
         """trigger a redraw at next opportunity"""
-        self.redraw_needed = True
+        self._redraw_needed = True
 
     def draw_if_changed(self, screen: pygame.Surface) -> None:
         """draws Playfield if it changed or if any event is ongoing"""
         import game
 
-        trigger_redraw: bool = self.redraw_needed
+        trigger_redraw: bool = self._redraw_needed
         trigger_redraw |= game.ongoing.get_number_of_events() > 0
 
         if not trigger_redraw:
@@ -112,7 +132,7 @@ class Playfield:
         for event in game.ongoing.eventQueue:
             event.draw(drawn_playfield)
         screen.blit(drawn_playfield, playfield_position)
-        self.redraw_needed = False
+        self._redraw_needed = False
 
     def draw(self) -> pygame.Surface:
         """draws the Playfield including all Balls."""
@@ -126,6 +146,44 @@ class Playfield:
 
         return self.surf
 
+    def ball_at(self, coords: Tuple[int, int]) -> Ball | None:
+        """Get ball from playfield coords. Returns None if there is no ball, or the
+        respective seesaw is currently tilting, or the position is blocked by the seesaw.
+        Raises IndexError if out-of-bounds
+        """
+        from constants import num_columns, max_height
+
+        x, y = coords
+        if x < 0 or x > num_columns - 1 or y < 0 or y > max_height - 1:
+            raise IndexError(
+                f"Can't get Ball from position ({x},{y}), playfield is "
+                f"only {num_columns}x{max_height} (zero-indexed)"
+            )
+
+        sesa: int = x // 2
+        moving: bool = self._movings[sesa]
+        left: bool = x % 2 == 0
+        tilt: float = self._tilts[sesa]
+
+        if moving:
+            return None
+        if tilt not in [1.0, 0.0, -1.0]:
+            raise ValueError(
+                "Consistency error, non-moving seesaw should always be at tilt 1, 0 or -1"
+            )
+
+        stack: list[Ball] = self._balls[x]
+        blocked_height: int
+        if left:
+            blocked_height = 1 + int(tilt)
+        else:
+            blocked_height = 1 - int(tilt)
+
+        if y >= blocked_height + len(stack):
+            return None
+
+        return stack[y - blocked_height]
+
     def get_ball_at(self, coords: Tuple[int, int]) -> balls.PlayfieldSpace:
         """Returns ball at position, or EmptySpace/Blocked if there is no ball at that position. Coords must
         be (x,y) with x=0..7 and y=0..7
@@ -133,6 +191,7 @@ class Playfield:
         """
         from constants import num_columns
 
+        # BUG!! Check should be against y > maxheight, not y > num_columns
         x, y = coords
         if x < 0 or x > num_columns - 1 or y < 0 or y > num_columns - 1:
             raise IndexError("can't get Ball from position ({},{})".format(x, y))
