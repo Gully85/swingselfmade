@@ -12,7 +12,7 @@ from balls import Ball, PlayfieldSpace, ball_size
 import balls
 import ongoing
 from constants import num_columns
-from landingeffect import LandingEffect, BallIsThrown
+from pendingeffect import PendingEffect, BallIsThrown
 
 weightdisplayfont = pygame.font.SysFont("Arial", 12)
 # bottom of playfield area has some space for displaying the current weight of that stack.
@@ -250,7 +250,7 @@ class Playfield:
 
     def rewritten_land_ball_in_column(
         self, ball: Ball, col: int
-    ) -> LandingEffect | None:
+    ) -> PendingEffect | None:
         sesa: int = col // 2
         left: bool = col % 2 == 0
         neighborcol: int = col + 1 if left else col - 1
