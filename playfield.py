@@ -11,8 +11,8 @@ import pygame
 from balls import Ball, PlayfieldSpace, ball_size
 import balls
 import ongoing
-from constants import num_columns
-from pendingeffect import PendingEffect, BallIsThrown
+from constants import num_columns, max_height
+from pendingeffect import PendingEffect, BallIsThrown, BallIsDropped
 
 weightdisplayfont = pygame.font.SysFont("Arial", 12)
 # bottom of playfield area has some space for displaying the current weight of that stack.
@@ -103,9 +103,37 @@ class Playfield:
     surf: pygame.Surface = pygame.Surface(playfieldsize)
     alive: bool = True
     _redraw_needed: bool = True
-    _balls: list[Ball] = field(default_factory=initial_balls)
+    _balls: list[list[Ball]] = field(default_factory=initial_balls)
     _movings: list[bool] = field(default_factory=initial_movings)
     _tilts: list[float] = field(default_factory=initial_tilts)
+    _pending_effects: list[PendingEffect] = field(default_factory=list)
+
+    @property
+    def effect_pending(self) -> PendingEffect | None:
+        """Returns one pending effect if there is one. Each effect will only be returned once."""
+        if not self.effects_are_pending:
+            return None
+
+        return self._pending_effects.pop()
+
+    @property
+    def effects_are_pending(self) -> bool:
+        return len(self._pending_effects) > 0
+
+    @staticmethod
+    def inside_playfield(coords: Tuple[int, int]) -> bool:
+        """True if the given coords are inside the playing area. 0 <= x < num_columns and
+        0 <= y <= maxheight"""
+        x, y = coords
+        return x > 0 and x < num_columns and y > 0 and y <= max_height
+
+    def stack_is_moving(self, column: int) -> bool:
+        if column < 0 or column >= num_columns:
+            raise IndexError(f"Stack {column} is not inside the playfield.")
+        return self._movings[column // 2]
+
+    def blocked_height_of_stack(self, column: int) -> float:
+        pass
 
     def tick(self) -> None:
         for sesa in self.stacks:
@@ -154,7 +182,7 @@ class Playfield:
         from constants import num_columns, max_height
 
         x, y = coords
-        if x < 0 or x > num_columns - 1 or y < 0 or y > max_height - 1:
+        if not Playfield.inside_playfield(coords):
             raise IndexError(
                 f"Can't get Ball from position ({x},{y}), playfield is "
                 f"only {num_columns}x{max_height} (zero-indexed)"
@@ -295,6 +323,75 @@ class Playfield:
             if isinstance(ball_there, Bomb):
                 self.trigger_explosion(position)
             self.remove_ball_at(position)
+
+    def remove_ball_at(self, coords: Tuple[int, int]) -> None:
+        """Remove ball at given position. Does nothing if there is no ball in that position.
+        If any balls are on top of the given position, they will be dropped as a pending BallIsDropped
+        """
+        x, y = coords
+
+        ball: Ball | None = self.ball_at(coords)
+        if ball is None:
+            return
+
+        height_of_ball_to_remove: float = self.blocked_height_of_column(x) + y
+
+    def blocked_height_of_column(self, column: int) -> float:
+        """Returns the number of positions in the given position that is blocked by the seesaw state.
+        This can only be between 0.0 and 2.0"""
+        left: bool = column % 2 == 0
+        sesa: int = column // 2
+
+        if left:
+            return 1.0 + self._tilts[sesa]
+        else:
+            return 1.0 - self._tilts[sesa]
+
+    def drop_ball_at_and_above(self, coords: Tuple[int, int]) -> None:
+        """Convert balls at given position and above into pending BallIsDropped. Does nothing if
+        there are no balls in those positions"""
+
+        if not self.inside_playfield(coords):
+            return
+
+        x, y = coords
+
+        height_of_highest_ball: float = len(
+            self._balls[x][:]
+        ) + self.blocked_height_of_column(x)
+
+        while height_of_highest_ball > y:
+            self._pending_effects.append(
+                BallIsDropped(self._balls[x].pop(), x, height_of_highest_ball)
+            )
+            height_of_highest_ball -= 1.0
+
+    def handle_explosion_at(self, coords: Tuple[int, int]) -> None:
+        """Trigger a 3x3 explosion centered at given coords. Does not chain-explode Bombs for now.
+        If one of the concerned stacks is moving, remove all Balls that are at least partially inside
+        the explosion"""
+
+        x, y = coords
+
+        for x2 in range(x - 1, x + 1):
+            balls_to_destroy: list[Ball] = []
+            balls_to_drop: list[Ball] = []
+
+            if not self.stack_is_moving(x2):
+                # if not moving, destroy up to 3 balls (y-1, y, y+1) and drop the rest
+                for y2 in range(y - 1, y + 2):
+                    y2: int = y - 1
+                    if not self.inside_playfield((x2, y2)):
+                        continue
+                    ball: Ball | None = self.ball_at((x2, y2))
+                    if ball is None:
+                        break  # next x2
+
+                balls_to_destroy.append(ball)
+                for y2 in range(y + 2, max_height):
+                    pass
+
+        pass
 
     def refresh_status(self) -> None:
         """Checks if anything needs to start now. Performs weight-check,

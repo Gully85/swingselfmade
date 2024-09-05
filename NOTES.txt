@@ -5,12 +5,12 @@ Current TODO List:
 - Code Cleanup: Disentangle classes. Have ONE landing method in the playfield class
 - Code Cleanup: Split ThrownBall into FlyoutBall and InboundFlyingBall. Maybe even split
     into flying right and flying left.
-- fix endless-recursion if a Bomb explodes another Bomb
 - Combining 5 verticals.
 - Special Balls: Star, Joker
 - draw own pictograms for Explosion
-- sound for Explosion and Scoring?
-- unittest Bomb and Cutter
+- sound for Explosion and Scoring
+- after scoring, display the points for a few frames
+- unittest Bomb and Drill
 - "Logbook mode", write events to a log-file. Helpful if we let others look for bugs. 
     Have a tmp logfile, if a certain key is pressed, move it to a permanent file. Regular 
     updates (at each level?) for the full game state. Track all Ongoing_Events in there. 

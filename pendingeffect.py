@@ -11,36 +11,38 @@ from balls import Ball
 
 @dataclass
 class PendingEffect:
-    """A Landing Effect is anything that happens
-    as a direct consequence of a ball landing."""
+    """A Pending Effect is anything that is supposed to be added to the eventQueue soon"""
 
-    coords: Tuple[int, int]  # position of the ball that just landed
-    landed_ball: Ball
+    pass
 
 
 @dataclass
 class HorizontalThree(PendingEffect):
-    color: int
+    coords: Tuple[int, int]  # position of one of the Balls
+    landed_ball: Ball
 
 
 @dataclass
 class VerticalFive(PendingEffect):
+    coords: Tuple[int, int]  # position of the lowest Ball
     color: int
     totalweight: int
 
 
 @dataclass
-class Explosion(PendingEffect):
-    bomb_coords: Tuple[int, int]
+class Explosion3x3(PendingEffect):
+    coords: Tuple[int, int]  # center of the 3x3 area
 
 
 @dataclass
 class BallIsThrown(PendingEffect):
     ball_to_throw: Ball
     throw_origin_coords: Tuple[int, int]
-    throwing_range: int
+    throwing_range: int  # positive=throw to the right, negative=left
 
 
 @dataclass
 class BallIsDropped(PendingEffect):
-    pass
+    ball: Ball
+    column: int
+    dropped_from_height: float
