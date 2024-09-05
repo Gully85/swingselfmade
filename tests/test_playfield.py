@@ -104,7 +104,7 @@ class TestPlayfield(unittest.TestCase):
         the_playfield.refresh_status()
         game.tick()
         self.assertIsInstance(game.ongoing.get_newest_event(), Scoring)
-        self.assertTrue(wait_for_empty_eventQueue(4 * constants.scoring_delay))
+        self.assertTrue(wait_for_empty_eq(4 * constants.scoring_delay))
 
         # same for the rightmost columns and a different color
         for i in range(num_columns - 3, num_columns):
@@ -113,7 +113,7 @@ class TestPlayfield(unittest.TestCase):
             the_playfield.land_ball_in_column(Testball3, i)
         game.tick()
         self.assertIsInstance(game.ongoing.get_newest_event(), Scoring)
-        self.assertTrue(wait_for_empty_eventQueue(4 * constants.scoring_delay))
+        self.assertTrue(wait_for_empty_eq(4 * constants.scoring_delay))
 
         # Combining. Skipped for now. TODO
         if False:
@@ -167,17 +167,6 @@ class TestPlayfield(unittest.TestCase):
         the_falling_event: FallingBall = game.ongoing.get_event_of_type(FallingBall)
         self.assertEqual(the_falling_event.getcolumn(), 6)
         self.assertIs(the_falling_event.getball(), Testball2)
-
-
-def wait_for_empty_eventQueue(maxticks: int):
-    """Waits until the eventQueue is empty, up to specified number of ticks. Returns True
-    if the eventQueue got empty."""
-    maxticks = int(maxticks + 1.0)
-    for i in range(maxticks):
-        game.tick()
-        if 0 == game.ongoing.get_number_of_events():
-            return True
-    return False
 
 
 if __name__ == "__main__":
