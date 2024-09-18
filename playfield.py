@@ -188,7 +188,7 @@ class Playfield:
                     self._tilts[sesa] = 1.0
                     self._movings[sesa] = False
                     # TODO trigger a scoring-check
-            else:
+            else:  # weights equal
                 if self._tilts[sesa] < 0.0:
                     self._tilts[sesa] += tilting_per_tick
                     if self._tilts[sesa] >= 0.0:

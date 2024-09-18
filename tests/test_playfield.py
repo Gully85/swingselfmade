@@ -118,24 +118,28 @@ class TestPlayfield(unittest.TestCase):
             self.assertEqual(the_playfield.get_weight_of_column(0), Testball.weight)
             self.assertEqual(the_playfield.get_weight_of_column(1), Testball.weight)
 
+    def test_landing_ball_starts_tilt(self):
+        """Land a ball in the rightmost column, test that the rightmost seesaw starts to tilt"""
+        the_playfield = game.playfield
+        Testball: ColoredBall = generate_starting_ball()
+        Testball.weight = 20
+        column: int = num_columns - 1
+
+        the_playfield.rewritten_land_ball_in_column(Testball, column)
+        self.assertTrue(the_playfield.any_seesaw_is_moving())
+
+        initial_tiltval: float = the_playfield.blocked_height_of_column(column)
+        game.tick()
+        self.assertNotEqual(
+            initial_tiltval, the_playfield.blocked_height_of_column(column)
+        )
+
     # Test all outcomes of refresh_status
     def test_refresh_status(self):
         from scoring import Scoring
 
         game.reset()
         the_playfield = game.playfield
-
-        # Tilting
-        # Drop a ball to the rightmost column, should start a SeesawTilting
-        Testball: ColoredBall = generate_starting_ball()
-        Testball.weight = 20
-
-        the_playfield.land_ball_in_column(Testball, num_columns - 1)
-        self.assertTrue(game.playfield.any_seesaw_is_moving())
-        self.assertTrue(game.playfield.stacks[(num_columns // 2) - 1].ismoving())
-        # the_tilting_event = game.ongoing.get_newest_event()
-        # self.assertIsInstance(the_tilting_event, game.ongoing.SeesawTilting)
-        # self.assertEqual(the_tilting_event.getsesa(), 3)
 
         # Scoring
         game.reset()
