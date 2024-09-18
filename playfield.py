@@ -180,22 +180,26 @@ class Playfield:
                 self._tilts[sesa] -= tilting_per_tick
                 if self._tilts[sesa] <= -1.0:
                     self._tilts[sesa] = -1.0
+                    self._movings[sesa] = False
                     # TODO trigger a scoring-check
             elif weightleft < weightright:
                 self._tilts[sesa] += tilting_per_tick
                 if self._tilts[sesa] >= 1.0:
                     self._tilts[sesa] = 1.0
+                    self._movings[sesa] = False
                     # TODO trigger a scoring-check
             else:
                 if self._tilts[sesa] < 0.0:
                     self._tilts[sesa] += tilting_per_tick
                     if self._tilts[sesa] >= 0.0:
                         self._tilts[sesa] = 0.0
+                        self._movings[sesa] = False
                         # TODO trigger a scoring check
                 else:
                     self._tilts[sesa] -= tilting_per_tick
                     if self._tilts[sesa] <= 0.0:
                         self._tilts[sesa] = 0.0
+                        self._movings[sesa] = False
                         # TODO trigger a scoring-check
 
     def reset(self) -> None:
@@ -488,10 +492,12 @@ class Playfield:
 
     def any_seesaw_is_moving(self) -> bool:
         """True if at least one of the seesaws is moving."""
-        for stack in self.stacks:
-            if stack.ismoving():
-                return True
-        return False
+        # for stack in self.stacks:
+        #    if stack.ismoving():
+        #        return True
+        # return False
+
+        return any(self._movings)
 
     def check_Scoring_full(self) -> bool:
         """checks the full content for any horizontal-threes of the same color.

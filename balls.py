@@ -378,6 +378,7 @@ class Cutter(SpecialBall):
         pass
 
     def lands_on_ball(self, coords: Tuple[int, int], ball_below: Ball) -> None:
+        return
         import game
 
         game.playfield.remove_ball_at((coords[0], coords[1] - 1))
