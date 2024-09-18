@@ -17,44 +17,106 @@ import unittest
 
 
 class TestPlayfield(unittest.TestCase):
-    def test_playfield(self):
-        game.reset()
 
+    def test_initial_playfield_is_empty(self):
+        game.reset()
         the_playfield: Playfield = game.playfield
 
-        # at the beginning: The bottom row should be Blocked, the row
-        # above that should be EmptySpace
         for i in range(num_columns):
-            self.assertIsInstance(the_playfield.get_ball_at((i, 0)), BlockedSpace)
-            self.assertIsInstance(the_playfield.get_ball_at((i, 1)), EmptySpace)
+            self.assertIsNone(the_playfield.ball_at((i, 1)))
 
-        # generate random ball, land it to the very left, wait until eventQueue is empty.
-        # Seesaw must be tilted to the left, the ball must be at coords (0,0),
-        # (1,0) and (1,1) must be Blocked
+    def test_initial_playfield_is_not_tilted(self):
+        game.reset()
+        the_playfield: Playfield = game.playfield
+
+        for i in range(num_columns):
+            self.assertEqual(1.0, the_playfield.blocked_height_of_column(i))
+
+    def test_heavy_ball_tilts_seesaw_left(self):
+        game.reset()
+        the_playfield: Playfield = game.playfield
+
         Testball: ColoredBall = generate_starting_ball()
-        the_playfield.land_ball_in_column(Testball, 0)
-        maxticks: int = int(constants.max_FPS / constants.tilting_per_tick)
-        self.assertTrue(wait_for_empty_eq(maxticks))
-        self.assertEqual(the_playfield.get_seesaw_state(0), -1)
-        self.assertIs(the_playfield.get_ball_at((0, 0)), Testball)
-        self.assertIsInstance(the_playfield.get_ball_at((1, 0)), BlockedSpace)
-        self.assertIsInstance(the_playfield.get_ball_at((1, 1)), BlockedSpace)
+        self.assertGreater(Testball.weight, 0)
+        the_playfield.rewritten_land_ball_in_column(Testball, 0)
 
-        # land a ball of equal weight in the neighboring column, wait for empty EventQueue,
-        # should lead to balanced seesaws. Check that both balls are in the correct positions.
+        maxticks: int = constants.tilting_maxticks
+        self.assertTrue(wait_for_empty_eq(maxticks))
+
+        self.assertEqual(0.0, the_playfield.blocked_height_of_column(0))
+        self.assertEqual(2.0, the_playfield.blocked_height_of_column(1))
+
+    def test_heavy_ball_tilts_seesaw_right(self):
+        game.reset()
+        the_playfield: Playfield = game.playfield
+
+        Testball: ColoredBall = generate_starting_ball()
+        self.assertGreater(Testball.weight, 0)
+        the_playfield.rewritten_land_ball_in_column(Testball, 1)
+
+        maxticks: int = constants.tilting_maxticks
+        self.assertTrue(wait_for_empty_eq(maxticks))
+
+        self.assertEqual(2.0, the_playfield.blocked_height_of_column(0))
+        self.assertEqual(0.0, the_playfield.blocked_height_of_column(1))
+
+    def test_equal_balls_balance_tilts(self):
+        game.reset()
+        the_playfield: Playfield = game.playfield
+
+        Testball1: ColoredBall = generate_starting_ball()
+        the_playfield.rewritten_land_ball_in_column(Testball1, 0)
+        maxticks: int = constants.tilting_maxticks
+        self.assertTrue(wait_for_empty_eq(maxticks))
+
         Testball2: ColoredBall = generate_starting_ball()
-        Testball2.weight = Testball.weight
-        the_playfield.land_ball_in_column(Testball2, 1)
-        maxticks: int = int(constants.max_FPS // constants.tilting_per_tick)
+        Testball2.weight = Testball1.weight
+        the_playfield.rewritten_land_ball_in_column(Testball2, 1)
         self.assertTrue(wait_for_empty_eq(maxticks))
-        self.assertEqual(the_playfield.get_seesaw_state(0), 0)
-        self.assertIs(the_playfield.get_ball_at((0, 1)), Testball)
-        self.assertIs(the_playfield.get_ball_at((1, 1)), Testball2)
 
-        # Test get_weight_of_column
-        the_playfield.update_weights()
-        self.assertEqual(the_playfield.get_weight_of_column(0), Testball.weight)
-        self.assertEqual(the_playfield.get_weight_of_column(1), Testball.weight)
+        self.assertEqual(1.0, the_playfield.blocked_height_of_column(0))
+        self.assertEqual(1.0, the_playfield.blocked_height_of_column(1))
+
+    if False:
+
+        def test_playfield(self):
+            game.reset()
+
+            the_playfield: Playfield = game.playfield
+
+            # at the beginning: The bottom row should be Blocked, the row
+            # above that should be EmptySpace
+            for i in range(num_columns):
+                self.assertIsInstance(the_playfield.get_ball_at((i, 0)), BlockedSpace)
+                self.assertIsInstance(the_playfield.get_ball_at((i, 1)), EmptySpace)
+
+            # generate random ball, land it to the very left, wait until eventQueue is empty.
+            # Seesaw must be tilted to the left, the ball must be at coords (0,0),
+            # (1,0) and (1,1) must be Blocked
+            Testball: ColoredBall = generate_starting_ball()
+            the_playfield.land_ball_in_column(Testball, 0)
+            maxticks: int = int(constants.max_FPS / constants.tilting_per_tick)
+            self.assertTrue(wait_for_empty_eq(maxticks))
+            self.assertEqual(the_playfield.get_seesaw_state(0), -1)
+            self.assertIs(the_playfield.get_ball_at((0, 0)), Testball)
+            self.assertIsInstance(the_playfield.get_ball_at((1, 0)), BlockedSpace)
+            self.assertIsInstance(the_playfield.get_ball_at((1, 1)), BlockedSpace)
+
+            # land a ball of equal weight in the neighboring column, wait for empty EventQueue,
+            # should lead to balanced seesaws. Check that both balls are in the correct positions.
+            Testball2: ColoredBall = generate_starting_ball()
+            Testball2.weight = Testball.weight
+            the_playfield.land_ball_in_column(Testball2, 1)
+            maxticks: int = int(constants.max_FPS // constants.tilting_per_tick)
+            self.assertTrue(wait_for_empty_eq(maxticks))
+            self.assertEqual(the_playfield.get_seesaw_state(0), 0)
+            self.assertIs(the_playfield.get_ball_at((0, 1)), Testball)
+            self.assertIs(the_playfield.get_ball_at((1, 1)), Testball2)
+
+            # Test get_weight_of_column
+            the_playfield.update_weights()
+            self.assertEqual(the_playfield.get_weight_of_column(0), Testball.weight)
+            self.assertEqual(the_playfield.get_weight_of_column(1), Testball.weight)
 
     # Test all outcomes of refresh_status
     def test_refresh_status(self):

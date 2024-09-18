@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 
 import pygame
 
-from balls import Ball, PlayfieldSpace, ball_size
+from balls import Ball, ColoredBall, PlayfieldSpace, ball_size
 import balls
 import ongoing
 from constants import num_columns, max_height
@@ -92,6 +92,10 @@ def initial_movings() -> list[bool]:
     return [False] * (num_columns // 2)
 
 
+def initial_weights() -> list[int]:
+    return [0] * num_columns
+
+
 @dataclass
 class Playfield:
     """Information about the current Playfield."""
@@ -107,6 +111,7 @@ class Playfield:
     _movings: list[bool] = field(default_factory=initial_movings)
     _tilts: list[float] = field(default_factory=initial_tilts)
     _pending_effects: list[PendingEffect] = field(default_factory=list)
+    _weights: list[int] = field(default_factory=initial_weights)
 
     @property
     def effect_pending(self) -> PendingEffect | None:
@@ -125,7 +130,28 @@ class Playfield:
         """True if the given coords are inside the playing area. 0 <= x < num_columns and
         0 <= y <= maxheight"""
         x, y = coords
-        return x > 0 and x < num_columns and y > 0 and y <= max_height
+        return x >= 0 and x < num_columns and y >= 0 and y <= max_height
+
+    def _update_weights(self) -> None:
+        """Updates the internal sum of the weights in each stack. Also triggers the
+        start of tilting if necessary"""
+        for i in range(num_columns):
+            self._weights[i] = sum([b.weight for b in self._balls[i]])
+
+        # start tilting if necessary
+        for sesa in range(num_columns // 2):
+            if self._movings[sesa]:
+                continue
+
+            leftweight: int = self._weights[sesa * 2]
+            rightweight: int = self._weights[sesa * 2 + 1]
+
+            if leftweight > rightweight:
+                self._movings[sesa] = self._tilts[sesa] != -1.0
+            elif leftweight == rightweight:
+                self._movings[sesa] = self._tilts[sesa] != 0.0
+            else:
+                self._movings[sesa] = self._tilts[sesa] != 1.0
 
     def stack_is_moving(self, column: int) -> bool:
         if column < 0 or column >= num_columns:
@@ -136,8 +162,41 @@ class Playfield:
         pass
 
     def tick(self) -> None:
+        from constants import tilting_per_tick
+
+        # old
         for sesa in self.stacks:
             sesa.tick()
+
+        # new
+        for sesa in range(num_columns // 2):
+            if not self._movings[sesa]:
+                continue
+
+            weightleft: int = self._weights[sesa * 2]
+            weightright: int = self._weights[sesa * 2 + 1]
+
+            if weightleft > weightright:
+                self._tilts[sesa] -= tilting_per_tick
+                if self._tilts[sesa] <= -1.0:
+                    self._tilts[sesa] = -1.0
+                    # TODO trigger a scoring-check
+            elif weightleft < weightright:
+                self._tilts[sesa] += tilting_per_tick
+                if self._tilts[sesa] >= 1.0:
+                    self._tilts[sesa] = 1.0
+                    # TODO trigger a scoring-check
+            else:
+                if self._tilts[sesa] < 0.0:
+                    self._tilts[sesa] += tilting_per_tick
+                    if self._tilts[sesa] >= 0.0:
+                        self._tilts[sesa] = 0.0
+                        # TODO trigger a scoring check
+                else:
+                    self._tilts[sesa] -= tilting_per_tick
+                    if self._tilts[sesa] <= 0.0:
+                        self._tilts[sesa] = 0.0
+                        # TODO trigger a scoring-check
 
     def reset(self) -> None:
         self.__init__()
@@ -276,12 +335,15 @@ class Playfield:
         self.stacks[x // 2].add_on_top(ball, x % 2 == 0)
         self.refresh_status()
 
-    def rewritten_land_ball_in_column(
-        self, ball: Ball, col: int
-    ) -> PendingEffect | None:
-        sesa: int = col // 2
-        left: bool = col % 2 == 0
-        neighborcol: int = col + 1 if left else col - 1
+    def rewritten_land_ball_in_column(self, ball: Ball, col: int) -> None:
+
+        if isinstance(ball, ColoredBall):
+            self._balls[col].append(ball)
+            self._update_weights()
+
+        return
+        # TODO check whether to throw a ball
+
         self.stacks[col // 2].add_on_top(ball, left)
         self.stacks[sesa].update_weight()
 
