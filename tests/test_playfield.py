@@ -10,7 +10,7 @@ from balls import Ball, BlockedSpace, EmptySpace, ColoredBall
 from balls import generate_starting_ball
 from playfield import Playfield
 from fallingball import FallingBall
-from tests.testing_generals import wait_for_empty_eq
+from tests.testing_generals import wait_for_empty_eq, make_solid_ground
 from constants import num_columns
 
 import unittest
@@ -134,6 +134,19 @@ class TestPlayfield(unittest.TestCase):
             initial_tiltval, the_playfield.blocked_height_of_column(column)
         )
 
+    def test_scoring_starts(self):
+        from scoring import Scoring
+
+        the_playfield = game.playfield
+        make_solid_ground()
+
+        for i in range(3):
+            Testball = ColoredBall(2, 3)
+            the_playfield.rewritten_land_ball_in_column(Testball, i)
+            game.tick()
+
+        self.assertTrue(game.ongoing.event_type_exists(Scoring))
+
     # Test all outcomes of refresh_status
     def test_refresh_status(self):
         from scoring import Scoring
@@ -143,24 +156,8 @@ class TestPlayfield(unittest.TestCase):
 
         # Scoring
         game.reset()
-        # Drop two heavy balls on the left side of each seesaw to create a flat ground
-        for sesa in range(num_columns // 2):
-            Testball = generate_starting_ball()
-            Testball.weight = 100
-            the_playfield.land_ball_in_column(Testball, 2 * sesa)
-            Testball = generate_starting_ball()
-            Testball.weight = 100
-            Testball.color = 1
-            the_playfield.land_ball_in_column(Testball, 2 * sesa)
 
-        # wait for all tilts
-        maxticks: int = constants.tilting_maxticks + 1
-        for i in range(maxticks):
-            game.tick()
-            if not game.playfield.any_seesaw_is_moving():
-                break
-        else:
-            self.fail("Tilt did not finish within expected time")
+        return
 
         # put equal-colored balls in the three leftmost columns. This should start a Scoring.
         for i in range(3):
