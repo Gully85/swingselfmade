@@ -123,6 +123,7 @@ class Playfield:
 
     @property
     def effects_are_pending(self) -> bool:
+        """True if at least one effect is pending"""
         return len(self._pending_effects) > 0
 
     @staticmethod
@@ -237,15 +238,19 @@ class Playfield:
 
         return self.surf
 
-    def ball_at(self, coords: Tuple[int, int]) -> Ball | None:
+    def ball_at(
+        self, coords: Tuple[int, int], allow_out_of_bounds: bool = False
+    ) -> Ball | None:
         """Get ball from playfield coords. Returns None if there is no ball, or the
         respective seesaw is currently tilting, or the position is blocked by the seesaw.
-        Raises IndexError if out-of-bounds
+        Raises IndexError if out-of-bounds unless allow_out_of_bounds is set
         """
         from constants import num_columns, max_height
 
         x, y = coords
         if not Playfield.inside_playfield(coords):
+            if allow_out_of_bounds:
+                return None
             raise IndexError(
                 f"Can't get Ball from position ({x},{y}), playfield is "
                 f"only {num_columns}x{max_height} (zero-indexed)"
@@ -270,7 +275,7 @@ class Playfield:
         else:
             blocked_height = 1 - int(tilt)
 
-        if y >= blocked_height + len(stack):
+        if y < blocked_height or y >= blocked_height + len(stack):
             return None
 
         return stack[y - blocked_height]
@@ -344,6 +349,7 @@ class Playfield:
         if isinstance(ball, ColoredBall):
             self._balls[col].append(ball)
             self._update_weights()
+            self.rewritten_refresh_status()
 
         return
         # TODO check whether to throw a ball
@@ -393,6 +399,7 @@ class Playfield:
     def remove_ball_at(self, coords: Tuple[int, int]) -> None:
         """Remove ball at given position. Does nothing if there is no ball in that position.
         If any balls are on top of the given position, they will be dropped as a pending BallIsDropped
+        TODO unfinished
         """
         x, y = coords
 
@@ -401,10 +408,11 @@ class Playfield:
             return
 
         height_of_ball_to_remove: float = self.blocked_height_of_column(x) + y
+        raise NotImplementedError("Removing is not finished yet")
 
     def blocked_height_of_column(self, column: int) -> float:
         """Returns the number of positions in the given position that is blocked by the seesaw state.
-        This can only be between 0.0 and 2.0"""
+        Values range from 0.0 to 2.0"""
         left: bool = column % 2 == 0
         sesa: int = column // 2
 
@@ -459,6 +467,10 @@ class Playfield:
 
         pass
 
+    def rewritten_refresh_status(self) -> None:
+        if not self.check_Scoring_full():
+            self.check_combining()
+
     def refresh_status(self) -> None:
         """Checks if anything needs to start now. Performs weight-check,
         if that does nothing performs scoring-check, if that does nothing performs combining-check.
@@ -507,25 +519,32 @@ class Playfield:
         """
         from constants import num_columns
         from scoring import Scoring
+        from pendingeffect import HorizontalThree
 
         # lowest row can never Score. Start at height 1
         for y in range(1, num_columns):
             # x=1..6 makes sure that (x +/- 1) stays in-bound 0..7
             for x in range(1, num_columns - 1):
-                the_ball = self.get_ball_at((x, y))
-                if not isinstance(the_ball, Ball):
+                the_ball: Ball | None = self.ball_at((x, y))
+                if the_ball is None:
                     continue
 
                 # TODO Joker, Heart, Star
 
-                left_neighbor: PlayfieldSpace = self.get_ball_at((x - 1, y))
-                if not left_neighbor.matches_color(the_ball):
+                left_neighbor: Ball | None = self.ball_at(
+                    (x - 1, y), allow_out_of_bounds=True
+                )
+                if left_neighbor is None or not left_neighbor.matches_color(the_ball):
                     continue
-                right_neighbor: PlayfieldSpace = self.get_ball_at((x + 1, y))
+                right_neighbor: PlayfieldSpace = self.ball_at(
+                    (x + 1, y), allow_out_of_bounds=True
+                )
+                if right_neighbor is None:
+                    continue
                 if right_neighbor.matches_color(the_ball):
-                    Scoring.start_score((x, y))
+                    self._pending_effects.append(HorizontalThree((x, y)), the_ball)
 
-                    return True
+                return True
         return False
 
     @staticmethod

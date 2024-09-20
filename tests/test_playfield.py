@@ -77,6 +77,30 @@ class TestPlayfield(unittest.TestCase):
         self.assertEqual(1.0, the_playfield.blocked_height_of_column(0))
         self.assertEqual(1.0, the_playfield.blocked_height_of_column(1))
 
+    def test_ball_on_lower_side_is_found(self):
+        game.reset()
+        the_playfield: Playfield = game.playfield
+
+        testball: ColoredBall = generate_starting_ball()
+        the_playfield.rewritten_land_ball_in_column(testball, 0)
+        wait_for_empty_eq(constants.tilting_maxticks)
+
+        self.assertIs(the_playfield.ball_at((0, 0)), testball)
+
+    def test_ball_on_higher_side_is_found(self):
+        game.reset()
+        the_playfield: Playfield = game.playfield
+
+        testball1: ColoredBall = generate_starting_ball()
+        testball1.weight = 5
+        the_playfield.rewritten_land_ball_in_column(testball1, 0)
+        wait_for_empty_eq(constants.tilting_maxticks)
+
+        testball2: ColoredBall = generate_starting_ball()
+        testball2.weight = 1
+        the_playfield.rewritten_land_ball_in_column(testball2, 1)
+        self.assertIs(the_playfield.ball_at((1, 2)), testball2)
+
     if False:
 
         def test_playfield(self):

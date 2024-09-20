@@ -37,6 +37,8 @@ def add_to_EQ(event: Ongoing) -> None:
 def tick() -> None:
     """perform update of all ongoing events. Called periodically as time passes."""
     import game
+    from pendingeffect import PendingEffect, HorizontalThree
+    from scoring import Scoring
 
     global eventQueue
     for event in eventQueue:
@@ -47,6 +49,11 @@ def tick() -> None:
         game.playfield._changed()
         newEQ: list[Ongoing] = [ev for ev in eventQueue if not ev.is_finished]
         eventQueue = newEQ
+
+    next_effect: PendingEffect = game.playfield.effect_pending
+    while next_effect is not None:
+        if isinstance(next_effect, HorizontalThree):
+            eventQueue.append(Scoring(next_effect.coords, next_effect.landed_ball))
 
 
 def reset() -> None:
