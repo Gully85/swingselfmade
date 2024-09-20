@@ -113,8 +113,7 @@ class Playfield:
     _pending_effects: list[PendingEffect] = field(default_factory=list)
     _weights: list[int] = field(default_factory=initial_weights)
 
-    @property
-    def effect_pending(self) -> PendingEffect | None:
+    def next_pending_effect(self) -> PendingEffect | None:
         """Returns one pending effect if there is one. Each effect will only be returned once."""
         if not self.effects_are_pending:
             return None
@@ -542,7 +541,11 @@ class Playfield:
                 if right_neighbor is None:
                     continue
                 if right_neighbor.matches_color(the_ball):
-                    self._pending_effects.append(HorizontalThree((x, y)), the_ball)
+                    print("This should list a pending HorizontalThree")
+                    upcoming: HorizontalThree = HorizontalThree((x, y), the_ball)
+                    print(f"pending before: {self._pending_effects}")
+                    self._pending_effects.append(upcoming)
+                    print(f"pending after: {self._pending_effects}")
 
                 return True
         return False

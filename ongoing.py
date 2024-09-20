@@ -50,10 +50,11 @@ def tick() -> None:
         newEQ: list[Ongoing] = [ev for ev in eventQueue if not ev.is_finished]
         eventQueue = newEQ
 
-    next_effect: PendingEffect = game.playfield.effect_pending
+    next_effect: PendingEffect = game.playfield.next_pending_effect()
     while next_effect is not None:
         if isinstance(next_effect, HorizontalThree):
             eventQueue.append(Scoring(next_effect.coords, next_effect.landed_ball))
+            next_effect = game.playfield.next_pending_effect()
 
 
 def reset() -> None:
