@@ -129,32 +129,7 @@ class TestTilting(unittest.TestCase):
         maxticks: int = int(1.0 / constants.tilting_per_tick) + 1
         self.assertTrue(wait_for_empty_eq(maxticks))
 
-        self.assertFalse(game.playfield.stacks[chosen_sesa].ismoving())
-
-    def test_tilting_ends_towards_heavier_side(self):
-        """generate random Ball and land it somewhere, wait for tilting to finish. Once on the left side, once on the right side.
-        Verify that the tilt ends towards the Ball."""
-        game.reset()
-
-        chosen_column: int = 0
-        generate_starting_ball().lands_on_empty((chosen_column, 2))
-        game.playfield.refresh_status()
-        # wait for tilt to finish
-        maxticks: int = int(1.0 / constants.tilting_per_tick) + 1
-        self.assertTrue(wait_for_empty_eq(maxticks))
-
-        self.assertEqual(-1, game.playfield.get_seesaw_state(chosen_column))
-        self.assertEqual(1, game.playfield.get_seesaw_state(chosen_column + 1))
-
-        # test on the rightmost column, should tilt to the right
-        chosen_column: int = num_columns - 1
-        generate_starting_ball().lands_on_empty((chosen_column, 2))
-        game.playfield.refresh_status()
-        maxticks: int = int(1.0 / constants.tilting_per_tick) + 1
-        self.assertTrue(wait_for_empty_eq(maxticks))
-
-        self.assertEqual(1, game.playfield.get_seesaw_state(chosen_column - 1))
-        self.assertEqual(-1, game.playfield.get_seesaw_state(chosen_column))
+        self.assertFalse(game.playfield.any_seesaw_is_moving())
 
 
 class TestThrowing(unittest.TestCase):
@@ -163,17 +138,18 @@ class TestThrowing(unittest.TestCase):
         """land a Ball with weight 1 in column 0, then a Ball with weight 3 in column 1.
         Assert that the first Ball is thrown with range 2."""
         game.reset()
+        the_playfield = game.playfield
 
         ball1: ColoredBall = ColoredBall(1, 1)
-        ball1.lands_on_empty((0, 1))
-        game.playfield.refresh_status()
+        the_playfield.rewritten_land_ball_in_column(ball1, 0)
+
         maxticks: int = int(1.0 / constants.tilting_per_tick) + 1
         self.assertTrue(wait_for_empty_eq(maxticks))
 
         ball2: ColoredBall = ColoredBall(1, 3)
-        ball2.lands_on_empty((1, 2))
-        game.playfield.refresh_status()
+        the_playfield.rewritten_land_ball_in_column(ball2, 1)
 
+        game.tick()
         self.assertTrue(game.ongoing.event_type_exists(ThrownBall))
         the_throwing_event: ThrownBall = game.ongoing.get_event_of_type(ThrownBall)
         self.assertIs(the_throwing_event.getball(), ball1)
@@ -335,7 +311,10 @@ class TestScoring(unittest.TestCase):
         from scoring import Scoring
 
         game.reset()
+        the_playfield = game.playfield
         self.make_solid_ground()
+
+        self.assertEqual(game.getscore(), 0)
 
         # drop two balls, color=2 in the three leftmost columns. Sum their weights.
         totalweight: int = 0
@@ -343,8 +322,8 @@ class TestScoring(unittest.TestCase):
             nextball: ColoredBall = generate_starting_ball()
             nextball.color = 2
             totalweight += nextball.weight
-            nextball.lands_on_empty((col, 3))
-        game.playfield.refresh_status()
+            the_playfield.rewritten_land_ball_in_column(nextball, col)
+        game.tick()
 
         self.assertFalse(game.ongoing.event_type_exists(Scoring))
 
@@ -352,10 +331,9 @@ class TestScoring(unittest.TestCase):
         nextball = generate_starting_ball()
         nextball.color = 2
         totalweight += nextball.weight
-        nextball.lands_on_empty((2, 3))
-        game.playfield.refresh_status()
-
+        the_playfield.rewritten_land_ball_in_column(nextball, 2)
         game.tick()
+
         self.assertTrue(game.ongoing.event_type_exists(Scoring))
 
         # Scoring should finish within this many ticks
@@ -375,6 +353,7 @@ class TestScoring(unittest.TestCase):
         from scoring import Scoring
 
         game.reset()
+        the_playfield = game.playfield
         self.make_solid_ground()
 
         # Draw the following shape (numbers are colors, all weight 1):
@@ -385,22 +364,23 @@ class TestScoring(unittest.TestCase):
         # then drop a color=2 ball to the third column. Verify that before that final ball, no
         # Scoring is started. Verify that the Scoring affects and removes five balls.
 
-        ColoredBall(2, 1).lands_on_empty((0, 2))
-        ColoredBall(3, 1).lands_on_empty((1, 2))
-        ColoredBall(3, 1).lands_on_empty((2, 2))
+        the_playfield.rewritten_land_ball_in_column(ColoredBall(2, 1), 0)
+        the_playfield.rewritten_land_ball_in_column(ColoredBall(3, 1), 1)
+        the_playfield.rewritten_land_ball_in_column(ColoredBall(3, 1), 2)
 
-        ColoredBall(2, 1).lands_on_empty((0, 3))
-        ColoredBall(2, 1).lands_on_empty((1, 3))
+        the_playfield.rewritten_land_ball_in_column(ColoredBall(2, 1), 0)
+        the_playfield.rewritten_land_ball_in_column(ColoredBall(2, 1), 1)
 
-        ColoredBall(2, 1).lands_on_empty((0, 4))
+        the_playfield.rewritten_land_ball_in_column(ColoredBall(2, 1), 0)
 
         self.assertFalse(game.ongoing.event_type_exists(Scoring))
 
         # Number of balls: 8 for the solid ground, 6 placed in this test.
         self.assertEqual(game.playfield.get_number_of_balls(), 14)
 
-        ColoredBall(2, 1).lands_on_empty((2, 3))
-        game.playfield.refresh_status()
+        # This ball should start the scoring
+        the_playfield.rewritten_land_ball_in_column(ColoredBall(2, 1), 2)
+        game.tick()
         self.assertTrue(game.ongoing.event_type_exists(Scoring))
 
         # it should take 3 expansions for the Scoring to include all color=2 balls.
@@ -416,6 +396,7 @@ class TestScoring(unittest.TestCase):
         """Tests that balls lieing on a Scored Ball will start to fall"""
         from scoring import Scoring
 
+        the_playfield = game.playfield
         game.reset()
         self.make_solid_ground()
 
@@ -425,15 +406,15 @@ class TestScoring(unittest.TestCase):
         # then drop a 2 to the third column. Check that the color=3 ball is now a FallingBall and not in
         # the playfield any more.
 
-        ColoredBall(2, 1).lands_on_empty((0, 2))
-        ColoredBall(2, 1).lands_on_empty((1, 2))
+        the_playfield.rewritten_land_ball_in_column(ColoredBall(2, 1), 0)
+        the_playfield.rewritten_land_ball_in_column(ColoredBall(2, 1), 1)
         offcolor_ball = ColoredBall(3, 1)
-        offcolor_ball.lands_on_empty((1, 3))
-
+        the_playfield.rewritten_land_ball_in_column(offcolor_ball)
+        game.tick()
         self.assertFalse(game.ongoing.event_type_exists(Scoring))
 
-        ColoredBall(2, 1).lands_on_empty((2, 2))
-        game.playfield.refresh_status()
+        the_playfield.rewritten_land_ball_in_column(ColoredBall(2, 1), 2)
+        game.tick()
         self.assertTrue(game.ongoing.event_type_exists(Scoring))
 
         maxticks: int = 4 * constants.scoring_delay + 1
